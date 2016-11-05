@@ -5,6 +5,8 @@ __pycache__/
 
 # XML temp data
 *.xml
+# pyc, compiled python objects
+*.pyc
 # C extensions
 *.so
 
