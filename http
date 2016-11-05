@@ -1,0 +1,4 @@
+#!/bin/bash
+sudo pkill httpsrv.py
+sudo nohup ./public/httpsrv.py &> /dev/null &
+ 

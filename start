@@ -1,0 +1,13 @@
+#!/bin/bash
+echo stoping relevant services
+sudo pkill --signal 9 airiana-core.py
+sudo pkill --signal 9 httpsrv.py
+sudo pkill --signal 9 controler.py
+echo starting aircontrol daemon
+sudo nohup ./airiana-core.py daemon > /dev/null &
+sudo nohup ./public/controler.py  >> /dev/null &
+
+
+
+
+

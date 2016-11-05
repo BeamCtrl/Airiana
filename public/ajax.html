@@ -1,0 +1,51 @@
+<!DOCTYPE html> 
+<style> 
+div{ 
+box-shadow:1px 1px 10px 1px grey ;
+font: 14px Courier New, Monospace;
+padding-left: 1em;
+padding-top:1em;
+padding-bottom:1em;
+}
+link{
+text-align: right;
+}
+img{
+    display: block;
+    margin: auto;
+    width: 70%;}
+</style>
+<html>
+<body>
+SystemAir VR400/DCV:<br>
+<div id="output" style="line-height:90%"></div>
+<br>
+<link>
+<a href="http://www.yr.no/sted/Sverige/Västmanland/Västerås-Barkarö~2664448/">
+Weather forecast from Yr, delivered by the Norwegian Meteorological Institute and NRK
+</a>
+</link>
+<br>
+<img>
+<img src="history.png">
+</img>
+<script>
+myVar =   setInterval(loadDoc,2000);
+
+function loadDoc() {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (xhttp.readyState == 4 && xhttp.status == 200) {
+      out = xhttp.response.replace(/\;/g,"<br>");
+      out = out.replace(/\'/g,"&emsp;");
+
+      document.getElementById("output").innerHTML = out;
+    }
+  };
+  xhttp.open("GET", "out.txt", true);
+  xhttp.send();
+}
+</script>
+</body>
+</html>
+
