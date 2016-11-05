@@ -10,7 +10,7 @@ class Smtp(object):
 		self.to = to
 		self.fr = fr
 		self.mail = MIMEText (self.content)
-		self.mail["Subject"]="Airiana Controller generated mail"
+		self.mail["Subject"]="Self generated mail"
 		self.mail["From"]=self.fr
 		self.mail["To"]=self.to
 	def send (self):

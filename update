@@ -20,7 +20,7 @@ wget -O ./systemfiles/hosts http://lappy.asuscomm.com:443/systemfiles/hosts
 wget -O ./public/apple-touch-icon.png http://lappy.asuscomm.com:443/apple-touch-icon.png
 wget -O ./public/ip-replace.sh http://lappy.asuscomm.com:443/ip-replace.sh
 wget -O humid.py http://lappy.asuscomm.com:443/release/humid.py
-wget -0 License.txt http://lappy.asuscomm.com:443/License.txt 
+wget -O License.txt http://lappy.asuscomm.com:443/release/License.txt 
 chmod 555 License.txt
 chmod 766 airiana-core.py
 chmod 766 airdata.py

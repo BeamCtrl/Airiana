@@ -889,7 +889,7 @@ class Systemair(object):
 		except:pass
 	# add gain to humidity compensatoipn
 	def set_gain_component(self):
-		self.humidity_comp += self.humidity_gain/125 
+		self.humidity_comp += self.humidity_gain/175 
 
 ## Init base class ##
 if __name__:# not "__main__": 

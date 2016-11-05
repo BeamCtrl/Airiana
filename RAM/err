@@ -1996,6 +1996,3 @@ Traceback (most recent call last):
   File "/usr/local/lib/python2.7/dist-packages/minimalmodbus.py", line 2304, in _checkNumerical
     if not isinstance(maxvalue, (int, float, long, type(None))):
 RuntimeError: maximum recursion depth exceeded while calling a Python object
-.py", line 2304, in _checkNumerical
-    if not isinstance(maxvalue, (int, float, long, type(None))):
-RuntimeError: maximum recursion depth exceeded while calling a Python object
