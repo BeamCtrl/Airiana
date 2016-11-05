@@ -1,3 +1,4 @@
+sh: 1: ./forcast.py: Permission denied
 Traceback (most recent call last):
   File "/home/pi/airiana/airiana-core.py", line 911, in <module>
     device.update_airflow()
