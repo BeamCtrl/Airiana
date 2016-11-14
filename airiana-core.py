@@ -24,7 +24,7 @@ if "daemon" in sys.argv:
 if os.path.lexists("/dev/serial0"):
 	print "Communication started on device Serial0;"
 	unit = "/dev/serial0"
-else : 
+else :
 	print "Communication started on device ttyAMA0;"
 	unit = "/dev/ttyAMA0"
 minimalmodbus.BAUDRATE = 19200
@@ -48,9 +48,9 @@ while True:
 		cmd_socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
 		cmd_socket.bind(("0.0.0.0",9876))
 		break
-	except: 
+	except:
 		os.system("sleep 1")
-		if time.time()-starttime> 60:break 
+		if time.time()-starttime> 60:break
 
 ########### global uty functions################
 sensor_dict = {}
@@ -84,7 +84,7 @@ def update_sensors():
 		try:
 			device.sensor_temp =float(sensor_dict["91"]["temperature"])
 			device.sensor_humid =int(sensor_dict["91"]["humidity"])
-			device.airdata_inst.humid = float(device.sensor_humid)/100  
+			device.airdata_inst.humid = float(device.sensor_humid)/100
 		except KeyError: pass#device.msg +="\nerror on sensor 91"
 		try:
 			device.inside =float(sensor_dict["92"]["temperature"])
@@ -98,7 +98,8 @@ def update_sensors():
 #WRITE TO DATA.LOG
 def logger ():
 	try:
-		#+str(device.extract_humidity*100)\	
+		fdo = open("data.log")
+		#+str(device.extract_humidity*100)\
 		cmd = "echo \""   		\
 		+str(time.time()) 		\
 		+":"				\
@@ -122,9 +123,11 @@ def logger ():
 		+":"				\
 		+str(round(device.condensate_compensation,2))\
 		+":"+str(device.inside_humid) 	\
-		+"\""	
-		os.system(cmd+" >>data.log")
-	except:traceback.print_exc() 
+		+"\""
+		#os.system(cmd+" >>data.log")
+		fdo.write(cmd+"\n")
+		fdo.close()
+	except:traceback.print_exc()
 
 #PRINT COMM SETTING
 def display_settings():
@@ -156,19 +159,19 @@ class Request(object):
 			self.buff += os.read(bus,1000)
 			time.sleep(wait_time)
 			self.response = client.read_registers(start,count)
-		except ValueError as error: 
+		except ValueError as error:
 			#print "checksum error,retry:",self.checksum_errors,error.message
-			#print error.message.find("\x01\x83\x02\xc0\xf1") 
+			#print error.message.find("\x01\x83\x02\xc0\xf1")
 			if  error.message.find("\x01\x83\x02\xc0\xf1")<>-1:
 				print "address out of range"
 				exit()
 			self.checksum_errors +=1
 			self.modbusregisters(start,count)
-		except IOError: 
+		except IOError:
 			self.connect_errors += 1
 			self.modbusregisters(start,count)
 	def modbusregister (self,address,decimals):
-		try: 
+		try:
 			self.response = "no data"
 			self.buff = ""
 			time.sleep(wait_time)
@@ -177,9 +180,9 @@ class Request(object):
 			self.response = client.read_register(address,decimals)
 		except IOError:
 	 		self.connect_errors += 1
-			#print "no response, retry:",self.connect_errors,address 
+			#print "no response, retry:",self.connect_errors,address
 			self.modbusregister(address,decimals)
-		except ValueError: 
+		except ValueError:
 			#print "checksum error,retry:",self.checksum_errors
 			os.read(bus,1000)
 			self.checksum_errors +=1
@@ -187,7 +190,7 @@ class Request(object):
 	def write_register(self, reg, value):
 		self.modbusregister(reg, 0)
 		start = self.response
-		if start == value: return 0 
+		if start == value: return 0
 		try:
 			#print "set", reg, "to",value
 			resp = client.write_register(reg,value)
@@ -195,7 +198,7 @@ class Request(object):
 			#print "ioerror",error,os.read(bus,100)
 			#self.write_register(reg,value)
 			pass
-		except ValueError as error: 
+		except ValueError as error:
 			#print "val error",error,os.read(bus,100)
 			#self.write_register(reg,value)
 			pass
@@ -221,12 +224,12 @@ class Request(object):
 		except ValueError as error:
 			#print error, os.read(bus,100)
 			#self.write_register(reg,value)
-			pass	
+			pass
 
 #################################################################################
 start = time.time() # START TIME
 # init request class for communication
-req = Request()	
+req = Request()
 ############DEVICE CLASS FOR SYSTEMAIR VR400DCV#############################
 class Systemair(object):
 	def __init__(self):
@@ -273,7 +276,7 @@ class Systemair(object):
 		self.averagelimit = 300#min122
 		self.sf = 34
 		self.ef = 34
-		self.ef_rpm = 1500	
+		self.ef_rpm = 1500
 		self.sf_rpm = 1500
 		self.inlet = []
 		self.inlet_ave =0
@@ -329,7 +332,7 @@ class Systemair(object):
 		self.filter = 0
 		self.cond_data = []
 		self.cond_valid = False
-		self.cond_dev= 0 
+		self.cond_dev= 0
 		self.i_diff = []
 		self.time = []
 		self.extract_dt_list = []
@@ -351,9 +354,9 @@ class Systemair(object):
 	def print_attributes(self):
 		for each in dir(self):
 			exec str( "obj= self."+each)
-			if isinstance(obj, (int,float,str,list)): exec str( "print each,  self."+each) 
-		if not "daemon" in sys.argv : raw_input("press enter to resume") 
-		else: 
+			if isinstance(obj, (int,float,str,list)): exec str( "print each,  self."+each)
+		if not "daemon" in sys.argv : raw_input("press enter to resume")
+		else:
 			print "break"
 			os.system("sleep 2")
 
@@ -367,7 +370,7 @@ class Systemair(object):
 		req.modbusregister(100,0)
 		self.fanspeed =int(req.response)
 		return self.fanspeed
-	
+
 	def update_temps(self):
 		req.modbusregisters(213,5)# Tempsensors 1 -5
 		self.time.insert(0,time.time())
@@ -388,13 +391,13 @@ class Systemair(object):
 			req.response[4] -= 0xFFFF
 		if self.sf <> 0:
 			self.tcomp= ((req.response[1]-req.response[4])*self.coef)#float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
-			req.response[1] += self.tcomp		
+			req.response[1] += self.tcomp
 		if self.rotor_active =="No"  and self.inlet_coef <0.14:self.inlet_coef+= 0.00014 #OFF
 		if self.rotor_active =="Yes" and self.inlet_coef >0.08:self.inlet_coef-= 0.00014 # ON
 		req.response[4]  -= (req.response[1]-req.response[4])*self.inlet_coef #inlet compensation exchanger OFF/ON
 
 		self.inlet.insert(0,float(req.response[4])/10)
-	
+
 		if req.response[2]>6000:
 			req.response[2] -=0xFFFF
 		if self.rotor_active =="No" :
@@ -405,13 +408,13 @@ class Systemair(object):
       		#limit array size
 		for each in [self.inlet,self.supply,self.extract,self.exhaust]:
 			if len(each)>self.averagelimit: each.pop(-1)
-		self.supply.insert(0,float(req.response[3])/10) 
+		self.supply.insert(0,float(req.response[3])/10)
 		self.extract.insert(0, float(req.response[1])/10)
-		try: 
+		try:
 			self.eff = (self.supply[0]-self.inlet[0])/(self.extract[0]-self.inlet[0])*100
 		except ZeroDivisionError:self.eff = 100
 		self.eff_ave.insert(0,self.eff)
-		if len(self.eff_ave) >self.averagelimit: self.eff_ave.pop(-1) 
+		if len(self.eff_ave) >self.averagelimit: self.eff_ave.pop(-1)
 
 	def set_fanspeed(self,target):
 		self.inhibit = time.time()
@@ -429,27 +432,27 @@ class Systemair(object):
 	    			os.read(bus	,100)
 	    			time.sleep(wait_time*50)
 			if int(self.get_fanspeed()) == target :
-				#print "succsess", target	
+				#print "succsess", target
 				self.fanspeed=target
-			else:   
+			else:
 				#print "error setting speed"
 				self.set_fanspeed(target)
 		except ValueError as error:
-			#print error 
+			#print error
 			if "Wrong" == error.message[0:5]:
-				self.get_fanspeed() 
-				os.read(bus,100)	
+				self.get_fanspeed()
+				os.read(bus,100)
 				if self.fanspeed<>target:self.set_fanspeed(target)
 			if "Check" == error.message[0:5]:
 				os.read(bus,100)
 				self.set_fanspeed(target)
-    		except IOError as error: 
+    		except IOError as error:
     			#print "no response", "fanspeed:", self.speeds[self.fanspeed]
 			os.read(bus,100)
 			self.set_fanspeed(target)
 		except: print "unhandled exception", sys.exc_info[0]
 		self.update_airflow()
-		
+
 
 	def update_fan_rpm(self):
 		req.modbusregisters(110,2)
@@ -461,7 +464,7 @@ class Systemair(object):
 		self.electric_power+=5#controller power
 	def update_fanspeed(self):
 		req.modbusregister(100,0)
-		self.fanspeed = req.response	
+		self.fanspeed = req.response
 
 	def update_airflow(self):
 		req.modbusregisters(101,6)
@@ -471,10 +474,10 @@ class Systemair(object):
 		if tmp<=0: tmp=1
 		self.sf= sf[tmp-1]
 		self.ef= ef[tmp-1]
-		if self.fanspeed == 0 : 	
+		if self.fanspeed == 0 :
 			self.ef=0
 			self.sf=0
-	
+
 	def update_airdata_instance(self):
 		self.airdata_inst= airdata.Energy()
 
@@ -493,8 +496,8 @@ class Systemair(object):
 					self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*3# o - 16 constant# red  from casing heat transfer
 				elif self.fanspeed ==2:
 					self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*4#  - 16 constant# red  from casing heat transfer
-				
-			elif self.rotor_active =="No": 
+
+			elif self.rotor_active =="No":
 				if self.fanspeed == 1   :
 					self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*2#  - 16 constant# red  from casing heat transfer
 				elif self.fanspeed == 2 :
@@ -522,7 +525,7 @@ class Systemair(object):
 			self.cond_data.append(self.extract_power-self.used_energy)
 			if len(self.cond_data)> 8000:self.cond_data.pop(0)
 
-	def get_rotor_state(self):	
+	def get_rotor_state(self):
 		req.modbusregister(206,0)
 	        device.exchanger_mode= req.response
 		req.modbusregisters(350,2)
@@ -550,7 +553,7 @@ class Systemair(object):
 			self.extract_humidity +=0.00001*self.i_diff[-1]-0.00001*(self.i_diff[-1]-self.i_diff[-2])+0.000001*numpy.sum(self.i_diff)
 		elif self.dew_point < self.inlet_ave: self.extract_humidity += (self.inlet_ave -self.dew_point)/float(100) +0.0001
 		if self.extract_humidity>=1:self.extract_humidity = 1
-		if self.extract_humidity<=0:self.extract_humidity = 0		
+		if self.extract_humidity<=0:self.extract_humidity = 0
 		if self.condensate >0:
 			self.condensate_compensation= (self.airdata_inst.condensation_energy(self.condensate)/1000)*self.ef*self.cond_eff
 			self.extract_humidity_comp =self.extract_humidity#+abs((self.extract_humidity*( self.inlet_ave/(self.exhaust_ave-self.inlet_ave)*(1-0.87))))
@@ -564,18 +567,18 @@ class Systemair(object):
 	def derivatives(self):
 		#SHORT
 		if len(self.extract)>self.averagelimit-1:
-			self.extract_dt = (numpy.average(self.extract[0:14])-numpy.average(self.extract[self.averagelimit-15:self.averagelimit-1])) 
+			self.extract_dt = (numpy.average(self.extract[0:14])-numpy.average(self.extract[self.averagelimit-15:self.averagelimit-1]))
 			self.extract_dt = self.extract_dt/((self.time[0]-self.time[self.averagelimit-1])/60)
 			self.extract_dt_list.append(self.extract_dt)
 			if len(self.extract_dt_list)>500: self.extract_dt_list.pop(0)
 		#LONG
 		if self.iter %1500 == 0:
-			if self.dt_hold == 0: self.dt_hold = self.extract_ave 
+			if self.dt_hold == 0: self.dt_hold = self.extract_ave
 			self.extract_dt_long= float((self.extract_ave-self.dt_hold))/((time.time()-self.extract_dt_long_time)/3600)
 			self.extract_dt_long_time=time.time()
 			self.dt_hold= self.extract_ave
-				
-	# decect if shower is on	
+
+	# decect if shower is on
 	def shower_detect(self):
 		try: # SHOWER CONTROLLER (should be moved to monitor method)
 			lim = 0.05
@@ -610,7 +613,7 @@ class Systemair(object):
 		global monitoring,vers
 		tmp =  "***"+time.ctime()+" status: "+str(int(time.time()-starttime))+'('+str(self.iter)+")"+str(round((time.time()-starttime)/self.iter,2))+" Vers. "+vers+" ***\n"
 		if "debug" in sys.argv: tmp += str(sys.argv)+"\n"
-		
+
 		try:
 			tmp += "Inlet: "+str(round(self.inlet_ave,2))+"C\t\tSupply: "+str(round(self.supply_ave,2))+"C\td_in : "+str(round(self.supply_ave,2)-round(self.inlet_ave,2))+"C"
 			tmp += "\nExtract: "+str(round(self.extract_ave,2))+"C\tExhaust: "+str(round(self.exhaust_ave,2))+"C\td_out: "+str(round(self.extract_ave,2)-round(self.exhaust_ave,2))+"C\n"
@@ -629,7 +632,7 @@ class Systemair(object):
 		if "humidity" in sys.argv :
 			tmp += "Calculated humidity: "+str(round(self.extract_humidity*100,2))+"% at:"+str(round(self.extract_ave,1))+"C Dewpoint:"+str(round(self.dew_point,2))+"C\n"
 			tmp += "Static:"+str(round(self.local_humidity+self.humidity_comp,2))+"% humidity gain:"+str(round(self.humidity_gain,3))+" "+str(round(self.humidity_comp,2))+"% Indoor Dewpoint:"+str(round(self.indoor_dewpoint,2))+"C\n"
-		if "debug" in sys.argv: 
+		if "debug" in sys.argv:
 			try:
 				tmp += "Outdoor Sensor: "+str(self.sensor_temp)+"C "+str(self.sensor_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.sensor_humid,self.sensor_temp),2))+"C\n"
 				tmp += "Indoor Sensor:"+str(self.inside)+"C "+str(self.inside_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.inside_humid,self.inside),2))+"C\n"
@@ -642,7 +645,7 @@ class Systemair(object):
 		else:
 			tmp += "Energy Gain: "+str(round(self.loss,1))+"W\n"
 		tmp += "Loss Total: "+str(round(self.totalenergy/1000,3))+"kWh Average:"+str(round((self.totalenergy)/(((time.time()-starttime)/3600)),1))+"W\n"
-		tmp += "Cooling Total: "+str(round(self.cooling/1000,3))+"kWh\n" 
+		tmp += "Cooling Total: "+str(round(self.cooling/1000,3))+"kWh\n"
 		tmp += "Heat Gain Total: "+ str(round(self.gain/1000,3))+"kWh\n"
 		tmp += "Supply:"+str(self.sf)+" l/s,"+str(self.sf_rpm)+"rpm\tExtract:"+str(self.ef)+" l/s,"+str(self.ef_rpm)+"rpm\n"
 		if self.rotor_active == "Yes" or "debug" in sys.argv:
@@ -651,7 +654,7 @@ class Systemair(object):
 		tmp += "Filter has been installed for "+ str(self.filter)+" days.\n"
 		tmp += "Ambient Pressure:"+ str(self.airdata_inst.press)+"hPa\n"
 		if self.forcast[1]<>-1: tmp += "Weather forecast for tomorrow is: "+str(self.forcast[0])+"C "+self.weather_types[self.forcast[1]]+".\n"
-		if "Timer" in threading.enumerate()[-1].name: tmp+= "Ventilation timer on: "+str((int(time.time())-int(device.timer))/60)+":"+str((int(time.time()-int(self.timer))%60))+"\n" 
+		if "Timer" in threading.enumerate()[-1].name: tmp+= "Ventilation timer on: "+str((int(time.time())-int(device.timer))/60)+":"+str((int(time.time()-int(self.timer))%60))+"\n"
 		#tmp+= str(threading.enumerate())+"\n"
 		if self.shower : tmp += "Shower mode engaged at:" +time.ctime(self.shower_initial)+"\n"
 		if self.inhibit>0:tmp+=  "Mode sensing inhibited "+"("+str(int((self.inhibit+600-time.time())/60+1))+"min)\n"
@@ -674,8 +677,8 @@ class Systemair(object):
 			except : print "mean error"
 	#Read all data registers
 	def update_registers(self):
-		for each in range(100,900,100):	
-			if   each == 100: addresses = 36 
+		for each in range(100,900,100):
+			if   each == 100: addresses = 36
 			elif each == 200: addresses = 21
 			elif each == 300: addresses = 52
 			elif each == 400: addresses = 59
@@ -689,7 +692,7 @@ class Systemair(object):
 			for addr in  range(len(req.response)):
 				self.register[str(each+addr+1)]=req.response[addr]
 			print len(req.response),"entries recieved at address space:",each
-		
+
 	#print previously read modbus registers
 	def print_registers(self):
 		try:
@@ -740,7 +743,7 @@ class Systemair(object):
 				if i>10: break
 		self.modetoken=time.time()
 		self.inhibit= time.time()  # set inhibit time to prevent derivatives sensing when returning
-	    except:	
+	    except:
 		#self.msg +=  "\nexit due to error"
 		traceback.print_exc()
 	    finally:
@@ -759,10 +762,10 @@ class Systemair(object):
 	    #### FAN RPM MONITORING
 	    if self.sf_rpm <1550 and self.fanspeed == 2 : self.inhibit = time.time()
 	    if self.sf_rpm <1000 and self.fanspeed == 1 : self.inhibit = time.time()
-	    #### EXCHANGER CONTROL 
+	    #### EXCHANGER CONTROL
 	    if self.forcast[0]< 10: self.target = 23
-	    else: self.target = 22 
-	    if self.modetoken<=0 and self.cool_mode==0 :	
+	    else: self.target = 22
+	    if self.modetoken<=0 and self.cool_mode==0 :
 		if self.extract_ave >self.target and self.exchanger_mode <> 0 and self.shower == False and self.inlet_ave >10:
 			self.modetoken =time.time()
 			self.cycle_exchanger(0)
@@ -770,22 +773,22 @@ class Systemair(object):
 			self.cycle_exchanger(0)
 			self.modetoken=time.time()
 		if self.extract_ave < self.target-1 and self.exchanger_mode ==0 and not self.cool_mode :
-			self.cycle_exchanger(5)			
+			self.cycle_exchanger(5)
 			self.modetoken=time.time()
 		if self.supply_ave <10 and self.extract_ave < self.target and  self.exchanger_mode ==0 and not self.cool_mode :
-			self.cycle_exchanger(5)			
+			self.cycle_exchanger(5)
 			self.modetoken=time.time()
 		if self.exchanger_mode == 0 and self.inlet_ave < 10 and self.forcast[0] < 10 and self.forcast[1] <> -1 and self.fanspeed == 1 and not self.cool_mode and not self.shower:
 			self.modetoken=time.time()
-			self.cycle_exchanger(5)			
-				
+			self.cycle_exchanger(5)
+
 	    #FORECAST RELATED COOLING
 	    if self.forcast[0]>16 and self.forcast[1]<4 and self.cool_mode == False and self.extract_ave+0.1 > self.supply_ave and self.extract_ave>20.4:
 		self.msg += "predictive Cooling enaged\n"
 		if self.exchanger_mode <>0:self.cycle_exchanger(0)
 		self.set_fanspeed(3)
 		self.cool_mode = True
-	  
+
 	    if self.cool_mode ==True:
 		if (self.extract_ave <20.7 ) and self.fanspeed <> 1 :
 			self.set_fanspeed(1)
@@ -803,15 +806,15 @@ class Systemair(object):
 
 	    if self.fanspeed == 1 and self.extract_ave>self.target and self.extract_ave -self.supply_ave>0.1 and (self.extract_dt_long >= 0.2 and numpy.average(self.extract_dt_list) > 0.2)  and not self.shower and not self.cool_mode:
 		 self.set_fanspeed(2)
-		 self.msg += "\nDynamic fanspeed 2" 
+		 self.msg += "\nDynamic fanspeed 2"
 
-	    if self.fanspeed <> 3 and self.extract_ave-0.1 > self.supply_ave and  self.inhibit==0 and (self.extract_ave >= 22.5 or (self.extract_dt_long >=0.7 and numpy.average(self.extract_dt_list)>0.7) and self.inlet_ave > 5 or self.extract_ave > 23.0 ) and not self.extract_dt_long < -0.2 and self.exchanger_mode <> 5 and not self.cool_mode and not self.shower: 
+	    if self.fanspeed <> 3 and self.extract_ave-0.1 > self.supply_ave and  self.inhibit==0 and (self.extract_ave >= 22.5 or (self.extract_dt_long >=0.7 and numpy.average(self.extract_dt_list)>0.7) and self.inlet_ave > 5 or self.extract_ave > 23.0 ) and not self.extract_dt_long < -0.2 and self.exchanger_mode <> 5 and not self.cool_mode and not self.shower:
 		self.set_fanspeed(3)
 		self.msg += "\nDynamic fanspeed 3"
 
 	    if self.fanspeed <>1 and self.extract_ave <self.target and self.inhibit == 0 and self.cool_mode == False and not self.shower:
 		self.set_fanspeed(1)
-		self.msg += "\nDynamic fanspeed 1" 
+		self.msg += "\nDynamic fanspeed 1"
 
 	    if self.extract_ave < self.supply_ave and self.fanspeed <> 1 and self.inhibit == 0 and self.cool_mode == False and not self.shower:
 		self.set_fanspeed(1)
@@ -820,7 +823,7 @@ class Systemair(object):
 	    if self.fanspeed== 3 and self.extract_ave < self.target+2 and self.extract_ave > self.target and self.exchanger_mode == 5 and not self.cool_mode and not self.inhibit and not self.shower:
 		self.set_fanspeed(2)
 		self.msg  +="\nDynamic fanspeed 2"
-	    
+
 	    # SHOWER MODE TIMEOUT #
 	    if self.shower == True and self.shower_initial -time.time() < -30*60:
 		self.shower = False
@@ -829,13 +832,13 @@ class Systemair(object):
 	    self.indoor_dewpoint = self.airdata_inst.dew_point(self.local_humidity+10,self.extract_ave)
 	    if self.inlet_ave > self.indoor_dewpoint+0.1   and self.sf <> self.ef:  self.set_differential(0)
 	    if self.inlet_ave < self.indoor_dewpoint-0.1  and self.sf == self.ef and self.inlet_ave < 15:  self.set_differential(10)
-	
-	#Get the active forcast 
-	def get_forcast (self): 
+
+	#Get the active forcast
+	def get_forcast (self):
 		###### WEATHER FORCAST MODES
 	    try:
 	    	forcast = os.popen("./forcast.py tomorrow")
-	    	forcast = forcast.readlines()[0]    
+	    	forcast = forcast.readlines()[0]
 	    	self.forcast = forcast.split(" ")
 		self.forcast[0]=int(self.forcast[0])
 		self.forcast[1]=int(self.forcast[1])
@@ -846,8 +849,8 @@ class Systemair(object):
 	#set the fan pressure diff
 	def set_differential(self, percent):
 		if percent>20:percent = 20
-		if percent<-20:percent =-20 
-		req.modbusregister(103,0) #nominal supply flow 
+		if percent<-20:percent =-20
+		req.modbusregister(103,0) #nominal supply flow
 		#print "sf_nom is", req.response
 		target = req.response + req.response * (float(percent)/100)
 		#print "to set ef_no to",target
@@ -857,7 +860,7 @@ class Systemair(object):
 		if percent < 0 :high_flow += 107*float(percent)/100
 		if high_flow >107: high_flow= 107
 		#print "high should be extract:", int(high_flow)
-		req.write_register(106,int(high_flow)) # reset high extract 
+		req.write_register(106,int(high_flow)) # reset high extract
 		#raw_input(" diff set done")
 
 	#get and set the local low/static humidity
@@ -879,20 +882,20 @@ class Systemair(object):
 			low= out.split(" ")[0]
 			#print low, self.prev_static_temp, "<-- lows"
 			self.airdata_inst.vapor_max(float(low))
-			pw_low = self.airdata_inst.pw 		
+			pw_low = self.airdata_inst.pw
 			self.airdata_inst.vapor_max(self.prev_static_temp)
-			pw_static = self.airdata_inst.pw 	
-			
+			pw_static = self.airdata_inst.pw
+
 			comp = (pw_low/pw_static)-1
 			#print pw_static,pw_low
 			self.humidity_gain = comp * self.fanspeed
 		except:pass
 	# add gain to humidity compensatoipn
 	def set_gain_component(self):
-		self.humidity_comp += self.humidity_gain/175 
+		self.humidity_comp += self.humidity_gain/175
 
 ## Init base class ##
-if __name__:# not "__main__": 
+if __name__:# not "__main__":
 	device = Systemair()
 
 ###################################################################
@@ -905,7 +908,7 @@ if __name__:# not  "__main__":
 	input = ""
 	try:
 	    #FIRST PASS ONLY #
-            clear_screen()	
+            clear_screen()
 	    if "ping" in sys.argv:report_alive()
 	    print "First PASS; updating fanspeeds;"
 	    device.update_airflow()
@@ -925,7 +928,7 @@ if __name__:# not  "__main__":
 	    else:
 		os.system("sudo nice ./grapher.py &")
 	    sys.stdout.flush()
-	    if "debug" in sys.argv: 
+	    if "debug" in sys.argv:
 		print "checking for sensor data;"
 		update_sensors()
 	    	sys.stdout.flush()
@@ -958,7 +961,7 @@ if __name__:# not  "__main__":
 		#check states and flags
 		if device.iter%3 ==0:
 			device.check_flags()
-			if monitoring: 
+			if monitoring:
 				device.monitor()
 				device.shower_detect()
 		# update moisture and rotor/rpm
@@ -968,7 +971,7 @@ if __name__:# not  "__main__":
 			device.update_fan_rpm()
 			device.get_rotor_state()
 		#update fans
-		if device.iter%7==0:	
+		if device.iter%7==0:
 			device.update_fanspeed()
 			device.update_airflow()
 		#debug specific and static humidity gain updatade
@@ -977,7 +980,7 @@ if __name__:# not  "__main__":
 				update_sensors()
 				device.get_temp_status()
 			if "humidity" in sys.argv:
-				
+
 				device.set_local_gain()
 				device.set_gain_component()
 		#refresh airdata class
@@ -996,14 +999,14 @@ if __name__:# not  "__main__":
 			if "debug" in sys.argv:os.system("nice ./grapher.py debug & >>/dev/null")
 			else : os.system("nice ./grapher.py & >> /dev/null")
 		# send alive packet to headmaster
-		if device.iter%3600==0: 
+		if device.iter%3600==0:
 			if "ping" in sys.argv:
 				report_alive()
 		#restart HTTP SERVER
 		if device.iter %(3600*2)==0:
 			device.get_filter_status()
 			os.system("sudo ./http")
-			device.get_forcast()	
+			device.get_forcast()
 		## PRINT TO DISPLAY ##
 		device.print_xchanger()
 		device.iter+=1
@@ -1011,7 +1014,7 @@ if __name__:# not  "__main__":
 		if "daemon" not in sys.argv:
 			print """
 	CTRL-C to exit,
-1: Toggle auto Monitoring	 6: Retrive all Modbus Registers	
+1: Toggle auto Monitoring	 6: Retrive all Modbus Registers
 2: Toggle fanspeed		 7: Set flow differential
 3: Print all device attributes	 8: Run fans for 15min at Max
 4: Display link settings	 9: Display availible Modbus Registers
@@ -1021,8 +1024,8 @@ if __name__:# not  "__main__":
 		try:sys.stdout.flush()
 		except:pass
 		input = select.select([sys.stdin,cmd_socket],[],[],timeout)[0]
-		try:   
-			if cmd_socket in input:		
+		try:
+			if cmd_socket in input:
 							input = cmd_socket.recvfrom(128)[0]
 							device.msg += "\nNetwork command recieved: Processing..."
 							device.print_xchanger()
@@ -1030,10 +1033,10 @@ if __name__:# not  "__main__":
 							log = "echo " + str(time.ctime())+":"+str(input)+ ">>netlog.log"
 							print log
 							os.system(log)
-			elif sys.stdin in input: 	input = sys.stdin.readline()	
+			elif sys.stdin in input: 	input = sys.stdin.readline()
 		   	try:
 				if int(input) ==1:monitoring = not monitoring # Toggle monitoring on / off
-					
+
 				elif int(input) == 2:
 					device.set_fanspeed(device.fanspeed+1)
 					if "daemon" not in sys.argv:raw_input("press enter to resume")
@@ -1042,7 +1045,7 @@ if __name__:# not  "__main__":
 					device.print_attributes()
 					sys.stdout.flush()
 					time.sleep(10)
-					if "daemon" not in sys.argv:raw_input("press enter to resume")		
+					if "daemon" not in sys.argv:raw_input("press enter to resume")
 				elif int(input)== 4:
 					display_settings()
 					sys.stdout.flush()
@@ -1050,37 +1053,37 @@ if __name__:# not  "__main__":
 					if "daemon" not in sys.argv:raw_input("press enter to resume")
 					else: print "break"
 					recent=4
-					
+
 				elif int(input)==6:
 					device.update_registers()
 					if "daemon" not in sys.argv:raw_input("press enter to resume")
 					else:print "break"
 
-				elif int(input)==7:	
+				elif int(input)==7:
 					try:
 						if "daemon" not in sys.argv :inp =int( raw_input("set differential pressure(-20% -> 20%):"))
-						else: 
+						else:
 							if device.ef == device.sf :inp =10
 							else : inp =0
 						device.set_differential(inp)
 					except IOError:print "not used"
-					except: 
+					except:
 						traceback.print_exc()
-						#raw_input("break")					
+						#raw_input("break")
 				elif int(input)== 8:
 					device.msg += "Forced Ventilation on timer\n"
 					prev = device.fanspeed
 					device.set_fanspeed(3)
 					monitoring = not monitoring
-					try:					
-						if threading.enumerate()[-1].name != "Timer":	
+					try:
+						if threading.enumerate()[-1].name != "Timer":
 							tim2 = threading.Timer(60.0*120,set_monitoring,[True] )
 							tim2.start()
 							tim = threading.Timer(60.0*120,device.set_fanspeed,[prev])
 							tim.setName("Timer")
 							device.timer=time.time()
 							tim.start()
-					except: 
+					except:
 						traceback.print_exc()
 						print "force vent error"
 				elif int(input)== 9:
@@ -1091,18 +1094,18 @@ if __name__:# not  "__main__":
 					else: print "break"
 				elif int(input)==0:
 					device.cycle_exchanger(None)
-				
+
 				if int(input)==97:
 					clear_screen()
 					device.msg += "\nFanspeed to Low\n"
-					device.set_fanspeed(1)				
-				elif int (input)==98: 
+					device.set_fanspeed(1)
+				elif int (input)==98:
 					device.set_fanspeed(2)
-					device.msg += "\nFanspeed to Norm\n"	
-				elif int(input)==99: 
-					device.set_fanspeed(3)				
-					device.msg += "\nfanspeed to High\n"	
-						
+					device.msg += "\nFanspeed to Norm\n"
+				elif int(input)==99:
+					device.set_fanspeed(3)
+					device.msg += "\nfanspeed to High\n"
+
 			except:pass# traceback.print_exc()
 		except TypeError:pass
 		except ValueError:
@@ -1119,4 +1122,3 @@ if __name__:# not  "__main__":
 		print "\nexiting..."
 		if threading.enumerate()[-1].name=="Timer": threading.enumerate()[-1].cancel()
 		cmd_socket.close()
-
