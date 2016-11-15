@@ -1,0 +1,4 @@
+#!/bin/bash
+
+watch -n 1 cat ./RAM/out
+

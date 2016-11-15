@@ -11,6 +11,9 @@ __pycache__/
 RAM/
 # C extensions
 *.so
+# UNIT SPECIFIC
+*.log
+
 
 # Distribution / packaging
 .Python
