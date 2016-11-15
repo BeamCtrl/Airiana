@@ -98,7 +98,7 @@ def update_sensors():
 #WRITE TO DATA.LOG
 def logger ():
 	try:
-		fdo = open("data.log")
+		fdo = open("data.log","w+")
 		#+str(device.extract_humidity*100)\
 		cmd = "echo \""   		\
 		+str(time.time()) 		\
