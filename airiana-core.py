@@ -100,7 +100,7 @@ def logger ():
 	try:
 		fdo = open("data.log","w+")
 		#+str(device.extract_humidity*100)\
-		cmd = "echo \""   		\
+		cmd = ""   		\
 		+str(time.time()) 		\
 		+":"				\
 		+str(device.sensor_temp)	\
@@ -123,7 +123,7 @@ def logger ():
 		+":"				\
 		+str(round(device.condensate_compensation,2))\
 		+":"+str(device.inside_humid) 	\
-		+"\""
+		+""
 		#os.system(cmd+" >>data.log")
 		fdo.write(cmd+"\n")
 		fdo.close()

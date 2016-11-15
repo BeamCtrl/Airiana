@@ -17,12 +17,13 @@ os.system("apt-get install python-matplotlib")
 fstab_comment = "#temp filesystem only in RAM for use on Airiana tempfiles.\n"
 fstab_cmd = "tmpfs /home/pi/airiana/RAM tmpfs defaults,noatime,nosuid,mode=0755,size=50m 0 0\n"
 
-os.system("mkdir airiana")
-os.chdir("./airiana")
+#os.system("mkdir airiana")
+#os.chdir("./airiana")
 os.system("mkdir RAM public systemfiles")
-os.system("wget -O update http://lappy.asuscomm.com:443/update")
-os.system("chmod 755 update")
-os.system("./update")
+#os.system("wget -O update http://lappy.asuscomm.com:443/update")
+#os.system("chmod 755 update")
+#os.system("./update")
+os.system("git clone https://github.com/beamctrl/airiana/")
 os.system("pip install minimalmodbus")
 os.system("apt-get install ntp")
 # NEED TO SET LOCALE

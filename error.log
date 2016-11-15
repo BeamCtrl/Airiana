@@ -1,1 +1,0 @@
-Airdata.py pressure error: (<type 'exceptions.ValueError'>, ValueError('could not convert string to float: ',), <traceback object at 0x75bba788>){'self': <airdata.Energy object at 0x75c23f10>, 'err': <open file 'error.log', mode 'w' at 0x75c80de0>}

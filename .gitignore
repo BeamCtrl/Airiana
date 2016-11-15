@@ -13,7 +13,7 @@ RAM/
 *.so
 # UNIT SPECIFIC
 *.log
-
+*.out
 
 # Distribution / packaging
 .Python
