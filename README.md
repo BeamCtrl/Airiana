@@ -1,2 +1,2 @@
 # Airiana
-SystemAir controll overlay, 
+SystemAir control overlay,
