@@ -2,8 +2,6 @@
 
 import socket
 import select
-import os
-import time
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 html = """ 
 <html>
