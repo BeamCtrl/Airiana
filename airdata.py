@@ -54,6 +54,13 @@ class Energy(object):
 	def vapor_mass(self,pw): #return vapor mass from vapor partial pressure
 		return (self.mass_const*pw)/(self.press-pw)
 
+	def energy_to_pwdiff(self, energy):
+		mass_quiv = self.condensation_mass(energy)
+		d_pw = self.press*100*(float(mass_quiv)/self.mass_const)
+		return d_pw
+
+	def condensation_mass(self,energy):
+		return float(energy) / 2490  # 2490kJ/kg latent heat convertsion
 
 	def xchange_humid(self,T):
 		content = (self.abs*self.humid)/100
@@ -62,7 +69,7 @@ class Energy(object):
 
 	#Return latent energy in a givven mas of condensing water vapor
 	def condensation_energy (self, grams):
-		return grams*(2490) # 2490 kJ/Kg consensated water
+		return float(grams*(2490)) # 2490 kJ/Kg consensated water
 
 	# CALCULATE DEWPOINT FROM temperature and relative humidity
 	def dew_point(self,RH,temp):
@@ -82,12 +89,5 @@ class Energy(object):
 #ref Vaisala.comhumidity conversion formulas
 if  "__main__" in __name__:
 	air =Energy()
-	print "+11.31 - +14.48 @ 34l"
-	print air.energy_flow(34,10.91,14.31)
-	print "+10 - -19,9 @ 34l"
-	print air.energy_flow(34,21.34,19.24)
-	unit = Energy()
-	print unit.dew_point(20,22.5)
-	#	global density_coeficient, density_0C
-
-	for each in range (-50,40,1): print each,"C:","density:",round(unit.density(each),6),"kg/m3", "energy content/l*K:", round(unit.density(each)*unit.specific_heat,6),"J/l*K"
+	print air.energy_to_pwdiff(25)
+	print air.energy_to_pwdiff(100)
