@@ -7,9 +7,9 @@ import os,time,sys,math
 class Energy(object):
 	def __init__(self):
 		try:
-			#GET AMBIENT PRESURE##		
+			#GET AMBIENT PRESURE##
 			self.press= float(os.popen("./forcast.py pressure").read())
-				
+
 		except:
 			print "error occured getting current pressure ISA assumed"
 		        self.press = 1013.25  #hPa
@@ -22,6 +22,7 @@ class Energy(object):
 		self.density= lambda t: (self.press*100)/(self.R*(self.T+t))
 		self.specific_heat = 1.005  #J/g*K
 		self.humid = .50
+		self.mass_const = 0.62198
 
 	#CALCULATE AIR DENSITY AT A GIVEN TEMPERATURE
 	def get_mass(self,temp):
@@ -49,7 +50,11 @@ class Energy(object):
 		self.abs=(self.pw*2.16679)/(self.T+T)   *100 #### BUG WHY FACTOR 100//solved convertsion from hPa
 		#print self.abs,"g/m3 vapor_max"," temp:",T," sat. pressure:",self.pw
 		return self.abs
-	
+
+	def vapor_mass(self,pw): #return vapor mass from vapor partial pressure
+		return (self.mass_const*pw)/(self.press-pw)
+
+
 	def xchange_humid(self,T):
 		content = (self.abs*self.humid)/100
 		rel = float(content / self.vapor_max(T))*100
@@ -67,7 +72,7 @@ class Energy(object):
 		c=234.5 # C
 		d=257.14 #acc ardon buck (1996)
 		def gamma(RH,temp):
-			Ps = math.log((float(RH)/100)*math.exp( ((b-(temp/d))*(temp/(c+temp))) )  )	
+			Ps = math.log((float(RH)/100)*math.exp( ((b-(temp/d))*(temp/(c+temp))) )  )
 			return Ps
 		return (c*gamma(RH,temp))/(b-gamma(RH,temp))
 
