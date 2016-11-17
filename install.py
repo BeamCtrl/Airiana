@@ -20,6 +20,7 @@ fstab_cmd = "tmpfs /home/pi/airiana/RAM tmpfs defaults,noatime,nosuid,mode=0755,
 #os.system("mkdir airiana")
 #os.chdir("./airiana")
 os.system("mkdir RAM public systemfiles")
+os.system("chmod 766 RAM public systemfiles")
 #os.system("wget -O update http://lappy.asuscomm.com:443/update")
 #os.system("chmod 755 update")
 #os.system("./update")

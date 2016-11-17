@@ -9,6 +9,11 @@ __pycache__/
 *.pyc
 #RAM dir not tracked
 RAM/
+# dont track logs
+*.log
+err
+out
+
 # C extensions
 *.so
 # UNIT SPECIFIC
