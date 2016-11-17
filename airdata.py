@@ -50,7 +50,9 @@ class Energy(object):
 		self.abs=(self.pw*2.16679)/(self.T+T)   *100 #### BUG WHY FACTOR 100//solved convertsion from hPa
 		#print self.abs,"g/m3 vapor_max"," temp:",T," sat. pressure:",self.pw
 		return self.abs
-
+	def sat_vapor_press (self,T):
+		self.pw = 6.1121*math.exp( (17.678-T/234.5) * (T/(T+257.14))  )
+		
 	def vapor_mass(self,pw): #return vapor mass from vapor partial pressure
 		return (self.mass_const*pw)/(self.press-pw)
 
@@ -74,8 +76,8 @@ class Energy(object):
 	# CALCULATE DEWPOINT FROM temperature and relative humidity
 	def dew_point(self,RH,temp):
 		#Constants used acc NOAA std#
-		a=6.112 #mBar
-		b=17.67
+		a=6.1121 #mBar
+		b=18.678
 		c=234.5 # C
 		d=257.14 #acc ardon buck (1996)
 		def gamma(RH,temp):

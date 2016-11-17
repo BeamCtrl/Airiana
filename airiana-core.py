@@ -510,6 +510,7 @@ class Systemair(object):
 			self.extract_offset =0 #float(8)*(self.extract_ave-self.supply_ave)# + 20Watt/degC transfer after exchanger unit
 			self.extract_power = self.extract_exchanger+self.extract_offset
 			self.extract_combined = self.extract_power + self.condensate_compensation
+			self.energy_diff = self.supply_power-self.extract_power
 			self.loss = self.airdata_inst.energy_flow(self.ef,self.exhaust_ave,self.inlet_ave)+self.airdata_inst.energy_flow(self.sf,self.extract_ave,self.supply_ave)
 			try:self.diff_ave.insert(0,(-1*(self.extract_combined-self.supply_power)/((self.supply_power+self.extract_combined)/2))*100)
 			except ZeroDivisionError:pass
@@ -547,6 +548,13 @@ class Systemair(object):
 			self.condensate    = (dew_point_moisture - inlet_vmax) #diff in moisture content between inlet max vapor and dewpoint extracted
 
 		except:pass
+		######### SAT MOIST IPDATE ############
+		d_pw = self.airdata_inst.energy_to_pwdiff(self.energy_diff)
+		max_pw = self.airdata.sat_vapor_press(self.extract_ave)
+		low_pw = self.airdata_inst.sat_vapor_press(self.prev_static_temp)
+		self.new_humidity = ((low_pw+d_pw) / max_pw) * 100
+
+		#####END
 		self.cond_eff=.20#  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
 		if len(self.i_diff)>10 and (self.dew_point > self.inlet_ave) :
 			self.extract_humidity +=0.00001*self.i_diff[-1]-0.00001*(self.i_diff[-1]-self.i_diff[-2])+0.000001*numpy.sum(self.i_diff)
@@ -555,7 +563,7 @@ class Systemair(object):
 		if self.extract_humidity<=0:self.extract_humidity = 0
 		if self.condensate >0:
 			self.condensate_compensation= (self.airdata_inst.condensation_energy(self.condensate)/1000)*self.ef*self.cond_eff
-			
+
 			self.extract_humidity_comp =self.extract_humidity#+abs((self.extract_humidity*( self.inlet_ave/(self.exhaust_ave-self.inlet_ave)*(1-0.87))))
 			if self.extract_humidity==numpy.nan: self.extract_humidity=0
 		else:
@@ -632,6 +640,7 @@ class Systemair(object):
 		if "humidity" in sys.argv :
 			tmp += "Calculated humidity: "+str(round(self.extract_humidity*100,2))+"% at:"+str(round(self.extract_ave,1))+"C Dewpoint:"+str(round(self.dew_point,2))+"C\n"
 			tmp += "Static:"+str(round(self.local_humidity+self.humidity_comp,2))+"% humidity gain:"+str(round(self.humidity_gain,3))+" "+str(round(self.humidity_comp,2))+"% Indoor Dewpoint:"+str(round(self.indoor_dewpoint,2))+"C\n"
+			tmp += "New humidity" + str(rount (self.new_humidity,2))+"\n"
 		if "debug" in sys.argv:
 			try:
 				tmp += "Outdoor Sensor: "+str(self.sensor_temp)+"C "+str(self.sensor_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.sensor_humid,self.sensor_temp),2))+"C\n"
