@@ -71,7 +71,7 @@ def report_alive():
 #READ AVAIL SENSOR DATA
 def update_sensors():
 	try:
-		fd=open ("sensors")
+		fd=open ("sensors","r")
 		for each in fd.readlines():
 			unit = each.split(":")
 			id = unit[0]
@@ -109,7 +109,7 @@ def logger ():
 		+":"				\
 		+str(round(device.sensor_humid,2))	\
 		+":"				\
-		+str(round(device.extract_humidity_comp*100,2))\
+		+str(round(device.new_humidity,2))\
 		+":"				\
 		+str(round(device.inlet_ave,2))		\
 		+":"				\
@@ -493,7 +493,7 @@ class Systemair(object):
 				if self.fanspeed ==3:
 					self.supply_power   = self.used_energy
 				elif self.fanspeed ==1:
-					self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*3# o - 16 constant# red  from casing heat transfer
+					self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*3.5# o - 16 constant# red  from casing heat transfer
 				elif self.fanspeed ==2:
 					self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*4#  - 16 constant# red  from casing heat transfer
 
@@ -549,10 +549,11 @@ class Systemair(object):
 
 		except:pass
 		######### SAT MOIST IPDATE ############
-		d_pw = self.airdata_inst.energy_to_pwdiff(self.energy_diff)
+		if self.energy_diff > 0:d_pw = self.airdata_inst.energy_to_pwdiff(self.energy_diff)*self.ef
+		else: d_pw = 0
 		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
 		low_pw = self.airdata_inst.sat_vapor_press(self.prev_static_temp)
-		if "debug" in sys.argv:print max_pw, low_pw, d_pw, self.prev_static_temp, self.energy_diff
+		if "debug" in sys.argv:self.msg += str( max_pw)+" "+str( low_pw)+" "+str( d_pw)+" "+str( self.prev_static_temp)+" "+str( self.energy_diff)+"\n"
 		self.new_humidity = ((low_pw+d_pw) / max_pw) * 100
 
 		#####END

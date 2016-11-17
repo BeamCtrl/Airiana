@@ -57,12 +57,12 @@ class Energy(object):
 		return (self.mass_const*pw)/(self.press-pw)
 
 	def energy_to_pwdiff(self, energy):
-		mass_quiv = self.condensation_mass(energy)
-		d_pw = self.press*100*(float(mass_quiv)/self.mass_const)
+		mass_quiv = self.condensation_mass(energy) # grams condensate per kilogram air
+		d_pw = self.press*100*(float(mass_quiv*0.001)/self.mass_const)
 		return d_pw
 
 	def condensation_mass(self,energy):
-		return float(energy) / 2490  # 2490kJ/kg latent heat convertsion
+		return float(energy) / 2490  # (g) 2490kJ/kg latent heat convertsion
 
 	def xchange_humid(self,T):
 		content = (self.abs*self.humid)/100
