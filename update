@@ -1,34 +1,37 @@
 #!/bin/bash
-wget -O airiana-core.py http://lappy.asuscomm.com:443/release/airiana-core.py
-wget -O airdata.py http://lappy.asuscomm.com:443/release/airdata.py
-wget -O http http://lappy.asuscomm.com:443/release/http
+#wget -O airiana-core.py http://lappy.asuscomm.com:443/release/airiana-core.py
+#wget -O airdata.py http://lappy.asuscomm.com:443/release/airdata.py
+#wget -O http http://lappy.asuscomm.com:443/release/http
 #wget -O ./public/disp2.html http://lappy.asuscomm.com:443/disp2.html
-wget -O ./public/buttons.html http://lappy.asuscomm.com:443/buttons.html
-wget -O ./public/index.html http://lappy.asuscomm.com:443/index.html
-wget -O ./public/ajax.html http://lappy.asuscomm.com:443/ajax.html
-wget -O grapher.py http://lappy.asuscomm.com:443/release/grapher.py
-wget -O ./public/httpsrv.py http://lappy.asuscomm.com:443/release/httpsrv.py
-wget -O ./public/controler.py http://lappy.asuscomm.com:443/release/controler.py
-wget -O statistics.py http://lappy.asuscomm.com:443/release/statistics.py
-wget -O forcast.py http://lappy.asuscomm.com:443/release/forcast.py
-wget -O mail.py http://lappy.asuscomm.com:443/release/mail.py
+#wget -O ./public/buttons.html http://lappy.asuscomm.com:443/buttons.html
+#wget -O ./public/index.html http://lappy.asuscomm.com:443/index.html
+#wget -O ./public/ajax.html http://lappy.asuscomm.com:443/ajax.html
+#wget -O grapher.py http://lappy.asuscomm.com:443/release/grapher.py
+#wget -O ./public/httpsrv.py http://lappy.asuscomm.com:443/release/httpsrv.py
+#wget -O ./public/controler.py http://lappy.asuscomm.com:443/release/controler.py
+#wget -O statistics.py http://lappy.asuscomm.com:443/release/statistics.py
+#wget -O forcast.py http://lappy.asuscomm.com:443/release/forcast.py
+#wget -O mail.py http://lappy.asuscomm.com:443/release/mail.py
 #wget -O start http://lappy.asuscomm.com:443/release/start
 #wget -O stop http://lappy.asuscomm.com:443/release/stop
-wget -O ./systemfiles/airiana.service http://lappy.asuscomm.com:443/systemfiles/airiana.service
-wget -O ./systemfiles/controller.service http://lappy.asuscomm.com:443/systemfiles/controller.service
-wget -O ./systemfiles/hosts http://lappy.asuscomm.com:443/systemfiles/hosts
-wget -O ./public/apple-touch-icon.png http://lappy.asuscomm.com:443/apple-touch-icon.png
-wget -O ./public/ip-replace.sh http://lappy.asuscomm.com:443/ip-replace.sh
-wget -O humid.py http://lappy.asuscomm.com:443/release/humid.py
-wget -O License.txt http://lappy.asuscomm.com:443/release/License.txt 
-chmod 555 License.txt
-chmod 766 airiana-core.py
-chmod 766 airdata.py
-chmod 755 http
-chmod 766 grapher.py
-chmod 755 ./public/controler.py
-chmod 766 forcast.py
-chmod 766 statistics.py
-chmod 755 ./public/httpsrv.py
-chmod 766 humid.py
-chmod 755 ./public/ip-replace.sh
+#wget -O ./systemfiles/airiana.service http://lappy.asuscomm.com:443/systemfiles/airiana.service
+#wget -O ./systemfiles/controller.service http://lappy.asuscomm.com:443/systemfiles/controller.service
+#wget -O ./systemfiles/hosts http://lappy.asuscomm.com:443/systemfiles/hosts
+#wget -O ./public/apple-touch-icon.png http://lappy.asuscomm.com:443/apple-touch-icon.png
+#wget -O ./public/ip-replace.sh http://lappy.asuscomm.com:443/ip-replace.sh
+#wget -O humid.py http://lappy.asuscomm.com:443/release/humid.py
+#wget -O License.txt http://lappy.asuscomm.com:443/release/License.txt 
+#chmod 555 License.txt
+#chmod 766 airiana-core.py
+#chmod 766 airdata.py
+#chmod 755 http
+#chmod 766 grapher.py
+#chmod 755 ./public/controler.py
+#chmod 766 forcast.py
+#chmod 766 statistics.py
+#chmod 755 ./public/httpsrv.py
+#chmod 766 humid.py
+#chmod 755 ./public/ip-replace.sh
+
+
+git pull origin

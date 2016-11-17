@@ -153,10 +153,10 @@ class Request(object):
 		try:
 			self.response= "no data"
 			self.buff = ""
-			self.buff += os.read(bus,1000)
+			self.buff += os.read(bus,1000) # purge content on bus
 			time.sleep(wait_time)
 			self.response = client.read_registers(start,count)
-			self.buff += os.read(bus,1000)
+			self.buff += os.read(bus,1000) # re purge
 			time.sleep(wait_time)
 			self.response = client.read_registers(start,count)
 		except ValueError as error:
@@ -184,7 +184,7 @@ class Request(object):
 			self.modbusregister(address,decimals)
 		except ValueError:
 			#print "checksum error,retry:",self.checksum_errors
-			os.read(bus,1000)
+			os.read(bus,1000) # bus purge
 			self.checksum_errors +=1
 			self.modbusregister(address,decimals)
 	def write_register(self, reg, value):
@@ -540,12 +540,11 @@ class Systemair(object):
 			self.dew_point = self.airdata_inst.dew_point(self.extract_humidity*100,self.extract_ave)
 		try:
 			extract_vmax	   = self.airdata_inst.vapor_max(self.extract_ave)
-			moisture 	   = extract_vmax*self.extract_humidity
+			moisture 		   = extract_vmax*self.extract_humidity
 			inlet_vmax  	   = self.airdata_inst.vapor_max(self.inlet_ave)
-			dew_point_moisture = self.airdata_inst.vapor_max(self.dew_point) #dew point in extracted air
 			self.dew_point 	   = self.airdata_inst.dew_point(self.extract_humidity*100,self.extract_ave)
-			outlet_moisture    = inlet_vmax# prev was exhaust_ave, sensor_temp
-			self.condensate    = (dew_point_moisture - outlet_moisture) #diff in moisture content between inlet max vapor and dewpoint extracted
+			dew_point_moisture = self.airdata_inst.vapor_max(self.dew_point) #dew point in extracted air
+			self.condensate    = (dew_point_moisture - inlet_vmax) #diff in moisture content between inlet max vapor and dewpoint extracted
 
 		except:pass
 		self.cond_eff=.20#  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
@@ -556,6 +555,7 @@ class Systemair(object):
 		if self.extract_humidity<=0:self.extract_humidity = 0
 		if self.condensate >0:
 			self.condensate_compensation= (self.airdata_inst.condensation_energy(self.condensate)/1000)*self.ef*self.cond_eff
+			
 			self.extract_humidity_comp =self.extract_humidity#+abs((self.extract_humidity*( self.inlet_ave/(self.exhaust_ave-self.inlet_ave)*(1-0.87))))
 			if self.extract_humidity==numpy.nan: self.extract_humidity=0
 		else:
@@ -801,7 +801,7 @@ class Systemair(object):
 			self.set_fanspeed(1)
 
 			self.msg += "\nno cooling posible due to temperature conditions"
-		if (self.forcast[0]<=16 or self.forcast[1]>=4) and time.localtime().tm_hour >12: self.cool_mode=False
+		if (self.forcast[0] <= 16 or self.forcast[1]>=4) and time.localtime().tm_hour >12: self.cool_mode=False
 	    #DYNAMIC FANSPEED CONTROL
 
 	    if self.fanspeed == 1 and self.extract_ave>self.target and self.extract_ave -self.supply_ave>0.1 and (self.extract_dt_long >= 0.2 and numpy.average(self.extract_dt_list) > 0.2)  and not self.shower and not self.cool_mode:
