@@ -550,8 +550,9 @@ class Systemair(object):
 		except:pass
 		######### SAT MOIST IPDATE ############
 		d_pw = self.airdata_inst.energy_to_pwdiff(self.energy_diff)
-		max_pw = self.airdata.sat_vapor_press(self.extract_ave)
+		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
 		low_pw = self.airdata_inst.sat_vapor_press(self.prev_static_temp)
+		if "debug" in sys.argv:print max_pw, low_pw, d_pw, self.prev_static_temp, self.energy_diff
 		self.new_humidity = ((low_pw+d_pw) / max_pw) * 100
 
 		#####END
@@ -640,7 +641,7 @@ class Systemair(object):
 		if "humidity" in sys.argv :
 			tmp += "Calculated humidity: "+str(round(self.extract_humidity*100,2))+"% at:"+str(round(self.extract_ave,1))+"C Dewpoint:"+str(round(self.dew_point,2))+"C\n"
 			tmp += "Static:"+str(round(self.local_humidity+self.humidity_comp,2))+"% humidity gain:"+str(round(self.humidity_gain,3))+" "+str(round(self.humidity_comp,2))+"% Indoor Dewpoint:"+str(round(self.indoor_dewpoint,2))+"C\n"
-			tmp += "New humidity" + str(rount (self.new_humidity,2))+"\n"
+			tmp += "New humidity" + str(round (self.new_humidity,2))+"\n"
 		if "debug" in sys.argv:
 			try:
 				tmp += "Outdoor Sensor: "+str(self.sensor_temp)+"C "+str(self.sensor_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.sensor_humid,self.sensor_temp),2))+"C\n"
@@ -956,6 +957,9 @@ if __name__:# not  "__main__":
 	    device.update_xchanger()
 	    device.get_local()
 	    starttime=time.time()
+	    if "humidity" in sys.argv: 	
+		device.moisture_calcs()
+
 	    print "system started:",time.ctime(starttime),";"
 	    sys.stdout.flush()
 	    time.sleep(2)

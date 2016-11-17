@@ -51,8 +51,8 @@ class Energy(object):
 		#print self.abs,"g/m3 vapor_max"," temp:",T," sat. pressure:",self.pw
 		return self.abs
 	def sat_vapor_press (self,T):
-		self.pw = 6.1121*math.exp( (17.678-T/234.5) * (T/(T+257.14))  )
-		
+		self.pw = 6.1121*math.exp( (18.678-T/234.5) * (T/(T+257.14))  ) * 100
+		return self.pw
 	def vapor_mass(self,pw): #return vapor mass from vapor partial pressure
 		return (self.mass_const*pw)/(self.press-pw)
 
@@ -93,3 +93,6 @@ if  "__main__" in __name__:
 	air =Energy()
 	print air.energy_to_pwdiff(25)
 	print air.energy_to_pwdiff(100)
+	print air.sat_vapor_press(10)
+	print air.sat_vapor_press(20)
+	print air.sat_vapor_press(100)
