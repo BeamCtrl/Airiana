@@ -122,9 +122,7 @@ def logger ():
 		+str(device.inside)		\
 		+":"				\
 		+str(round(device.condensate_compensation,2))\
-		+":"+str(device.inside_humid) 	\
-		+""
-		#os.system(cmd+" >>data.log")
+		+":"+str(device.inside_humid) 	
 		fdo.write(cmd+"\n")
 		fdo.close()
 	except:traceback.print_exc()
