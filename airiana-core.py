@@ -491,7 +491,7 @@ class Systemair(object):
 				if self.fanspeed ==3:
 					self.supply_power   = self.used_energy
 				elif self.fanspeed ==1:
-					self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*3.5# o - 16 constant# red  from casing heat transfer
+					self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*3.15# o - 16 constant# red  from casing heat transfer
 				elif self.fanspeed ==2:
 					self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*4#  - 16 constant# red  from casing heat transfer
 
@@ -546,16 +546,16 @@ class Systemair(object):
 			self.condensate    = (dew_point_moisture - inlet_vmax) #diff in moisture content between inlet max vapor and dewpoint extracted
 
 		except:pass
+		self.cond_eff=1.0#  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
 		######### SAT MOIST IPDATE ############
-		if self.energy_diff > 0:d_pw = self.airdata_inst.energy_to_pwdiff(self.energy_diff)*self.ef
+		if self.energy_diff > 0:d_pw = self.airdata_inst.energy_to_pwdiff(self.energy_diff/self.cond_eff,self.extract_ave)*self.ef
 		else: d_pw = 0
 		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
-		low_pw = self.airdata_inst.sat_vapor_press(self.prev_static_temp)
+		low_pw = self.airdata_inst.sat_vapor_press(self.inlet_ave)
 		if "debug" in sys.argv:self.msg += str( max_pw)+" "+str( low_pw)+" "+str( d_pw)+" "+str( self.prev_static_temp)+" "+str( self.energy_diff)+"\n"
 		self.new_humidity = ((low_pw+d_pw) / max_pw) * 100
 
 		#####END
-		self.cond_eff=.20#  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
 		if len(self.i_diff)>10 and (self.dew_point > self.inlet_ave) :
 			self.extract_humidity +=0.00001*self.i_diff[-1]-0.00001*(self.i_diff[-1]-self.i_diff[-2])+0.000001*numpy.sum(self.i_diff)
 		elif self.dew_point < self.inlet_ave: self.extract_humidity += (self.inlet_ave -self.dew_point)/float(100) +0.0001

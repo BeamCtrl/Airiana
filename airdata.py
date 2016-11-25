@@ -56,9 +56,10 @@ class Energy(object):
 	def vapor_mass(self,pw): #return vapor mass from vapor partial pressure
 		return (self.mass_const*pw)/(self.press-pw)
 
-	def energy_to_pwdiff(self, energy):
+	def energy_to_pwdiff(self, energy, temp):
 		mass_quiv = self.condensation_mass(energy) # grams condensate per kilogram air
-		d_pw = self.press*100*(float(mass_quiv*0.001)/self.mass_const)
+		#d_pw = self.press*100*(float(mass_quiv*0.001)/self.mass_const)
+		d_pw = (mass_quiv * self.press)/(self.mass_const+mass_quiv)/(self.get_mass(temp)*1000)
 		return d_pw
 
 	def condensation_mass(self,energy):
