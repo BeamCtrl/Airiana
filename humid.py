@@ -9,11 +9,12 @@ def get_humidity():
                 data = os.popen("tail -n "+str(day/1)+" data.log")
                 for each in data.readlines():
                          tmp = each.split(":")
-                         if float(tmp[0])<time.time()-(24*3600):
-			 	pass
-			 else:                    
-				templist.append (float(tmp[5]))
-
+			 try:
+	                         if float(tmp[0])<time.time()-(24*3600):
+				 	pass
+				 else:                    
+					templist.append (float(tmp[5]))
+			 except: pass
                 inlet_min = min(templist)
 		airdata_inst.vapor_max(inlet_min)
 		top = airdata_inst.pw

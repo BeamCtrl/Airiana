@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import SimpleHTTPServer
-import SocketServer,os,socket,struct
+import SocketServer,os,socket,struct,ssl
+cert = "../keys/public.pem"
 PORT = 80
 dir= "./public/"
 os.chdir(dir)
@@ -18,6 +19,9 @@ class myServer(SocketServer.TCPServer):
 				break
 			except: os.system("sleep 1")
 httpd = myServer(("", PORT), Handler)
+
+#httpd.socket = ssl.wrap_socket(httpd.socket,certfile= cert,server_side=True)
+
 print "serving at port", PORT
 try:
 	httpd.serve_forever()

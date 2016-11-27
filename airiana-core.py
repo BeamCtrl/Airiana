@@ -546,9 +546,9 @@ class Systemair(object):
 			self.condensate    = (dew_point_moisture - inlet_vmax) #diff in moisture content between inlet max vapor and dewpoint extracted
 
 		except:pass
-		self.cond_eff=1.0#  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
+		self.cond_eff=1.00#  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
 		######### SAT MOIST IPDATE ############
-		if self.energy_diff > 0:d_pw = self.airdata_inst.energy_to_pwdiff(self.energy_diff/self.cond_eff,self.extract_ave)*self.ef
+		if self.energy_diff > 0:d_pw = self.airdata_inst.energy_to_pwdiff((1000/self.ef*self.energy_diff)/self.cond_eff,self.extract_ave)*self.ef
 		else: d_pw = 0
 		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
 		low_pw = self.airdata_inst.sat_vapor_press(self.inlet_ave)
