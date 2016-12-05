@@ -9,10 +9,10 @@ class Energy(object):
 		try:
 			#GET AMBIENT PRESURE##
 			self.press= float(os.popen("./forcast.py pressure").read())
-
+			self.press = self.press -2 # 15m Above sea lvl
 		except:
 			print "error occured getting current pressure ISA assumed"
-		        self.press = 1013.25  #hPa
+		        self.press = 1013.25-2  #hPa BBarkar√∂ 15meter √above sealevel
 			err = open("error.log","w")
 			err.write( "Airdata.py pressure error: "+str(sys.exc_info())+str(locals()))
 			err.close()

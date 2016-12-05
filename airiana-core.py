@@ -491,7 +491,7 @@ class Systemair(object):
 				if self.fanspeed ==3:
 					self.supply_power   = self.used_energy
 				elif self.fanspeed ==1:
-					self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*3.15# o - 16 constant# red  from casing heat transfer
+					self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*4.15# o - 16 constant# red  from casing heat transfer
 				elif self.fanspeed ==2:
 					self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*4#  - 16 constant# red  from casing heat transfer
 
@@ -551,8 +551,9 @@ class Systemair(object):
 		if self.energy_diff > 0:d_pw = self.airdata_inst.energy_to_pwdiff((1000/self.ef*self.energy_diff),self.extract_ave)/self.cond_eff
 		else: d_pw = 0
 		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
-		low_pw = self.airdata_inst.sat_vapor_press((self.inlet_ave+(self.prev_static_temp*2))/3)
-		if "debug" in sys.argv:self.msg += str( max_pw)+" "+str( low_pw)+" "+str( d_pw)+" "+str( self.prev_static_temp)+" "+str( self.energy_diff)+"\n"
+		div = (self.inlet_ave+self.prev_static_temp*2)/3
+		low_pw = self.airdata_inst.sat_vapor_press(div)
+		if "debug" in sys.argv:self.msg += str( max_pw)+"Pa "+str( low_pw)+"Pa "+str( d_pw)+"Pa "+str(div)+"C "+str( self.energy_diff)+"W\n"
 		self.new_humidity = ((low_pw+d_pw) / max_pw) * 100
 
 		#####END
@@ -640,7 +641,7 @@ class Systemair(object):
 		if "humidity" in sys.argv :
 			tmp += "Calculated humidity: "+str(round(self.extract_humidity*100,2))+"% at:"+str(round(self.extract_ave,1))+"C Dewpoint:"+str(round(self.dew_point,2))+"C\n"
 			tmp += "Static:"+str(round(self.local_humidity+self.humidity_comp,2))+"% humidity gain:"+str(round(self.humidity_gain,3))+" "+str(round(self.humidity_comp,2))+"% Indoor Dewpoint:"+str(round(self.indoor_dewpoint,2))+"C\n"
-			tmp += "New humidity" + str(round (self.new_humidity,2))+"\n"
+			tmp += "New humidit:y" + str(round (self.new_humidity,2))+"%\n"
 		if "debug" in sys.argv:
 			try:
 				tmp += "Outdoor Sensor: "+str(self.sensor_temp)+"C "+str(self.sensor_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.sensor_humid,self.sensor_temp),2))+"C\n"
@@ -660,17 +661,17 @@ class Systemair(object):
 		if self.rotor_active == "Yes" or "debug" in sys.argv:
 			tmp += "Temperature Efficiency: "+str(round(numpy.average(self.eff_ave),2))+"%\n"
 			#tmp += "Energy efficiency:"+str(str(round((self.used_energy/self.availible_energy)*100,3))+"%\n")
-		tmp += "Filter has been installed for "+ str(self.filter)+" days.\n"
+		tmp += "Filter has been installed for "+ str(self.filter)+" days.\n\n"
 		tmp += "Ambient Pressure:"+ str(self.airdata_inst.press)+"hPa\n"
-		if self.forcast[1]<>-1: tmp += "Weather forecast for tomorrow is: "+str(self.forcast[0])+"C "+self.weather_types[self.forcast[1]]+".\n"
+		if self.forcast[1]<>-1: tmp += "Weather forecast for tomorrow is: "+str(self.forcast[0])+"C "+self.weather_types[self.forcast[1]]+".\n\n"
 		if "Timer" in threading.enumerate()[-1].name: tmp+= "Ventilation timer on: "+str((int(time.time())-int(device.timer))/60)+":"+str((int(time.time()-int(self.timer))%60))+"\n"
 		#tmp+= str(threading.enumerate())+"\n"
 		if self.shower : tmp += "Shower mode engaged at:" +time.ctime(self.shower_initial)+"\n"
 		if self.inhibit>0:tmp+=  "Mode sensing inhibited "+"("+str(int((self.inhibit+600-time.time())/60+1))+"min)\n"
-		if self.modetoken >=1 :tmp+= "Mode change inhibited at: "+time.ctime(self.modetoken)+"(60min)\n"
+		if self.modetoken >=1 :tmp+= "Mode change inhibited at: "+time.ctime(self.modetoken)+"("+str(int((self.modetoken+3600-time.time())/60+1))+"min)\n"
 		if self.cool_mode: tmp+= "Cooling mode is in effect, target is 20.7C extraction temperature\n"
 		#tmp += "lower limit:22.0C, when cooling 21.0C, fans up2 22.01C, fans up3 22.5 or +0.5C/hr\nExchanger limits ON:21C OFF:22C\nWeather Data from YR.no\n"
-		if not monitoring: tmp += "System Automation off\n"
+		if not monitoring: tmp += "\nSystem Automation off\n"
 		tmp +=  self.msg+"\n"
 
 		#CLEAR SCREEN AND REPRINT
@@ -681,7 +682,7 @@ class Systemair(object):
 		if self.iter %30==0 and "debug" in sys.argv :
 			try:
 				ave, dev = statistics.stddev(self.cond_data)
-				self.msg += "\n" + str(len(self.cond_data))+" mean:"+str(ave)+" stddev:"+str(dev)+" "+ str(dev/ave*100)+"%"
+				self.msg += str(len(self.cond_data))+" mean:"+str(ave)+" stddev:"+str(dev)+" "+ str(dev/ave*100)+"%\n"
 				print self.msg
 			except : print "mean error"
 	#Read all data registers
