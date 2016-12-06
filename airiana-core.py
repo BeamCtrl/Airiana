@@ -121,7 +121,7 @@ def logger ():
 		+":"				\
 		+str(device.inside)		\
 		+":"				\
-		+str(round(device.condensate_compensation,2))\
+		+str(round(device.energy_diff,2))\
 		+":"+str(device.inside_humid) 	
 		fdo.write(cmd+"\n")
 		fdo.close()
@@ -340,6 +340,7 @@ class Systemair(object):
 		self.prev_static_temp = 0
 		self.indoor_dewpoint = 0
 		self.target = 22
+		self.energy_diff=0
 
 	def get_filter_status(self):
 		req.modbusregister(601,0)
@@ -490,8 +491,8 @@ class Systemair(object):
 			if   self.rotor_active=="Yes":
 				if self.fanspeed ==3:
 					self.supply_power   = self.used_energy
-				elif self.fanspeed ==1:
-					self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*4.15# o - 16 constant# red  from casing heat transfer
+				elif self.fanspeed ==1:			##THIS 10 IS rotormotor## 
+					self.supply_power   = self.used_energy-10-(self.extract_ave-self.inlet_ave)*3.65# o - 16 constant# red  from casing heat transfer
 				elif self.fanspeed ==2:
 					self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*4#  - 16 constant# red  from casing heat transfer
 
@@ -553,7 +554,7 @@ class Systemair(object):
 		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
 		div = (self.inlet_ave+self.prev_static_temp*2)/3
 		low_pw = self.airdata_inst.sat_vapor_press(div)
-		if "debug" in sys.argv:self.msg += str( max_pw)+"Pa "+str( low_pw)+"Pa "+str( d_pw)+"Pa "+str(div)+"C "+str( self.energy_diff)+"W\n"
+		if "debug" in sys.argv:self.msg += str(round( max_pw,2))+"Pa "+str(round( low_pw,2))+"Pa "+str( round(d_pw,2))+"Pa "+str(round(div,2))+"C "+str(round( self.energy_diff,2))+"W\n"
 		self.new_humidity = ((low_pw+d_pw) / max_pw) * 100
 
 		#####END
