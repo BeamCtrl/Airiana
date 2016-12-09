@@ -6,6 +6,7 @@ import time as tm
 matplotlib.use('Agg')
 from pylab import *
 ioff()
+
 #fil = open("data.log")
 if len(sys.argv) >=2  and "debug" not in sys.argv[1] :day= int(sys.argv[1])
 else:day = int(float(3600*24))
@@ -69,7 +70,7 @@ for each in calc_hum:
 
 #fig, ax = subplots()
 #print fig.properties()
-fig=figure(1,figsize=(7,10),dpi=20)
+fig=figure(1,figsize=(7,15),dpi=20)
 
 s1=subplot(211)
 s1.set_title("Temperatures")

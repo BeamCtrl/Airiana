@@ -488,23 +488,25 @@ class Systemair(object):
 		if self.fanspeed <> 0:
 			#self.availible_energy =  self.airdata_inst.energy_flow(self.ef,self.extract_ave,self.inlet_ave)+self.airdata_inst.condensation_energy((self.airdata_inst.vapor_max(self.exhaust_ave)-self.airdata_inst.vapor_max(self.inlet_ave))*((self.ef)/1000))
 			self.used_energy    = self.airdata_inst.energy_flow(self.sf,self.supply_ave,self.inlet_ave)
+			factor = 3.65 # casing transfer correction factor
 			if   self.rotor_active=="Yes":
 				if self.fanspeed ==3:
-					self.supply_power   = self.used_energy
-				elif self.fanspeed ==1:			##THIS 10 IS rotormotor## 
-					self.supply_power   = self.used_energy-10-(self.extract_ave-self.inlet_ave)*3.65# o - 16 constant# red  from casing heat transfer
+					factor = 3.3
+				elif self.fanspeed ==1:
+					if self.ef == self.sf: factor = 3.65 + .9 		 
+					else : factor=3.55
 				elif self.fanspeed ==2:
-					self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*4#  - 16 constant# red  from casing heat transfer
-
+					factor = 8.25
 			elif self.rotor_active =="No":
 				if self.fanspeed == 1   :
-					self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*2#  - 16 constant# red  from casing heat transfer
+					factor=3#  - 16 constant# red  from casing heat transfer
 				elif self.fanspeed == 2 :
-					self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*3#  - 16 constant# red  from casing heat transfer
+					factor = 1.9#  - 16 constant# red  from casing heat transfer
 				elif self.fanspeed == 3 :
-					self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*5#  constant# red  from casing heat transfer
+					factor = 5.5
+			else: factor=1
+ 			self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*factor#  constant# red  from casing heat transfer
 
-			else: self.supply_power=self.used_energy
 			self.extract_exchanger  = self.airdata_inst.energy_flow(self.ef,self.extract_ave,self.exhaust_ave)
 			self.extract_offset =0 #float(8)*(self.extract_ave-self.supply_ave)# + 20Watt/degC transfer after exchanger unit
 			self.extract_power = self.extract_exchanger+self.extract_offset
@@ -523,7 +525,7 @@ class Systemair(object):
 			else: self.gain += self.loss*(self.dur/3600)
 
 			self.cond_data.append(self.extract_power-self.used_energy)
-			if len(self.cond_data)> 8000:self.cond_data.pop(0)
+			if len(self.cond_data)> 400:self.cond_data.pop(0)
 
 	def get_rotor_state(self):
 		req.modbusregister(206,0)
@@ -554,7 +556,7 @@ class Systemair(object):
 		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
 		div = (self.inlet_ave+self.prev_static_temp*2)/3
 		low_pw = self.airdata_inst.sat_vapor_press(div)
-		if "debug" in sys.argv:self.msg += str(round( max_pw,2))+"Pa "+str(round( low_pw,2))+"Pa "+str( round(d_pw,2))+"Pa "+str(round(div,2))+"C "+str(round( self.energy_diff,2))+"W\n"
+		if "debug" in sys.argv:self.msg += str(round( max_pw,2))+"Pa "+str(round( low_pw,2))+"Pa "+str( round(d_pw,2))+"Pa "+str(round(d_pw/max_pw*100,2))+"% "+str(round(div,2))+"C "+str(round( self.energy_diff,2))+"W\n"
 		self.new_humidity = ((low_pw+d_pw) / max_pw) * 100
 
 		#####END
@@ -642,7 +644,7 @@ class Systemair(object):
 		if "humidity" in sys.argv :
 			tmp += "Calculated humidity: "+str(round(self.extract_humidity*100,2))+"% at:"+str(round(self.extract_ave,1))+"C Dewpoint:"+str(round(self.dew_point,2))+"C\n"
 			tmp += "Static:"+str(round(self.local_humidity+self.humidity_comp,2))+"% humidity gain:"+str(round(self.humidity_gain,3))+" "+str(round(self.humidity_comp,2))+"% Indoor Dewpoint:"+str(round(self.indoor_dewpoint,2))+"C\n"
-			tmp += "New humidit:y" + str(round (self.new_humidity,2))+"%\n"
+			tmp += "New humidity: " + str(round (self.new_humidity,2))+"%\n"
 		if "debug" in sys.argv:
 			try:
 				tmp += "Outdoor Sensor: "+str(self.sensor_temp)+"C "+str(self.sensor_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.sensor_humid,self.sensor_temp),2))+"C\n"
