@@ -10,11 +10,12 @@ class Energy(object):
 			#GET AMBIENT PRESURE##
 			self.press= float(os.popen("./forcast.py pressure").read())
 			self.press = self.press -2 # 15m Above sea lvl
+		except ValueError: print "value error for pressure"
 		except:
 			print "error occured getting current pressure ISA assumed"
 		        self.press = 1013.25-2  #hPa BBarkaro 15mete above sea level
-			err = open("error.log","w")
-			err.write( "Airdata.py pressure error: "+str(sys.exc_info())+str(locals()))
+			err = open("airdata_error.log","w")
+			err.write( "Airdata.py pressure error: "+str(sys.exc_info()))
 			err.close()
 		#print"Ambient air pressure used:",self.press,"hPa"
 		self.T=273.15 #K  0Celcius in Kelvin
@@ -92,8 +93,8 @@ class Energy(object):
 #ref Vaisala.comhumidity conversion formulas
 if  "__main__" in __name__:
 	air =Energy()
-	print air.energy_to_pwdiff(25)
-	print air.energy_to_pwdiff(100)
+	print air.energy_to_pwdiff(25,22)
+	print air.energy_to_pwdiff(12,22)/(0.0034)
 	print air.sat_vapor_press(10)
 	print air.sat_vapor_press(20)
 	print air.sat_vapor_press(100)

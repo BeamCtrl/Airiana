@@ -5,7 +5,7 @@ import minimalmodbus, os, traceback
 import time,struct,sys
 import statistics
 from mail import *
-vers = "7.3d"
+vers = "7.3f"
 #exec util fnctns
 os.chdir("/home/pi/airiana/public")
 os.system("./ip-replace.sh")  # reset ip-addresses on buttons.html
@@ -549,9 +549,9 @@ class Systemair(object):
 			self.condensate    = (dew_point_moisture - inlet_vmax) #diff in moisture content between inlet max vapor and dewpoint extracted
 
 		except:pass
-		self.cond_eff=.075#  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
+		self.cond_eff=.30#  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
 		######### SAT MOIST IPDATE ############
-		if self.energy_diff > 0:d_pw = self.airdata_inst.energy_to_pwdiff((1000/self.ef*self.energy_diff),self.extract_ave)/self.cond_eff
+		if self.energy_diff > 0:d_pw = (self.airdata_inst.energy_to_pwdiff(self.energy_diff,self.extract_ave)/self.cond_eff)/(float(self.ef)/1000)
 		else: d_pw = 0
 		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
 		div = (self.inlet_ave+self.prev_static_temp*2)/3
@@ -643,8 +643,8 @@ class Systemair(object):
 			if "humidity" in sys.argv and "debug" in sys.argv : tmp +="Condensation  efficiency: " +str(round(self.cond_eff,2)*100)+"%\n"
 		if "humidity" in sys.argv :
 			tmp += "Calculated humidity: "+str(round(self.extract_humidity*100,2))+"% at:"+str(round(self.extract_ave,1))+"C Dewpoint:"+str(round(self.dew_point,2))+"C\n"
-			tmp += "Static:"+str(round(self.local_humidity+self.humidity_comp,2))+"% humidity gain:"+str(round(self.humidity_gain,3))+" "+str(round(self.humidity_comp,2))+"% Indoor Dewpoint:"+str(round(self.indoor_dewpoint,2))+"C\n"
-			tmp += "New humidity: " + str(round (self.new_humidity,2))+"% ref. dewpoint+10%rh:"+str(round(self.airdata_inst.dew_point(self.new_humidity+10,self.extract_ave),2))+"C\n"
+			tmp += "Static:"+str(round(self.local_humidity+self.humidity_comp,2))+"% humidity gain:"+str(round(self.humidity_gain,3))+" "+str(round(self.humidity_comp,2))+"\n"
+			tmp += "New humidity: " + str(round (self.new_humidity,2))+"% ref. dewpoint+10%rh:"+str(round(self.indoor_dewpoint,2))+"C\n"
 		if "debug" in sys.argv:
 			try:
 				tmp += "Outdoor Sensor: "+str(self.sensor_temp)+"C "+str(self.sensor_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.sensor_humid,self.sensor_temp),2))+"C\n"
