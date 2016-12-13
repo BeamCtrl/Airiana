@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import numpy as np
 #import matplotlib.pyplot as plt
-import matplotlib, sys , os, traceback
+import matplotlib, sys , os, traceback, subprocess
 import time as tm
 matplotlib.use('Agg')
 from pylab import *
@@ -12,13 +12,15 @@ if int(os.stat("./RAM/data.log").st_size) > 1024000:
 	while os.path.isfile("data.log."+str(rev)): rev += 1
 	os.system("mv ./RAM/data.log ./data.log."+str(rev))
 	os.system("tail -n "+str(60*24)+" data.log."+str(rev)+" > ./RAM/data.log")
-
-
+	lines= int(subprocess.check_output(["wc", "-l", "data.log."+str(rev)]).split(" ")[0])
+	os.system("head -n "+str(lines-60*24)+" data.log."+str(rev) +" > tmp.log")
+	os.system("mv tmp.log data.log."+str(rev))
 ######################
 if len(sys.argv) >=2  and "debug" not in sys.argv[1] :day= int(sys.argv[1])
-else:day = int(float(60*24))
-fil = os.popen("tail -"+str(day)+" ./RAM/data.log")
+else:day = int(float(3600*24))
+fil = os.popen("tail -"+str(day/60)+" ./RAM/data.log")
 data = fil.readlines()
+print data[-1], tm.time()
 sen_hum = []
 sen_temp = []
 extract =[]
