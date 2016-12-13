@@ -6,11 +6,18 @@ import time as tm
 matplotlib.use('Agg')
 from pylab import *
 ioff()
+## make backup of datafile if large##
+rev = 1
+if int(os.stat("./RAM/data.log").st_size) > 1024000:
+	while os.path.isfile("data.log."+str(rev)): rev += 1
+	os.system("mv ./RAM/data.log ./data.log."+str(rev))
+	os.system("tail -n "+str(60*24)+" data.log."+str(rev)+" > ./RAM/data.log")
 
-#fil = open("data.log")
+
+######################
 if len(sys.argv) >=2  and "debug" not in sys.argv[1] :day= int(sys.argv[1])
-else:day = int(float(3600*24))
-fil = os.popen("tail -"+str(day)+" data.log")
+else:day = int(float(60*24))
+fil = os.popen("tail -"+str(day)+" ./RAM/data.log")
 data = fil.readlines()
 sen_hum = []
 sen_temp = []

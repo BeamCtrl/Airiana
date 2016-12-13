@@ -98,7 +98,7 @@ def update_sensors():
 #WRITE TO DATA.LOG
 def logger ():
 	try:
-		fdo = open("data.log","a+")
+		fdo = open("./RAM/data.log","a+")
 		#+str(device.extract_humidity*100)\
 		cmd = ""   		\
 		+str(time.time()) 		\
@@ -549,7 +549,7 @@ class Systemair(object):
 			self.condensate    = (dew_point_moisture - inlet_vmax) #diff in moisture content between inlet max vapor and dewpoint extracted
 
 		except:pass
-		self.cond_eff=.1#  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
+		self.cond_eff=.075#  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
 		######### SAT MOIST IPDATE ############
 		if self.energy_diff > 0:d_pw = self.airdata_inst.energy_to_pwdiff((1000/self.ef*self.energy_diff),self.extract_ave)/self.cond_eff
 		else: d_pw = 0
@@ -644,7 +644,7 @@ class Systemair(object):
 		if "humidity" in sys.argv :
 			tmp += "Calculated humidity: "+str(round(self.extract_humidity*100,2))+"% at:"+str(round(self.extract_ave,1))+"C Dewpoint:"+str(round(self.dew_point,2))+"C\n"
 			tmp += "Static:"+str(round(self.local_humidity+self.humidity_comp,2))+"% humidity gain:"+str(round(self.humidity_gain,3))+" "+str(round(self.humidity_comp,2))+"% Indoor Dewpoint:"+str(round(self.indoor_dewpoint,2))+"C\n"
-			tmp += "New humidity: " + str(round (self.new_humidity,2))+"%\n"
+			tmp += "New humidity: " + str(round (self.new_humidity,2))+"% ref. dewpoint+10%rh:"+str(round(self.airdata_inst.dew_point(self.new_humidity+10,self.extract_ave),2))+"C\n"
 		if "debug" in sys.argv:
 			try:
 				tmp += "Outdoor Sensor: "+str(self.sensor_temp)+"C "+str(self.sensor_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.sensor_humid,self.sensor_temp),2))+"C\n"
@@ -842,7 +842,7 @@ class Systemair(object):
 		self.shower = False
 
 	    #Dynamic pressure control
-	    self.indoor_dewpoint = self.airdata_inst.dew_point(self.local_humidity+10,self.extract_ave)
+	    self.indoor_dewpoint = self.airdata_inst.dew_point(self.new_humidity+10,self.extract_ave)
 	    if self.inlet_ave > self.indoor_dewpoint+0.1   and self.sf <> self.ef:  self.set_differential(0)
 	    if self.inlet_ave < self.indoor_dewpoint-0.1  and self.sf == self.ef and self.inlet_ave < 15:  self.set_differential(10)
 
