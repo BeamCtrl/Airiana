@@ -6,7 +6,7 @@ def get_humidity():
 		global airdata_inst,extract
                 day = 60*24
                 templist = []
-                data = os.popen("tail -n "+str(day/1)+" data.log")
+                data = os.popen("tail -n "+str(day/1)+" ./RAM/data.log")
                 for each in data.readlines():
                          tmp = each.split(":")
 			 try:
@@ -22,6 +22,6 @@ def get_humidity():
 		bottom = airdata_inst.pw
 		print top/bottom*100, inlet_min
 
-
+#input indoor temp, output: relative humidity as expressed by indoortemp/last 24hrs min temp
 get_humidity()
-
+##############

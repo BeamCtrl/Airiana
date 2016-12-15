@@ -5,12 +5,12 @@ import os, time, sys,datetime
 #print dir(os.stat("forecast.xml"))
 #print os.stat("forecast.xml").st_ctime -time.time()
 try:
-	if os.stat("forecast.xml").st_ctime -time.time() < -3600 or os.stat("forecast.xml").st_size ==0:
+	if os.stat("./RAM/forecast.xml").st_ctime -time.time() < -3600 or os.stat("./RAM/forecast.xml").st_size ==0:
 		#print "Downloading updated forcast" 
-		os.system("sudo wget  -q -O forecast.xml http://www.yr.no/sted/Sverige/V%C3%A4stmanland/V%C3%A4ster%C3%A5s-Barkar%C3%B6~2664448/forecast.xml")
+		os.system("sudo wget  -q -O ./RAM/forecast.xml http://www.yr.no/sted/Sverige/V%C3%A4stmanland/V%C3%A4ster%C3%A5s-Barkar%C3%B6~2664448/forecast.xml")
 except:
 		print "Error getting Forcast from YR.no"#os.system("sudo wget  -q -O forecast.xml http://www.yr.no/sted/Sverige/V%C3%A4stmanland/V%C3%A4ster%C3%A5s-Barkar%C3%B6~2664448/forecast.xml")
-		os.system("touch forecast.xml")
+		os.system("touch ./RAM/forecast.xml")
 class Weather():
 	def __init__(self):
 		self.wind_speed = 0
@@ -26,7 +26,7 @@ class Weather():
 	def __str__(self):
 	 	 return time.asctime(self.valid_from)+" "+str(self.temp)+"C "+str(self.pressure)+"hPa "+str(self.precipitation)+"mm"
 parser = xml.parsers.expat.ParserCreate()
-fd = open('forecast.xml','r')
+fd = open('./RAM/forecast.xml','r')
 forcasts = []
 def start_element(name, attrs):
 		#print name , attrs

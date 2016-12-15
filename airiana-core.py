@@ -341,7 +341,7 @@ class Systemair(object):
 		self.indoor_dewpoint = 0
 		self.target = 22
 		self.energy_diff=0
-
+		self.new_humidity=0
 	def get_filter_status(self):
 		req.modbusregister(601,0)
 		self.filter = req.response
@@ -554,7 +554,7 @@ class Systemair(object):
 		if self.energy_diff > 0:d_pw = (self.airdata_inst.energy_to_pwdiff(self.energy_diff,self.extract_ave)/self.cond_eff)/(float(self.ef)/1000)
 		else: d_pw = 0
 		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
-		div = (self.inlet_ave+self.prev_static_temp*2)/3
+		div = (self.inlet_ave+(self.prev_static_temp*2))/3
 		low_pw = self.airdata_inst.sat_vapor_press(div)
 		if "debug" in sys.argv:self.msg += str(round( max_pw,2))+"Pa "+str(round( low_pw,2))+"Pa "+str( round(d_pw,2))+"Pa "+str(round(d_pw/max_pw*100,2))+"% "+str(round(div,2))+"C "+str(round( self.energy_diff,2))+"W\n"
 		self.new_humidity = ((low_pw+d_pw) / max_pw) * 100
