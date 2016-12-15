@@ -2,12 +2,13 @@
 
 
 import SocketServer
-import socket, os
+import socket, os, traceback
 hostname = os.popen("hostname").read()[:-1]
 class myHandler (SocketServer.BaseRequestHandler):
-	
 	def handle(self):
+	
 		data = self.request.recv(1024).strip().split("\r\n")
+		#print data
 		if "GET" in data[0]:
 			if "command" in data[0]:
 				req = data[0].split(" ")
@@ -17,12 +18,29 @@ class myHandler (SocketServer.BaseRequestHandler):
                         	s.sendto(str(command[-1]),("127.0.0.1",9876))
                         	s.close()
                         	self.request.send("HTTP/1.1 200 OK\n\n<html><head><script type=\"text/javascript\">function retur(){window.history.back();}setTimeout(\'retur()\',50);</script></head><body></body></html>")
-
+		if "POST" in data[0]:
+			if "command" in data[0]:
+                                req = data[0].split(" ")
+                                command=req[1]
+                                command=command.split("?")
+                                s=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+                                s.sendto(str(command[-1]),("127.0.0.1",9876))
+                                s.close()
+                        	self.request.send("HTTP/1.1 100 OK\n\r")
 
 	
 SocketServer.TCPServer.allow_reuse_address = True
-try:
-	srv = SocketServer.TCPServer(("0.0.0.0",8000),myHandler)
-except: os.system("sleep 1")
+
+while True:
+	try:
+		srv = SocketServer.TCPServer(("0.0.0.0",8000),myHandler)
+		srv.socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)	
+		break
+	except KeyboardInterrupt:
+		exit() 
+	except: 
+		print "error binding to socket"
+		traceback.print_exc()
+		os.system("sleep 1")
 
 srv.serve_forever()
