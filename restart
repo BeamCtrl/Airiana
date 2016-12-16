@@ -15,7 +15,8 @@ sudo nohup ./envlogger.py 135  >> /dev/null 2<&1 &
 sudo nohup ./envlogger.py 91  >> /dev/null 2>&1 &
 sudo nohup ./envlogger.py 92  >> /dev/null 2>&1 &
 sudo nohup ./envlogger.py 93  >> /dev/null 2>&1 &
-
+sleep 5
+head ./RAM/out
 ps ax | grep ".py"
 
 

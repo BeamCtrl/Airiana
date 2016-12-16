@@ -20,7 +20,7 @@ if len(sys.argv) >=2  and "debug" not in sys.argv[1] :day= int(sys.argv[1])
 else:day = int(float(3600*24))
 fil = os.popen("tail -"+str(day/60)+" ./RAM/data.log")
 data = fil.readlines()
-print data[-1], tm.time()
+#print data[-1], tm.time()
 sen_hum = []
 sen_temp = []
 extract =[]
@@ -47,17 +47,17 @@ try:
 	     for entry in tmp: 
 		if entry==np.nan: entry=0
 	     if float(tmp[0]) > tm.time()-(day):	
-		sen_hum.append(tmp[3])
-		sen_temp.append(tmp[1])
-		extract.append(tmp[2])
-		calc_hum.append(tmp[4])
-		inlet.append(tmp[5])
-		exhaust.append(tmp[6])
+		sen_hum.append(float(tmp[3]))
+		sen_temp.append(float(tmp[1]))
+		extract.append(float(tmp[2]))
+		calc_hum.append(float(tmp[4]))
+		inlet.append(float(tmp[5]))
+		exhaust.append(float(tmp[6]))
 		time.append(tm.time()-float(tmp[0]))
-		supply.append(tmp[7])
-		supply_humid.append(tmp[8])
-		outside.append(tmp[9])
-		cond_comp.append(tmp[10])
+		supply.append(float(tmp[7]))
+		supply_humid.append(float(tmp[8]))
+		outside.append(float(tmp[9]))
+		cond_comp.append(float(tmp[10]))
 		inside_hum.append(int(tmp[11]))
 	    except IndexError:inside_hum.append(0)
 	    except ValueError: pass#print tmp[0]
@@ -91,6 +91,7 @@ plot(time[-day:-1],supply[-day:-1],'-',linewidth=1,label="supply temperature")
 if "debug" in sys.argv:plot(time[-day:-1],outside[-day:-1],'-',linewidth=1,label="indoor sensor temperature")
 grid(True)
 ax = gca()
+ax.set_ylim(int(min(inlet))-1, int(max(max(extract),max(inlet)))+1)
 low, high = ax.get_ylim()
 ax.yaxis.set_ticks(np.arange(int(low),int(high+1)))
 ax.set_xlim(min(time[-day:-1]),max(time[-day:-1]))
@@ -108,6 +109,7 @@ if "debug" in sys.argv:
 	
 	subplots_adjust( hspace=0.75 )
 	ax = gca()
+	ax.set_ylim(-30, int(max(sen_hum))+10)
 	low,high = ax.get_ylim()
 	ax.yaxis.set_ticks(np.arange(low,high+10,10))
 	ax.set_xlim(min(time[-day:-1]),max(time[-day:-1]))
