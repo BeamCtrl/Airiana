@@ -557,10 +557,10 @@ class Systemair(object):
 		else: d_pw = 0
 		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
 		#div = (self.inlet_ave+(self.prev_static_temp*2))/3
-		self.div += (self.inlet_ave-self.div)*0.001
+		self.div += (self.inlet_ave-self.div)*(0.00001*self.ef)
 		low_pw = self.airdata_inst.sat_vapor_press(self.div)
 		if "debug" in sys.argv:self.msg += str(round( max_pw,2))+"Pa "+str(round( low_pw,2))+"Pa "+str( round(d_pw,2))+"Pa "+str(round(d_pw/max_pw*100,2))+"% "+str(round(self.div,2))+"C "+str(round( self.energy_diff,2))+"W\n"
-		self.new_humidity = ((low_pw+d_pw) / max_pw) * 100
+		if d_pw != 0:self.new_humidity = ((low_pw+d_pw) / max_pw) * 100
 
 		#####END
 		if len(self.i_diff)>10 and (self.dew_point > self.inlet_ave) :
@@ -678,19 +678,20 @@ class Systemair(object):
 		if self.cool_mode: tmp+= "Cooling mode is in effect, target is 20.7C extraction temperature\n"
 		#tmp += "lower limit:22.0C, when cooling 21.0C, fans up2 22.01C, fans up3 22.5 or +0.5C/hr\nExchanger limits ON:21C OFF:22C\nWeather Data from YR.no\n"
 		if not monitoring: tmp += "\nSystem Automation off\n"
-		tmp +=  self.msg+"\n"
 
 		#CLEAR SCREEN AND REPRINT
 		clear_screen()
-		tmp = tmp.replace("\n",";\n")
-		tmp = tmp.replace("\t","'\t")
-		print tmp
 		if self.iter %30==0 and "debug" in sys.argv :
 			try:
 				ave, dev = statistics.stddev(self.cond_data)
 				self.msg += str(len(self.cond_data))+" mean:"+str(ave)+" stddev:"+str(dev)+" "+ str(dev/ave*100)+"%\n"
-				print self.msg
+				#print self.msg
 			except : print "mean error"
+		tmp +=  self.msg+"\n"
+		tmp = tmp.replace("\n",";\n")
+		tmp = tmp.replace("\t","'\t")
+		print tmp
+
 	#Read all data registers
 	def update_registers(self):
 		for each in range(100,900,100):
@@ -962,6 +963,7 @@ if __name__:# not  "__main__":
 	    device.update_temps()
 	    device.update_xchanger()
 	    device.get_local()
+	    device.div = device.inlet_ave
 	    starttime=time.time()
 	    if "humidity" in sys.argv: 	
 		device.moisture_calcs()
