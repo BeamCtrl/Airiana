@@ -70,8 +70,8 @@ os.system ("cp ./systemfiles/hosts /etc/")
 
 os.chdir("./public/")
 # link files to RAM-disk
-os.system("ln -s ../RAM/out out.txt")
-os.system("ln -s ../RAM/history.png history.png")
+#os.system("ln -s ../RAM/out out.txt")
+#os.system("ln -s ../RAM/history.png history.png")
 os.system("echo airiana > /etc/hostname")
 print "Installation completed, reboot in 15 sec"
 os.system("sleep 15")

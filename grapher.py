@@ -15,6 +15,7 @@ if int(os.stat("./RAM/data.log").st_size) > 1024000:
 	lines= int(subprocess.check_output(["wc", "-l", "data.log."+str(rev)]).split(" ")[0])
 	os.system("head -n "+str(lines-60*24)+" data.log."+str(rev) +" > tmp.log")
 	os.system("mv tmp.log data.log."+str(rev))
+
 ######################
 if len(sys.argv) >=2  and "debug" not in sys.argv[1] :day= int(sys.argv[1])
 else:day = int(float(3600*24))

@@ -10,7 +10,9 @@ class Energy(object):
 			#GET AMBIENT PRESURE##
 			self.press= float(os.popen("./forcast.py pressure").read())
 			self.press = self.press -2 # 15m Above sea lvl
-		except ValueError: print "value error for pressure"
+		except ValueError:
+			 self.press=1013.25-2
+			 print "value error for pressure"
 		except:
 			print "error occured getting current pressure ISA assumed"
 		        self.press = 1013.25-2  #hPa BBarkaro 15mete above sea level

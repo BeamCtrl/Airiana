@@ -11,6 +11,7 @@ os.chdir("/home/pi/airiana/public")
 os.system("./ip-replace.sh")  # reset ip-addresses on buttons.html
 os.chdir("/home/pi/airiana/")
 os.system("./http &> /dev/null") ## START WEB SERVICE
+os.system("./forcast.py &> /dev/null") ## START WEB SERVICE
 
 starttime=time.time()
 #Setup deamon env
@@ -498,7 +499,7 @@ class Systemair(object):
 					if self.ef == self.sf: factor = 3.65 + .9 		 
 					else : factor=3.55
 				elif self.fanspeed ==2:
-					factor = 8.25
+					factor = 3.25
 			elif self.rotor_active =="No":
 				if self.fanspeed == 1   :
 					factor=3#  - 16 constant# red  from casing heat transfer
@@ -526,7 +527,7 @@ class Systemair(object):
 			elif self.extract_ave > self.supply_ave: self.cooling += self.loss*(self.dur/3600)
 			else: self.gain += self.loss*(self.dur/3600)
 
-			self.cond_data.append(self.extract_power-self.used_energy)
+			self.cond_data.append(-self.extract_power+self.used_energy)
 			if len(self.cond_data)> 400:self.cond_data.pop(0)
 
 	def get_rotor_state(self):
