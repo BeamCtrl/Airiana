@@ -35,7 +35,7 @@ os.system("apt-get install python-matplotlib")
 os.system("pip install minimalmodbus")
 os.system("apt-get install ntp")
 # NEED TO SET LOCALE
-
+os.system("cp ./systemfiles/timezone /etc/")
 
 boot_cmd="enable_uart=1\n"
 boot_file = open("/boot/config.txt","rw+")
