@@ -15,13 +15,13 @@ class Energy(object):
 			 print "value error for pressure"
 		except:
 			print "error occured getting current pressure ISA assumed"
-		        self.press = 1013.25-2  #hPa BBarkaro 15mete above sea level
+		        self.press = 1013.25-2  #hPa Barkaro 15meters above sea level
 			err = open("airdata_error.log","w")
 			err.write( "Airdata.py pressure error: "+str(sys.exc_info()))
 			err.close()
 		#print"Ambient air pressure used:",self.press,"hPa"
-		self.T=273.15 #K  0Celcius in Kelvin
-		self.R=287058 #   GAS CONSTANT
+		self.T=273.15 #K  Zero Celcius in Kelvin
+		self.R=287.058 #   GAS CONSTANT for dry air for pressures in Pa 
 		self.density= lambda t: (self.press*100)/(self.R*(self.T+t))
 		self.specific_heat = 1.005  #J/g*K
 		self.humid = .50
@@ -37,11 +37,11 @@ class Energy(object):
 		step =1
 		if low < high:step=-1
 		for each in range(int(high*100),int(low*100),step):
-			density = self.get_mass(float(each)/100) # kg/m3
+			density = self.density(float(each)/100) # kg/m3
 			volume  = float(litres)/1000 #m3
 			d_T= 0.01  # K
 			mass = density*volume #kg/m3 * m3 = kg
-			energy = mass*1000 * self.specific_heat*d_T #kg*1000  * J/gK  * K  = J
+			energy = mass * self.specific_heat*d_T #kg  * J/gK  * K  = J
 			#print energy, float(each)/100,"C", total
 			total += energy*1000
 		#print "high",high,"low",low,"litres",litres,round(self.get_mass(high/10),2),round(self.get_mass(low/10),2), "energy", int(total)
@@ -95,8 +95,11 @@ class Energy(object):
 #ref Vaisala.comhumidity conversion formulas
 if  "__main__" in __name__:
 	air =Energy()
-	print air.energy_to_pwdiff(25,22)
-	print air.energy_to_pwdiff(12,22)/(0.0034)
-	print air.sat_vapor_press(10)
-	print air.sat_vapor_press(20)
-	print air.sat_vapor_press(100)
+	#print air.energy_to_pwdiff(25,22)
+	#print air.energy_to_pwdiff(12,22)/(0.0034)
+	#print air.sat_vapor_press(10)
+	#print air.sat_vapor_press(20)
+	#print air.sat_vapor_press(100)
+	for each in range(-40,100):
+		print air.density(each),each, "C"
+		

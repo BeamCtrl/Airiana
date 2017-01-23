@@ -490,14 +490,16 @@ class Systemair(object):
 		self.exhaust_ave = numpy.average(self.exhaust)
 		if self.fanspeed <> 0:
 			#self.availible_energy =  self.airdata_inst.energy_flow(self.ef,self.extract_ave,self.inlet_ave)+self.airdata_inst.condensation_energy((self.airdata_inst.vapor_max(self.exhaust_ave)-self.airdata_inst.vapor_max(self.inlet_ave))*((self.ef)/1000))
-			self.used_energy    = self.airdata_inst.energy_flow(self.sf,self.supply_ave,self.inlet_ave)
+			
+			try:self.used_energy    = self.airdata_inst.energy_flow(self.sf,self.supply_ave,self.inlet_ave)
+			except: self.used_energy = 0
 			factor = 3.65 # casing transfer correction factor
 			if   self.rotor_active=="Yes":
 				if self.fanspeed ==3:
 					factor = 3.3
 				elif self.fanspeed ==1:
 					if self.ef == self.sf: factor = 3.65 + .9 		 
-					else : factor=3.55
+					else : factor=2.9
 				elif self.fanspeed ==2:
 					factor = 3.25
 			elif self.rotor_active =="No":
@@ -510,22 +512,25 @@ class Systemair(object):
 			else: factor=1
  			self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*factor#  constant# red  from casing heat transfer
 
-			self.extract_exchanger  = self.airdata_inst.energy_flow(self.ef,self.extract_ave,self.exhaust_ave)
+			try:self.extract_exchanger  = self.airdata_inst.energy_flow(self.ef,self.extract_ave,self.exhaust_ave)
+			except: self.extract_exchanger = 0
 			self.extract_offset =0 #float(8)*(self.extract_ave-self.supply_ave)# + 20Watt/degC transfer after exchanger unit
 			self.extract_power = self.extract_exchanger+self.extract_offset
 			self.extract_combined = self.extract_power + self.condensate_compensation
 			self.energy_diff = self.supply_power-self.extract_power
-			self.loss = self.airdata_inst.energy_flow(self.ef,self.exhaust_ave,self.inlet_ave)+self.airdata_inst.energy_flow(self.sf,self.extract_ave,self.supply_ave)
+			try:self.loss = self.airdata_inst.energy_flow(self.ef,self.exhaust_ave,self.inlet_ave)+self.airdata_inst.energy_flow(self.sf,self.extract_ave,self.supply_ave)
+			except: self.loss =0
 			try:self.diff_ave.insert(0,(-1*(self.extract_combined-self.supply_power)/((self.supply_power+self.extract_combined)/2))*100)
 			except ZeroDivisionError:pass
 			if len (self.diff_ave) > self.averagelimit: self.diff_ave.pop(-1)
 			self.i_diff.append((self.extract_combined-self.supply_power)*-1)
 			if len(self.i_diff) > 15: self.i_diff.pop(0)
-			self.dur=time.time()-self.starttime
-			self.starttime=time.time()
-			if self.rotor_active =="Yes": self.totalenergy+=self.loss*(self.dur/3600)
-			elif self.extract_ave > self.supply_ave: self.cooling += self.loss*(self.dur/3600)
-			else: self.gain += self.loss*(self.dur/3600)
+			try:
+				self.dur = self.time[0]-self.time[1]
+				if self.rotor_active =="Yes": self.totalenergy+=(self.loss*self.dur)/3600
+				elif self.extract_ave > self.supply_ave: self.cooling += (self.loss*self.dur)/3600
+				else: self.gain += (self.loss*self.dur)/3600
+			except: pass
 
 			self.cond_data.append(-self.extract_power+self.used_energy)
 			if len(self.cond_data)> 400:self.cond_data.pop(0)
@@ -554,7 +559,11 @@ class Systemair(object):
 		except:pass
 		self.cond_eff=.20#  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
 		######### SAT MOIST IPDATE ############
-		if self.energy_diff > 0:d_pw = (self.airdata_inst.energy_to_pwdiff(self.energy_diff,self.extract_ave)/self.cond_eff)/(float(self.ef)/1000)
+		if self.energy_diff > 0:
+			try:
+				#d_pw = (self.airdata_inst.energy_to_pwdiff(numpy.average(self.cond_data),self.extract_ave)/self.cond_eff)/(float(self.ef)/1000)
+				d_pw = (self.airdata_inst.energy_to_pwdiff(self.energy_diff,self.extract_ave)/self.cond_eff)/(float(self.ef)/1000)
+			except: d_pw=0
 		else: d_pw = 0
 		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
 		#div = (self.inlet_ave+(self.prev_static_temp*2))/3
@@ -562,6 +571,7 @@ class Systemair(object):
 		low_pw = self.airdata_inst.sat_vapor_press(self.div)
 		if "debug" in sys.argv:self.msg += str(round( max_pw,2))+"Pa "+str(round( low_pw,2))+"Pa "+str( round(d_pw,2))+"Pa "+str(round(d_pw/max_pw*100,2))+"% "+str(round(self.div,2))+"C "+str(round( self.energy_diff,2))+"W\n"
 		if d_pw != 0:self.new_humidity = ((low_pw+d_pw) / max_pw) * 100
+		else: self.new_humidity = self.airdata_inst.sat_vapor_press(self.prev_static_temp)/max_pw*100
 
 		#####END
 		if len(self.i_diff)>10 and (self.dew_point > self.inlet_ave) :

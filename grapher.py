@@ -19,8 +19,8 @@ if int(os.stat("./RAM/data.log").st_size) > 102400*5:
 
 ######################
 if len(sys.argv) >=2  and "debug" not in sys.argv[1] :day= int(sys.argv[1])
-else:day = int(float(3600*24))
-fil = os.popen("tail -"+str(day/60)+" ./RAM/data.log")
+else:day = int(float(3600*24)*2)
+fil = os.popen("tail -n "+str(day/60)+" ./RAM/data.log")
 data = fil.readlines()
 #print data[-1], tm.time()
 sen_hum = []
@@ -111,7 +111,7 @@ if "debug" in sys.argv:
 	
 	subplots_adjust( hspace=0.75 )
 	ax = gca()
-	ax.set_ylim(-30, int(max(sen_hum))+10)
+	ax.set_ylim(-30, 100 +10)
 	low,high = ax.get_ylim()
 	ax.yaxis.set_ticks(np.arange(low,high,10))
 	ax.set_xlim(min(time[-day:-1]),max(time[-day:-1]))
