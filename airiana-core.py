@@ -649,21 +649,22 @@ class Systemair(object):
 				tmp += "Tcomp:" + str(self.tcomp) + " at T1:"+str(self.temps[1])+" coef:"+str(round(self.coef,4))+" inlet coef:"+str(self.inlet_coef)+"\n"
 				tmp +="Extract:"+str(self.temps[1])+ "\tInlet:"+str(self.temps[4])+"\tExhaust:"+str(self.temps[2])+"\tSupply,pre:"+str(self.temps[0])+"\tSupply,post:"+str(self.temps[3])+"\n"
 		except:pass
-		tmp += "Exchanger Setting:"+str(self.exchanger_mode)+" State: "+self.rotor_states[self.rotor_state]+", Rotor Active: "+self.rotor_active+"\n"
+		tmp += "Exchanger Setting: "+str(self.exchanger_mode)+" State: "+self.rotor_states[self.rotor_state]+", Rotor Active: "+self.rotor_active+"\n"
 		if self.rotor_active=="Yes" or "debug" in sys.argv:
 			tmp += "HeatExchange supply "+str(round(self.supply_power,1))+"W \n"
 			tmp += "HeatExchange extract "+str(round(self.extract_power+self.condensate_compensation,1))+"W\n"
-			if "humidity" in sys.argv: tmp+=" Condensation component:"+str(round(self.condensate_compensation,1))+"W\n"
+			if "debug" in sys.argv: tmp+=" Condensation component:"+str(round(self.condensate_compensation,1))+"W\n"
 			if "debug" in sys.argv: tmp += "Diff:"+str(round(numpy.average(self.diff_ave),2))+"% "+str(round(self.supply_power-self.extract_combined,1))+"W\n"
 			if "humidity" in sys.argv and "debug" in sys.argv : tmp +="Condensation  efficiency: " +str(round(self.cond_eff,2)*100)+"%\n"
 		if "humidity" in sys.argv :
-			tmp += "Calculated humidity: "+str(round(self.extract_humidity*100,2))+"% at:"+str(round(self.extract_ave,1))+"C Dewpoint:"+str(round(self.dew_point,2))+"C\n"
-			tmp += "Static:"+str(round(self.local_humidity+self.humidity_comp,2))+"% humidity gain:"+str(round(self.humidity_gain,3))+" "+str(round(self.humidity_comp,2))+"\n"
-			tmp += "New humidity: " + str(round (self.new_humidity,2))+"% ref. dewpoint+10%rh:"+str(round(self.indoor_dewpoint,2))+"C\n"
+			if "debug" in sys.argv:
+				tmp += "Calculated humidity: "+str(round(self.extract_humidity*100,2))+"% at:"+str(round(self.extract_ave,1))+"C Dewpoint:"+str(round(self.dew_point,2))+"C\n"
+				tmp += "Static: "+str(round(self.local_humidity+self.humidity_comp,2))+"% humidity gain:"+str(round(self.humidity_gain,3))+" "+str(round(self.humidity_comp,2))+"\n"
+			tmp += "Calculated Humidity: " + str(round (self.new_humidity,2))+"% Pressure limit: "+str(round(self.indoor_dewpoint,2))+"C\n"
 		if "debug" in sys.argv:
 			try:
 				tmp += "Outdoor Sensor: "+str(self.sensor_temp)+"C "+str(self.sensor_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.sensor_humid,self.sensor_temp),2))+"C\n"
-				tmp += "Indoor Sensor:"+str(self.inside)+"C "+str(self.inside_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.inside_humid,self.inside),2))+"C\n"
+				tmp += "Indoor Sensor: "+str(self.inside)+"C "+str(self.inside_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.inside_humid,self.inside),2))+"C\n"
 			except: pass
 		if self.rotor_active=="Yes":
 			tmp += "\nElectric power:"+str(round(self.electric_power,0))+"W COP:"+ str(round(self.supply_power/self.electric_power,1))+"\n"
