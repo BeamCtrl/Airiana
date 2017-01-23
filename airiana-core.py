@@ -12,7 +12,7 @@ os.system("./ip-replace.sh")  # reset ip-addresses on buttons.html
 os.chdir("/home/pi/airiana/")
 os.system("./http &> /dev/null") ## START WEB SERVICE
 os.system("./forcast.py &> /dev/null") ## START WEB SERVICE
-if os.path.lexist("./RAM/data.log"): os.system("touch data.log")
+if os.path.lexists("./RAM/data.log"): os.system("touch data.log")
 if "debug" in sys.argv and not os.path.lexists("./sensors"): os.system("touch sensors")
 starttime=time.time()
 #Setup deamon env
@@ -65,7 +65,7 @@ def report_alive():
 			if each.find("HWaddr") <> -1:
 				message = each
 				message += os.popen("hostname -I").read()
-				message += (time.time()-starttime)/device.iter
+				#message += (time.time()-starttime)/device.iter
 				#print message
 		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 		sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))

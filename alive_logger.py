@@ -20,6 +20,7 @@ while True:
 		#print time.ctime(), "MAC:", mac, "From:",addr
 		#print "active IP:",ip
 		for_file= html.replace("[IP]",ip)
+		#for_file += incomming_msg
 		filename = "./public/local_links/"+mac+".html"
 		#print "filename:",filename
 		#print for_file
