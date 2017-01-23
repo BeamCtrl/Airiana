@@ -65,7 +65,8 @@ def report_alive():
 			if each.find("HWaddr") <> -1:
 				message = each
 				message += os.popen("hostname -I").read()
-				print message
+				message += (time.time()-starttime)/device.iter
+				#print message
 		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 		sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
 	except: pass
