@@ -12,7 +12,8 @@ os.system("./ip-replace.sh")  # reset ip-addresses on buttons.html
 os.chdir("/home/pi/airiana/")
 os.system("./http &> /dev/null") ## START WEB SERVICE
 os.system("./forcast.py &> /dev/null") ## START WEB SERVICE
-
+if os.path.lexist("./RAM/data.log"): os.system("touch data.log")
+if "debug" in sys.argv and not os.path.lexists("./sensors"): os.system("touch sensors")
 starttime=time.time()
 #Setup deamon env
 if "daemon" in sys.argv:
@@ -954,7 +955,7 @@ if __name__:# not  "__main__":
 	    if "debug" in sys.argv:
 		os.system("sudo nice ./grapher.py debug &")
 	    else:
-		os.system("sudo nice ./grapher.py &")
+		os.system("sudo nice ./grapher.py humidities &")
 	    sys.stdout.flush()
 	    if "debug" in sys.argv:
 		print "checking for sensor data;"
@@ -1029,7 +1030,7 @@ if __name__:# not  "__main__":
 		#genetarte graphs
 		if device.iter%181==0:
 			if "debug" in sys.argv:os.system("nice ./grapher.py debug & >>/dev/null")
-			else : os.system("nice ./grapher.py & >> /dev/null")
+			else : os.system("nice ./grapher.py humidities & >> /dev/null")
 		# send alive packet to headmaster
 		if device.iter%3600==0:
 			if "ping" in sys.argv:

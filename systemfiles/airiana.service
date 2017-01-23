@@ -4,7 +4,7 @@ After=network-online.target
 Type=idle
 
 [Service]
-ExecStart=/usr/bin/python /home/pi/airiana/airiana-core.py daemon ping
+ExecStart=/usr/bin/python /home/pi/airiana/airiana-core.py daemon ping humidity
 
 Restart=always
 User=root

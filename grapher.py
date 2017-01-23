@@ -19,7 +19,7 @@ if int(os.stat("./RAM/data.log").st_size) > 102400*5:
 
 ######################
 if len(sys.argv) >=2  and "debug" not in sys.argv[1] :day= int(sys.argv[1])
-else:day = int(float(3600*24)*2)
+else:day = int(float(3600*24))
 fil = os.popen("tail -n "+str(day/60)+" ./RAM/data.log")
 data = fil.readlines()
 #print data[-1], tm.time()
@@ -100,14 +100,15 @@ ax.set_xlim(min(time[-day:-1]),max(time[-day:-1]))
 ax.xaxis.set_ticks(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,4*3600))
 ax.set_xticklabels(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,4*3600))
 ax.invert_xaxis()
-if "debug" in sys.argv:
+if "debug" in sys.argv or "humidities" in sys.argv:
 	s2=subplot(212)
 	s2.set_title("Humidities")
 	plot(red_time,red_hum, '-', linewidth=1,label="calculated humidity")
 	plot(time,cond_comp,'-',linewidth=1,label="condensation power")
-	plot(time[-day:-1],sen_hum[-day:-1], '-', linewidth=1,label="outdoor sensor humidity")
-	plot(time[-day:-1],supply_humid[-day:-1],'-',linewidth=1,label="supply estimate humidity")
-	plot(time,inside_hum,'-',linewidth=1,label="inside sensor humidity")
+	if "debug" in sys.argv:
+			plot(time[-day:-1],sen_hum[-day:-1], '-', linewidth=1,label="outdoor sensor humidity")
+			plot(time[-day:-1],supply_humid[-day:-1],'-',linewidth=1,label="supply estimate humidity")
+			plot(time,inside_hum,'-',linewidth=1,label="inside sensor humidity")
 	
 	subplots_adjust( hspace=0.75 )
 	ax = gca()
@@ -131,7 +132,7 @@ for i in range(len(labels)):
 s1.set_xticklabels(labels)
 setp(s1.get_xticklabels(), rotation=45)
 
-if "debug" in sys.argv:
+if "debug" in sys.argv or "humidities" in sys.argv:
 	subplot(212)
 	gca().set_xlim(min(time[-day:-1]),max(time[-day:-1]))
 	labels = [item.get_text() for item in s2.get_xticklabels()]
