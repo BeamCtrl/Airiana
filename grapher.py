@@ -18,7 +18,7 @@ if int(os.stat("./RAM/data.log").st_size) > 102400*5:
 	os.system("mv tmp.log data.log."+str(rev))
 
 ######################
-if len(sys.argv) >=2  and "debug" not in sys.argv[1] :day= int(sys.argv[1])
+#if len(sys.argv) >=2  and "debug" not in sys.argv[1] and "humidities" not in sys.argv :day= int(sys.argv[1])
 else:day = int(float(3600*24))
 fil = os.popen("tail -n "+str(day/60)+" ./RAM/data.log")
 data = fil.readlines()
