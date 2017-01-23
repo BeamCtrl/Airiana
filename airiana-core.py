@@ -658,7 +658,7 @@ class Systemair(object):
 			if "humidity" in sys.argv and "debug" in sys.argv : tmp +="Condensation  efficiency: " +str(round(self.cond_eff,2)*100)+"%\n"
 		if "humidity" in sys.argv :
 			if "debug" in sys.argv:
-				tmp += "Calculated humidity: "+str(round(self.extract_humidity*100,2))+"% at:"+str(round(self.extract_ave,1))+"C Dewpoint:"+str(round(self.dew_point,2))+"C\n"
+				tmp += "\nCalculated humidity: "+str(round(self.extract_humidity*100,2))+"% at:"+str(round(self.extract_ave,1))+"C Dewpoint:"+str(round(self.dew_point,2))+"C\n"
 				tmp += "Static: "+str(round(self.local_humidity+self.humidity_comp,2))+"% humidity gain:"+str(round(self.humidity_gain,3))+" "+str(round(self.humidity_comp,2))+"\n"
 			tmp += "Calculated Humidity: " + str(round (self.new_humidity,2))+"% Pressure limit: "+str(round(self.indoor_dewpoint,2))+"C\n"
 		if "debug" in sys.argv:
@@ -756,7 +756,7 @@ class Systemair(object):
 	    ### SET FUNCTIONS ####
 	    try:
 		if to == None:
-			self.msg+= "\nmanual state change"
+			self.msg+= "manual state change\n"
 			self.current_mode = get_val()
 		i=0
 		if self.current_mode <>0 or to ==0:
@@ -822,7 +822,7 @@ class Systemair(object):
 	    if self.cool_mode ==True:
 		if (self.extract_ave <20.7 ) and self.fanspeed <> 1 :
 			self.set_fanspeed(1)
-			self.msg += "\ncooling complete"
+			self.msg += "cooling complete\n"
 		if self.fanspeed == 3 and self.supply_ave < 10:
 			self.set_fanspeed(2)
 		if self.fanspeed ==1 and self.extract_ave > 20.8 and self.extract_ave > self.supply_ave:
@@ -830,29 +830,29 @@ class Systemair(object):
 		if self.supply_ave>self.extract_ave+0.1 and self.fanspeed<>1:
 			self.set_fanspeed(1)
 
-			self.msg += "\nno cooling posible due to temperature conditions"
+			self.msg += "no cooling posible due to temperature conditions\n"
 		if (self.forcast[0] <= 16 or self.forcast[1]>=4) and time.localtime().tm_hour >12: self.cool_mode=False
 	    #DYNAMIC FANSPEED CONTROL
 
 	    if self.fanspeed == 1 and self.extract_ave>self.target and self.extract_ave -self.supply_ave>0.1 and (self.extract_dt_long >= 0.2 and numpy.average(self.extract_dt_list) > 0.2)  and not self.shower and not self.cool_mode:
 		 self.set_fanspeed(2)
-		 self.msg += "\nDynamic fanspeed 2"
+		 self.msg += "Dynamic fanspeed 2\n"
 
 	    if self.fanspeed <> 3 and self.extract_ave-0.1 > self.supply_ave and  self.inhibit==0 and (self.extract_ave >= 22.5 or (self.extract_dt_long >=0.7 and numpy.average(self.extract_dt_list)>0.7) and self.inlet_ave > 5 or self.extract_ave > 23.0 ) and not self.extract_dt_long < -0.2 and self.exchanger_mode <> 5 and not self.cool_mode and not self.shower:
 		self.set_fanspeed(3)
-		self.msg += "\nDynamic fanspeed 3"
+		self.msg += "Dynamic fanspeed 3\n"
 
 	    if self.fanspeed <>1 and self.extract_ave <self.target and self.inhibit == 0 and self.cool_mode == False and not self.shower:
 		self.set_fanspeed(1)
-		self.msg += "\nDynamic fanspeed 1"
+		self.msg += "Dynamic fanspeed 1\n"
 
 	    if self.extract_ave < self.supply_ave and self.fanspeed <> 1 and self.inhibit == 0 and self.cool_mode == False and not self.shower:
 		self.set_fanspeed(1)
-		self.msg += "\nDynamic fanspeed, recover cool air"
+		self.msg += "Dynamic fanspeed, recover cool air\n"
 
 	    if self.fanspeed== 3 and self.extract_ave < self.target+2 and self.extract_ave > self.target and self.exchanger_mode == 5 and not self.cool_mode and not self.inhibit and not self.shower:
 		self.set_fanspeed(2)
-		self.msg  +="\nDynamic fanspeed 2"
+		self.msg  +="Dynamic fanspeed 2\n"
 
 	    # SHOWER MODE TIMEOUT #
 	    if self.shower == True and self.shower_initial -time.time() < -30*60:
@@ -874,7 +874,7 @@ class Systemair(object):
 		self.forcast[1]=int(self.forcast[1])
 		#print self.forcast[0],self.forcast[1]
 	    except:
-		self.msg+= "\nerror getting forecast"
+		self.msg+= "error getting forecast\n"
 		self.forcast=[-1,-1]
 	#set the fan pressure diff
 	def set_differential(self, percent):
@@ -940,7 +940,7 @@ if __name__:# not  "__main__":
 	    #FIRST PASS ONLY #
             clear_screen()
 	    if "ping" in sys.argv:report_alive()
-	    print "First PASS; updating fanspeeds;"
+	    print "First PASS;\n updating fanspeeds;"
 	    device.update_airflow()
 	    sys.stdout.flush()
 	    print "Updating fans rpms;"
@@ -1133,14 +1133,14 @@ if __name__:# not  "__main__":
 
 				if int(input)==97:
 					clear_screen()
-					device.msg += "\nFanspeed to Low\n"
+					device.msg += "Fanspeed to Low\n"
 					device.set_fanspeed(1)
 				elif int (input)==98:
 					device.set_fanspeed(2)
-					device.msg += "\nFanspeed to Norm\n"
+					device.msg += "Fanspeed to Norm\n"
 				elif int(input)==99:
 					device.set_fanspeed(3)
-					device.msg += "\nfanspeed to High\n"
+					device.msg += "fanspeed to High\n"
 
 			except:pass# traceback.print_exc()
 		except TypeError:pass
