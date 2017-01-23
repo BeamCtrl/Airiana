@@ -1,6 +1,6 @@
 [Unit]
 Description=Airiana Core executive
-After=network.target
+After=network-online.target
 Type=idle
 
 [Service]
