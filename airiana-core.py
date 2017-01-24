@@ -11,9 +11,10 @@ os.chdir("/home/pi/airiana/public")
 os.system("./ip-replace.sh")  # reset ip-addresses on buttons.html
 os.chdir("/home/pi/airiana/")
 os.system("./http &> /dev/null") ## START WEB SERVICE
-os.system("./forcast.py &> /dev/null") ## START WEB SERVICE
+os.system("./forcast.py &> /dev/null") ## Get forcast
 if os.path.lexists("./RAM/data.log"): os.system("touch data.log")
 if "debug" in sys.argv and not os.path.lexists("./sensors"): os.system("touch sensors")
+if "debug" in sys.argv: os.system("./status.py &")
 starttime=time.time()
 #Setup deamon env
 if "daemon" in sys.argv:

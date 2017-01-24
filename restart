@@ -10,7 +10,7 @@ sudo nohup ./airiana-core.py daemon debug temperatur.nu humidity ping > /dev/nul
 sudo nohup ./public/controler.py  >> /dev/null &
 
 echo starting loggers
-nohup ./alive_logger.py &
+sudo nohup ./alive_logger.py &
 sudo nohup ./envlogger.py 135  >> /dev/null 2<&1 &
 sudo nohup ./envlogger.py 91  >> /dev/null 2>&1 &
 sudo nohup ./envlogger.py 92  >> /dev/null 2>&1 &
