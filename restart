@@ -5,6 +5,7 @@ sudo pkill --signal 9 httpsrv.py
 sudo pkill --signal 9 controler.py
 sudo pkill --signal 9 envlogger.py
 sudo pkill --signal 9 alive_logger.py
+sudo pkill --signal 9 status.py
 echo starting aircontrol daemon
 sudo nohup ./airiana-core.py daemon debug temperatur.nu humidity ping > /dev/null &
 sudo nohup ./public/controler.py  >> /dev/null &
