@@ -27,7 +27,7 @@ while True:
 				if (time.time()-mod)/3600<2:
 					flag = "<font color=\"green\"> Alive </font>"
 				else: flag = "<font color=\"red\"> Inactive </font>"
-				html += "<tr><td>"+users[str(each.split(".")[0])]+"</td><td>"+time.ctime(mod)+"</td><td>"+flag+" "+str(status[str(each.split(".")[0])])+" </td></tr>\n" 
+				html += "<tr><td>"+users[str(each.split(".")[0])]+"</td><td>"+time.ctime(mod)+"</td><td>"+flag+" "+str(round(status[str(each.split(".")[0])],2))+" </td></tr>\n" 
 			except KeyError: print "no hit on:",each
 		html +="<br></table></html>"
 		file = open("./public/status.html","w")

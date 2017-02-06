@@ -100,6 +100,6 @@ if  "__main__" in __name__:
 	#print air.sat_vapor_press(10)
 	#print air.sat_vapor_press(20)
 	#print air.sat_vapor_press(100)
-	for each in range(-40,100):
-		print air.density(each),each, "C"
+	for each in range(-60,121):
+		print air.density(each),"kg/m3",each, "C", air.sat_vapor_press(each),"Pa"
 		

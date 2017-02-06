@@ -271,6 +271,7 @@ class Systemair(object):
 				14:"Snow and thunder",\
 				34:"Heavy snow and thunder",\
 				15:"Fog",-1:"No weather data"}
+		self.press_inhibit = 0
 		self.local_humidity = 0.0
 		self.eff_ave=[90]
 		self.diff_ave=[0]
@@ -501,7 +502,7 @@ class Systemair(object):
 				if self.fanspeed ==3:
 					factor = 3.3
 				elif self.fanspeed ==1:
-					if self.ef == self.sf: factor = 3.65 + .9 		 
+					if self.ef == self.sf: factor = 3.65 + 1.3 		 
 					else : factor=2.9
 				elif self.fanspeed ==2:
 					factor = 3.25
@@ -513,7 +514,9 @@ class Systemair(object):
 				elif self.fanspeed == 3 :
 					factor = 5.5
 			else: factor=1
- 			self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*factor#  constant# red  from casing heat transfer
+ 			if self.rotor_active == "Yes":
+				self.supply_power   = self.used_energy-5-(self.extract_ave-self.inlet_ave)*factor#  constant# red  from casing heat transfer
+ 			else: self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*factor#  constant# red  from casing heat transfer
 
 			try:self.extract_exchanger  = self.airdata_inst.energy_flow(self.ef,self.extract_ave,self.exhaust_ave)
 			except: self.extract_exchanger = 0
@@ -788,6 +791,7 @@ class Systemair(object):
 	    now = time.time()
 	    if self.inhibit < now-(60*10):self.inhibit = 0
     	    if self.modetoken < now-(60*60): self.modetoken=0
+	    if self.press_inhibit < now-(60*3):self.press_inhibit = 0
 
 	#Monitor Logical crits for state changes on exchanger, pressure, rpms, forcast
 	def monitor(self):
@@ -862,8 +866,12 @@ class Systemair(object):
 
 	    #Dynamic pressure control
 	    self.indoor_dewpoint = self.airdata_inst.dew_point(self.new_humidity+10,self.extract_ave)
-	    if self.inlet_ave > self.indoor_dewpoint+0.1   and self.sf <> self.ef:  self.set_differential(0)
-	    if self.inlet_ave < self.indoor_dewpoint-0.1  and self.sf == self.ef and self.inlet_ave < 15:  self.set_differential(10)
+	    if self.inlet_ave > self.indoor_dewpoint+0.1   and self.sf <> self.ef and not self.press_inhibit:
+		self.set_differential(0)
+		self.press_inhibit = time.time()
+	    if self.inlet_ave < self.indoor_dewpoint-0.1  and self.sf == self.ef and self.inlet_ave < 15 and not self.press_inhibit:
+		self.set_differential(10)
+		self.press_inhibit = time.time()
 
 	#Get the active forcast
 	def get_forcast (self):
