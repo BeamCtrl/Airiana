@@ -552,15 +552,15 @@ class Systemair(object):
 	def moisture_calcs(self):## calculate moisure/humidities
 		# Vh2o max extracted air
 		if numpy.isnan(self.extract_humidity) and self.diff_ave[0]>0:
-			self.extract_humidity  = 0.10
-			self.dew_point = self.airdata_inst.dew_point(self.extract_humidity*100,self.extract_ave)
+			pass#self.extract_humidity  = 0.10
+			#self.dew_point = self.airdata_inst.dew_point(self.extract_humidity*100,self.extract_ave)
 		try:
-			extract_vmax	   = self.airdata_inst.vapor_max(self.extract_ave)
-			moisture 		   = extract_vmax*self.extract_humidity
-			inlet_vmax  	   = self.airdata_inst.vapor_max(self.inlet_ave)
+			#extract_vmax	   = self.airdata_inst.vapor_max(self.extract_ave)
+			#moisture 		   = extract_vmax*self.extract_humidity
+			#inlet_vmax  	   = self.airdata_inst.vapor_max(self.inlet_ave)
 			self.dew_point 	   = self.airdata_inst.dew_point(self.extract_humidity*100,self.extract_ave)
-			dew_point_moisture = self.airdata_inst.vapor_max(self.dew_point) #dew point in extracted air
-			self.condensate    = (dew_point_moisture - inlet_vmax) #diff in moisture content between inlet max vapor and dewpoint extracted
+			#dew_point_moisture = self.airdata_inst.vapor_max(self.dew_point) #dew point in extracted air
+			#self.condensate    = (dew_point_moisture - inlet_vmax) #diff in moisture content between inlet max vapor and dewpoint extracted
 
 		except:pass
 		self.cond_eff=.20#  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
@@ -573,14 +573,14 @@ class Systemair(object):
 		else: d_pw = 0
 		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
 		#div = (self.inlet_ave+(self.prev_static_temp*2))/3
-		self.div += (self.inlet_ave-self.div)*(0.00001*self.ef)
+		self.div += (self.inlet_ave-self.div)*(0.00005*self.ef)
 		low_pw = self.airdata_inst.sat_vapor_press(self.div)
 		if "debug" in sys.argv:self.msg += str(round( max_pw,2))+"Pa "+str(round( low_pw,2))+"Pa "+str( round(d_pw,2))+"Pa "+str(round(d_pw/max_pw*100,2))+"% "+str(round(self.div,2))+"C "+str(round( self.energy_diff,2))+"W\n"
 		if d_pw != 0:self.new_humidity = ((low_pw+d_pw) / max_pw) * 100
 		else: self.new_humidity = self.airdata_inst.sat_vapor_press(self.prev_static_temp)/max_pw*100
 
 		#####END
-		if len(self.i_diff)>10 and (self.dew_point > self.inlet_ave) :
+		"""if len(self.i_diff)>10 and (self.dew_point > self.inlet_ave) :
 			self.extract_humidity +=0.00001*self.i_diff[-1]-0.00001*(self.i_diff[-1]-self.i_diff[-2])+0.000001*numpy.sum(self.i_diff)
 		elif self.dew_point < self.inlet_ave: self.extract_humidity += (self.inlet_ave -self.dew_point)/float(100) +0.0001
 		if self.extract_humidity>=1:self.extract_humidity = 1
@@ -594,7 +594,7 @@ class Systemair(object):
 			self.extract_humidity_comp   = 0
 			self.condensate_compensation = 0
 			if self.diff_ave[0] <0:self.extract_humidity=numpy.nan
-
+		"""
 	#calc long and short derivatives
 	def derivatives(self):
 		#SHORT
@@ -658,12 +658,11 @@ class Systemair(object):
 		if self.rotor_active=="Yes" or "debug" in sys.argv:
 			tmp += "HeatExchange supply "+str(round(self.supply_power,1))+"W \n"
 			tmp += "HeatExchange extract "+str(round(self.extract_power+self.condensate_compensation,1))+"W\n"
-			if "debug" in sys.argv: tmp+=" Condensation component:"+str(round(self.condensate_compensation,1))+"W\n"
 			if "debug" in sys.argv: tmp += "Diff:"+str(round(numpy.average(self.diff_ave),2))+"% "+str(round(self.supply_power-self.extract_combined,1))+"W\n"
-			if "humidity" in sys.argv and "debug" in sys.argv : tmp +="Condensation  efficiency: " +str(round(self.cond_eff,2)*100)+"%\n"
+			if "humidity" in sys.argv and "debug" in sys.argv : tmp +="\nCondensation  efficiency: " +str(round(self.cond_eff,2)*100)+"%\n"
 		if "humidity" in sys.argv :
 			if "debug" in sys.argv:
-				tmp += "\nCalculated humidity: "+str(round(self.extract_humidity*100,2))+"% at:"+str(round(self.extract_ave,1))+"C Dewpoint:"+str(round(self.dew_point,2))+"C\n"
+				#tmp += "Calculated humidity: "+str(round(self.extract_humidity*100,2))+"% at:"+str(round(self.extract_ave,1))+"C Dewpoint:"+str(round(self.dew_point,2))+"C\n"
 				tmp += "Static: "+str(round(self.local_humidity+self.humidity_comp,2))+"% humidity gain:"+str(round(self.humidity_gain,3))+" "+str(round(self.humidity_comp,2))+"\n"
 			tmp += "Calculated Humidity: " + str(round (self.new_humidity,2))+"% Pressure limit: "+str(round(self.indoor_dewpoint,2))+"C\n"
 		if "debug" in sys.argv:
