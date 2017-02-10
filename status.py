@@ -30,7 +30,7 @@ while True:
 				html += "<tr><td><a href=\"/local_links/"+each+"\">"+users[str(each.split(".")[0])]+"</a></td><td>"+time.ctime(mod)+"</td><td>"+flag+" "+str(round(status[str(each.split(".")[0])],2))+" </td></tr>\n" 
 			except KeyError: print "no hit on:",each
 		html +="<br></table></html>"
-		file = open("./public/status.html","w")
+		file = open("./RAM/status.html","w")
 		file.write(html)		
 		file.close()
 		time.sleep(60)
