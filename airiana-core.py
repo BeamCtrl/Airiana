@@ -882,6 +882,7 @@ class Systemair(object):
 		self.forcast[0]=int(self.forcast[0])
 		self.forcast[1]=int(self.forcast[1])
 		#print self.forcast[0],self.forcast[1]
+		if os.stat("./RAM/forcast.xml").st_ctime Â< time.time()-3600*24 :raise Exception("FileError")
 	    except:
 		self.msg+= "error getting forecast\n"
 		self.forcast=[-1,-1]
