@@ -5,7 +5,7 @@ import minimalmodbus, os, traceback
 import time,struct,sys
 import statistics
 from mail import *
-vers = "7.3g"
+vers = "7.3h"
 #exec util fnctns
 os.chdir("/home/pi/airiana/public")
 os.system("./ip-replace.sh")  # reset ip-addresses on buttons.html
@@ -292,6 +292,7 @@ class Systemair(object):
 		self.supply_power=0
 		self.extract_power=0
 		self.extract_combined=0
+		self.gain = 0
 		self.loss=0
 		self.register = {}
 		self.starttime = time.time()
@@ -339,8 +340,6 @@ class Systemair(object):
 		self.i_diff = []
 		self.time = []
 		self.extract_dt_list = []
-		self.gain = 0
-		self.humidity_gain = 0
 		self.humidity_comp = 0
 		self.prev_static_temp = 0
 		self.indoor_dewpoint = 0
@@ -497,15 +496,15 @@ class Systemair(object):
 			
 			try:self.used_energy    = self.airdata_inst.energy_flow(self.sf,self.supply_ave,self.inlet_ave)
 			except: self.used_energy = 0
-			factor = 3.65 # casing transfer correction factor
+			factor = 1 # casing transfer correction factor
 			if   self.rotor_active=="Yes":
 				if self.fanspeed ==3:
 					factor = 3.3
 				elif self.fanspeed ==1:
-					if self.ef == self.sf: factor = 3.65 + 1.3 		 
+					if self.ef == self.sf: factor = 3.95 		 
 					else : factor=2.9
 				elif self.fanspeed ==2:
-					factor = 3.25
+					factor = 6.25
 			elif self.rotor_active =="No":
 				if self.fanspeed == 1   :
 					factor=3#  - 16 constant# red  from casing heat transfer
@@ -663,7 +662,7 @@ class Systemair(object):
 		if "humidity" in sys.argv :
 			if "debug" in sys.argv:
 				#tmp += "Calculated humidity: "+str(round(self.extract_humidity*100,2))+"% at:"+str(round(self.extract_ave,1))+"C Dewpoint:"+str(round(self.dew_point,2))+"C\n"
-				tmp += "Static: "+str(round(self.local_humidity+self.humidity_comp,2))+"% humidity gain:"+str(round(self.humidity_gain,3))+" "+str(round(self.humidity_comp,2))+"\n"
+				tmp += "Static: "+str(round(self.local_humidity+self.humidity_comp,2))+"% "+str(round(self.humidity_comp,2))+"\n"
 			tmp += "Calculated Humidity: " + str(round (self.new_humidity,2))+"% Pressure limit: "+str(round(self.indoor_dewpoint,2))+"C\n"
 		if "debug" in sys.argv:
 			try:
@@ -882,7 +881,7 @@ class Systemair(object):
 		self.forcast[0]=int(self.forcast[0])
 		self.forcast[1]=int(self.forcast[1])
 		#print self.forcast[0],self.forcast[1]
-		if os.stat("./RAM/forcast.xml").st_ctime < time.time()-3600*24 :raise Exception("FileError")
+		if os.stat("./RAM/forecast.xml").st_ctime < time.time()-3600*24 :raise Exception("FileError")
 	    except:
 		self.msg+= "error getting forecast\n"
 		self.forcast=[-1,-1]
@@ -915,24 +914,6 @@ class Systemair(object):
 				self.humidity_comp = 0
 			return self.local_humidity
 		except:pass
-	#retrive tomorrows low and generate a gain from prev static temp
-	def set_local_gain(self):
-		try:
-			out = os.popen("./forcast.py tomorrows-low").read()
-			low= out.split(" ")[0]
-			#print low, self.prev_static_temp, "<-- lows"
-			self.airdata_inst.vapor_max(float(low))
-			pw_low = self.airdata_inst.pw
-			self.airdata_inst.vapor_max(self.prev_static_temp)
-			pw_static = self.airdata_inst.pw
-
-			comp = (pw_low/pw_static)-1
-			#print pw_static,pw_low
-			self.humidity_gain = comp * self.fanspeed
-		except:pass
-	# add gain to humidity compensatoipn
-	def set_gain_component(self):
-		self.humidity_comp += self.humidity_gain/175
 
 ## Init base class ##
 if __name__:# not "__main__":
@@ -1023,10 +1004,6 @@ if __name__:# not  "__main__":
 			if "debug" in sys.argv:
 				update_sensors()
 				device.get_temp_status()
-			if "humidity" in sys.argv:
-
-				device.set_local_gain()
-				device.set_gain_component()
 		#refresh airdata class
 		if device.iter%79==0:
 			device.update_airdata_instance()
