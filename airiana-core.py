@@ -22,7 +22,7 @@ if "daemon" in sys.argv:
 	ferr = os.open("./RAM/err",os.O_WRONLY|os.O_CREAT)
 	os.dup2(fout,sys.stdout.fileno())
 	os.dup2(ferr,sys.stderr.fileno())
-
+	print "Output redirected to file;"
 # Setup serial, RS 485 to machine
 if os.path.lexists("/dev/serial0"):
 	print "Communication started on device Serial0;"
