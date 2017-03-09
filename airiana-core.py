@@ -1029,7 +1029,8 @@ if __name__:# not  "__main__":
 		#restart HTTP SERVER
 		if device.iter %(3600*2)==0:
 			device.get_filter_status()
-			os.system("sudo ./http")
+			os.system("./http")
+			os.system("./ip-replace.sh")  # reset ip-addresses on buttons.html
 			device.get_forcast()
 		## PRINT TO DISPLAY ##
 		device.print_xchanger()
