@@ -11,25 +11,29 @@
 <br>
 <form action="http://192.168.1.186:8000/command?1" method="post">
     <button name="AutoModeONOFF" value="command:1">Auto On/Off</button>
-	<input type="hidden" name="destreturn" value="buttons.html">
+    <input type="hidden" name="destreturn" formtarget="buttons.html">
 </form>
 <br>
 <br>
 <form action="http://192.168.1.186:8000/command?8" method="post">
     <button name="ForceVent" value="command:8">120 Min Forced Ventilation</button>
+    <input type="hidden" name="destreturn" formtarget="buttons.html">
 </form>
 <br>
 <br>
 <form action="http://192.168.1.186:8000/command?97" method="post">
     <button name="SetFansLow" value="command:97">Set Fanspeed Low</button>
+    <input type="hidden" name="destreturn" formtarget="buttons.html">
 </form>
 <br>
 <form action="http://192.168.1.186:8000/command?98" method="post">
     <button name="SetFansMed" value="command:98">Set Fanspeed Med</button>
+    <input type="hidden" name="destreturn" formtarget="buttons.html">
 </form>
 <br>
 <form action="http://192.168.1.186:8000/command?99" method="post">
     <button name="SetFansHigh" value="command:99">Set Fanspeed High</button>
+    <input type="hidden" name="destreturn" formtarget="buttons.html">
 </form>
 <br><p style="font-size:6px">*No access allowed outside of local domain.</p>
 </body>
