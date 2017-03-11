@@ -789,7 +789,7 @@ class Systemair(object):
 	    now = time.time()
 	    if self.inhibit < now-(60*10):self.inhibit = 0
     	    if self.modetoken < now-(60*60): self.modetoken=0
-	    if self.press_inhibit < now-(60*3):self.press_inhibit = 0
+	    if self.press_inhibit < now-(60*30):self.press_inhibit = 0
 
 	#Monitor Logical crits for state changes on exchanger, pressure, rpms, forcast
 	def monitor(self):
