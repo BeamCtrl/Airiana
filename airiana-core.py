@@ -690,6 +690,7 @@ class Systemair(object):
 		#tmp+= str(threading.enumerate())+"\n"
 		if self.shower : tmp += "Shower mode engaged at:" +time.ctime(self.shower_initial)+"\n"
 		if self.inhibit>0:tmp+=  "Mode sensing inhibited "+"("+str(int((self.inhibit+600-time.time())/60+1))+"min)\n"
+		if self.press_inhibit>0:tmp+=  "Pressure change inhibited "+"("+str(int((self.press_inhibit+1800-time.time())/60+1))+"min)\n"
 		if self.modetoken >=1 :tmp+= "Mode change inhibited at: "+time.ctime(self.modetoken)+"("+str(int((self.modetoken+3600-time.time())/60+1))+"min)\n"
 		if self.cool_mode: tmp+= "Cooling mode is in effect, target is 20.7C extraction temperature\n"
 		#tmp += "lower limit:22.0C, when cooling 21.0C, fans up2 22.01C, fans up3 22.5 or +0.5C/hr\nExchanger limits ON:21C OFF:22C\nWeather Data from YR.no\n"
@@ -870,9 +871,12 @@ class Systemair(object):
 	    if self.inlet_ave > self.indoor_dewpoint+0.1   and self.sf <> self.ef and not self.press_inhibit:
 		self.set_differential(0)
 		self.press_inhibit = time.time()
+		if "debug" in sys.argv: self.msg += "\nPressure diff to 0%" 
 	    if self.inlet_ave < self.indoor_dewpoint-0.1  and self.sf == self.ef and self.inlet_ave < 15 and not self.press_inhibit:
 		self.set_differential(10)
 		self.press_inhibit = time.time()
+		if "debug" in sys.argv: self.msg += "\nPressure diff to +10%" 
+    	    #if "debug" in sys.argv: print "Pressure inhibit = " , str(time.ctime(self.press_inhibit)) 
 
 	#Get the active forcast
 	def get_forcast (self):
