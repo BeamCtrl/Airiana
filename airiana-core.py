@@ -5,7 +5,7 @@ import minimalmodbus, os, traceback
 import time,struct,sys
 import statistics
 from mail import *
-vers = "7.3h"
+vers = "7.4"
 #exec util fnctns
 os.chdir("/home/pi/airiana/public")
 os.system("./ip-replace.sh")  # reset ip-addresses on buttons.html
