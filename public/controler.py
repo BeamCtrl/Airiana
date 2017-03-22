@@ -31,7 +31,21 @@ class myHandler (SocketServer.BaseRequestHandler):
                         	#self.request.send("HTTP/1.1 HTTP/1.1 303 See Other Location: buttons.html \n\r")
                         	self.request.send("HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://"+str(ip)+"/buttons.html\" /></head></html> \n\r")
 
-	
+			if "utility" in data[0]:
+				os.chdir("..")
+				if "reboot" in data[0]:
+					os.system("sudo reboot")
+				if "update" in data[0]:
+					os.system("git pull")
+					os.system("./restart")
+				if "restart" in data[0]:
+					os.system("./restart")
+				if "coffee" in data[0]:
+			 	     	self.request.send("HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://"+str(ip)+"/coffee.txt\" /></head></html> \n\r")
+			      	else:
+					self.request.send("HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://"+str(ip)+"/util.html\" /></head></html> \n\r")
+
+
 SocketServer.TCPServer.allow_reuse_address = True
 
 while True:
