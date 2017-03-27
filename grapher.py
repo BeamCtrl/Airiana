@@ -116,9 +116,10 @@ if "debug" in sys.argv or "humidities" in sys.argv:
 	low,high = ax.get_ylim()
 	ax.yaxis.set_ticks(np.arange(low,high,10))
 	ax.set_xlim(min(time[-day:-1]),max(time[-day:-1]))
+
 	ax.xaxis.set_ticks(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600+1,4*3600))
 	ax.set_xticklabels(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600+1,4*3600))
-	fig.canvas.draw()
+	#fig.canvas.draw()
 	subplot(211)
 	lgd =legend(bbox_to_anchor=(0.5, -0.3), loc=0, ncol=2, mode="expand", borderaxespad=.0)
 
@@ -128,19 +129,21 @@ for i in range(len(labels)):
 	try:
         	if not tm.localtime().tm_isdst: labels[i]=tm.strftime("%H:%M - %a",tm.gmtime(tm.time() -(float(labels[i]))-(tm.altzone)-3600))
         	else:labels[i]=tm.strftime("%H:%M - %a",tm.gmtime(tm.time() -(float(labels[i]))-(tm.altzone)))
+		print labels[i]
 	except:pass#print "label error"
 s1.set_xticklabels(labels)
 setp(s1.get_xticklabels(), rotation=45)
 
 if "debug" in sys.argv or "humidities" in sys.argv:
 	subplot(212)
-	gca().set_xlim(min(time[-day:-1]),max(time[-day:-1]))
+	#gca().set_xlim(min(time[-day:-1]),max(time[-day:-1])+3600*4)
 	labels = [item.get_text() for item in s2.get_xticklabels()]
 	
-	for i in range(len(labels)):
+	for i in range(len(labels)+1):
 		try:
 			if not tm.localtime().tm_isdst:labels[i]=tm.strftime("%H:%M - %a",tm.gmtime(tm.time() -(float(labels[i]))-(tm.altzone)-3600))	
-			else:labels[i]=tm.strftime("%H:%M - %a",tm.gmtime(tm.time() -(float(labels[i])-(tm.altzone))))	
+			else:labels[i]=tm.strftime("%H:%M - %a",tm.gmtime(tm.time() -(float(labels[i]))-(tm.altzone)))	
+			print labels[i]
 		except : pass#print "label error"
 		s2.set_xticklabels(labels)
 		setp(s2.get_xticklabels(), rotation=45)
@@ -155,5 +158,5 @@ grid(True)
 
 fig.subplots_adjust(right=0.90)
 
-
+fig.canvas.draw()
 savefig("./RAM/history.png",bbox_extra_artists=(lgd,),bbox_inches='tight')

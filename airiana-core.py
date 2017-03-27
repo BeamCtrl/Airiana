@@ -386,7 +386,7 @@ class Systemair(object):
 		#req.response[0] #Supply pre elec heater
 		#req.response[3] #Supply post electric heater
 		if self.rotor_active ==  "No" and self.coef <> 0.19+(float(self.fanspeed)/100):
-			if self.coef-( 0.19+(float(self.fanspeed)/100))>0:self.coef -= 0.00035#0.04
+			if self.coef-( 0.19+(float(self.fanspeed)/200))>0:self.coef -= 0.00035#0.04
                         else: self.coef += 0.0002
 		if self.rotor_active == "Yes" and self.coef <> 0.07:
 			if self.coef-( 0.07)>0:self.coef -= 0.00015#0.04
@@ -511,11 +511,11 @@ class Systemair(object):
 				elif self.fanspeed == 2 :
 					factor = 1.9#  - 16 constant# red  from casing heat transfer
 				elif self.fanspeed == 3 :
-					factor = 5.5
+					factor = 4.5
 			else: factor=1
  			if self.rotor_active == "Yes":
 				self.supply_power   = self.used_energy-5-(self.extract_ave-self.inlet_ave)*factor#  constant# red  from casing heat transfer
- 			else: self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*factor#  constant# red  from casing heat transfer
+ 			else: self.supply_power   = self.used_energy-10-(self.extract_ave-self.inlet_ave)*factor#  constant# red  from casing heat transfer
 
 			try:self.extract_exchanger  = self.airdata_inst.energy_flow(self.ef,self.extract_ave,self.exhaust_ave)
 			except: self.extract_exchanger = 0
@@ -564,7 +564,7 @@ class Systemair(object):
 		except:pass
 		self.cond_eff=.20#  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
 		######### SAT MOIST IPDATE ############
-		if self.energy_diff > 0:
+		if self.energy_diff > 0 and self.rotor_active=="Yes":
 			try:
 				#d_pw = (self.airdata_inst.energy_to_pwdiff(numpy.average(self.cond_data),self.extract_ave)/self.cond_eff)/(float(self.ef)/1000)
 				d_pw = (self.airdata_inst.energy_to_pwdiff(self.energy_diff,self.extract_ave)/self.cond_eff)/(float(self.ef)/1000)

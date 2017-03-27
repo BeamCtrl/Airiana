@@ -39,11 +39,13 @@ class myHandler (SocketServer.BaseRequestHandler):
 					os.system("git pull")
 					if os.isfile("/dev/ttyAMA0"):
 						os.system("./restart")
-					else:os.system("sudo systemctl restart airiana.service controller.service")
+					else:
+						os.system("sudo systemctl restart airiana.service controller.service")
 				if "restart" in data[0]:
 					if os.isfile("/dev/ttyAMA0"):
                                                 os.system("./restart")
-                                        else:os.system("sudo systemctl restart airiana.service controller.service")				if "coffee" in data[0]:
+                                        else:
+						os.system("sudo systemctl restart airiana.service controller.service")
 			 	     	
 				if "coffee" in data[0]:
 					self.request.send("HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://"+str(ip)+"/coffee.txt\" /></head></html> \n\r")
