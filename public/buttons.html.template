@@ -7,6 +7,7 @@
 <h1>Airiana Controller</h1>
 <form action="http://192.168.1.186:8000/command?0" method="post">
     <button name="Exchanger toggle" value="command:0">Winter/Summer Mode</button>
+    <input type="hidden" name="destreturn" formtarget="buttons.html">
 </form>
 <br>
 <form action="http://192.168.1.186:8000/command?1" method="post">
