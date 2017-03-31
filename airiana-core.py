@@ -954,7 +954,7 @@ if __name__:# not  "__main__":
 	    if "debug" in sys.argv:
 		os.system("sudo nice ./grapher.py debug &")
 	    else:
-		os.system("sudo nice ./grapher.py humidities &")
+		os.system("sudo nice ./grapher.py &")
 	    sys.stdout.flush()
 	    if "debug" in sys.argv:
 		print "checking for sensor data;"
@@ -1025,7 +1025,7 @@ if __name__:# not  "__main__":
 		#genetarte graphs
 		if device.iter%181==0:
 			if "debug" in sys.argv:os.system("nice ./grapher.py debug & >>/dev/null")
-			else : os.system("nice ./grapher.py humidities & >> /dev/null")
+			else : os.system("nice ./grapher.py  & >> /dev/null")
 		# send alive packet to headmaster
 		if device.iter%3600==0:
 			if "ping" in sys.argv:
