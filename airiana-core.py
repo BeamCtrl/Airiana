@@ -870,11 +870,9 @@ class Systemair(object):
 		self.indoor_dewpoint = 5.0
 	    if self.inlet_ave > self.indoor_dewpoint+0.1   and self.sf <> self.ef and not self.press_inhibit:
 		self.set_differential(0)
-		self.press_inhibit = time.time()
 		if "debug" in sys.argv: self.msg += "\nPressure diff to 0%" 
 	    if self.inlet_ave < self.indoor_dewpoint-0.1  and self.sf == self.ef and self.inlet_ave < 15 and not self.press_inhibit:
 		self.set_differential(10)
-		self.press_inhibit = time.time()
 		if "debug" in sys.argv: self.msg += "\nPressure diff to +10%" 
     	    #if "debug" in sys.argv: print "Pressure inhibit = " , str(time.ctime(self.press_inhibit)) 
 
@@ -901,6 +899,9 @@ class Systemair(object):
 		target = req.response + req.response * (float(percent)/100)
 		#print "to set ef_no to",target
 		req.write_register(104,target) # nominal extract flow
+		req.modbusregister(104,0) #nominal supply flow
+		if req.response == target:
+			self.press_inhibit = time.time()
 		#print "one down"
 		high_flow = 107
 		if percent < 0 :high_flow += 107*float(percent)/100
