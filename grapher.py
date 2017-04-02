@@ -129,7 +129,7 @@ for i in range(len(labels)):
 	try:
         	if not tm.localtime().tm_isdst: labels[i]=tm.strftime("%H:%M - %a",tm.gmtime(tm.time() -(float(labels[i]))-(tm.altzone)-3600))
         	else:labels[i]=tm.strftime("%H:%M - %a",tm.gmtime(tm.time() -(float(labels[i]))-(tm.altzone)))
-		print labels[i]
+		#print labels[i]
 	except:pass#print "label error"
 s1.set_xticklabels(labels)
 setp(s1.get_xticklabels(), rotation=45)
@@ -143,7 +143,7 @@ if "debug" in sys.argv or "humidities" in sys.argv:
 		try:
 			if not tm.localtime().tm_isdst:labels[i]=tm.strftime("%H:%M - %a",tm.gmtime(tm.time() -(float(labels[i]))-(tm.altzone)-3600))	
 			else:labels[i]=tm.strftime("%H:%M - %a",tm.gmtime(tm.time() -(float(labels[i]))-(tm.altzone)))	
-			print labels[i]
+			#print labels[i]
 		except : pass#print "label error"
 		s2.set_xticklabels(labels)
 		setp(s2.get_xticklabels(), rotation=45)
