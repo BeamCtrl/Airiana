@@ -504,7 +504,7 @@ class Systemair(object):
 					if self.ef == self.sf: factor = 3.95 		 
 					else : factor=2.9
 				elif self.fanspeed ==2:
-					factor = 5.25
+					factor = 5.65
 			elif self.rotor_active =="No":
 				if self.fanspeed == 1   :
 					factor=3#  - 16 constant# red  from casing heat transfer
