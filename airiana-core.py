@@ -36,7 +36,7 @@ minimalmodbus.BYTESIZE = 8
 minimalmodbus.STOPBITS=1
 client = minimalmodbus.Instrument(unit,1)
 client.debug=False
-client.precalculate_read_size=True
+client.precalculate_read_size=False
 #############################################
 wait_time = 0.1
 bus=os.open(unit,os.O_RDONLY)
@@ -504,7 +504,7 @@ class Systemair(object):
 					if self.ef == self.sf: factor = 3.95 		 
 					else : factor=2.9
 				elif self.fanspeed ==2:
-					factor = 6.25
+					factor = 5.25
 			elif self.rotor_active =="No":
 				if self.fanspeed == 1   :
 					factor=3#  - 16 constant# red  from casing heat transfer
