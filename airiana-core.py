@@ -36,7 +36,7 @@ minimalmodbus.BYTESIZE = 8
 minimalmodbus.STOPBITS=1
 client = minimalmodbus.Instrument(unit,1)
 client.debug=False
-client.precalculate_read_size=False
+client.precalculate_read_size=True
 #############################################
 wait_time = 0.1
 bus=os.open(unit,os.O_RDONLY)
