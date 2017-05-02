@@ -5,7 +5,7 @@ import minimalmodbus, os, traceback
 import time,struct,sys
 import statistics
 from mail import *
-vers = "7.4"
+vers = "7.4b"
 #exec util fnctns
 os.chdir("/home/pi/airiana/public")
 os.system("./ip-replace.sh")  # reset ip-addresses on buttons.html
@@ -320,7 +320,6 @@ class Systemair(object):
 		self.modetoken = 0
 		self.cooling = 0
 		self.forcast = [-1,-1]
-		self.extract_dt_log =[]
 		self.dt_hold = 0
 		self.dt_entries  =0
 		self.extract_dt_long_time = time.time()
@@ -385,11 +384,11 @@ class Systemair(object):
 		#req.response[2] #EXHAUST
 		#req.response[0] #Supply pre elec heater
 		#req.response[3] #Supply post electric heater
-		if self.rotor_active ==  "No" and self.coef <> 0.19+(float(self.fanspeed)/100):
-			if self.coef-( 0.19+(float(self.fanspeed)/200))>0:self.coef -= 0.00035#0.04
+		if self.rotor_active ==  "No" and self.coef <> 0.18+(float(self.fanspeed)/400):
+			if self.coef-( 0.18+(float(self.fanspeed)/400))>0:self.coef -= 0.00035#0.04
                         else: self.coef += 0.0002
-		if self.rotor_active == "Yes" and self.coef <> 0.07:
-			if self.coef-( 0.07)>0:self.coef -= 0.00015#0.04
+		if self.rotor_active == "Yes" and self.coef <> 0.08:
+			if self.coef-( 0.08)>0:self.coef -= 0.00015#0.04
 			else: self.coef += 0.0004
 		# NEGATYIVE VAL sign bit compensation
 		if req.response[4]>60000:
@@ -514,7 +513,7 @@ class Systemair(object):
 					factor = 4.5
 			else: factor=1
  			if self.rotor_active == "Yes":
-				self.supply_power   = self.used_energy-5-(self.extract_ave-self.inlet_ave)*factor#  constant# red  from casing heat transfer
+				self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*factor#  constant# red  from casing heat transfer
  			else: self.supply_power   = self.used_energy-10-(self.extract_ave-self.inlet_ave)*factor#  constant# red  from casing heat transfer
 
 			try:self.extract_exchanger  = self.airdata_inst.energy_flow(self.ef,self.extract_ave,self.exhaust_ave)
@@ -549,21 +548,11 @@ class Systemair(object):
                 else: device.rotor_active = "No"
 
 	def moisture_calcs(self):## calculate moisure/humidities
-		# Vh2o max extracted air
-		if numpy.isnan(self.extract_humidity) and self.diff_ave[0]>0:
-			pass#self.extract_humidity  = 0.10
-			#self.dew_point = self.airdata_inst.dew_point(self.extract_humidity*100,self.extract_ave)
 		try:
-			#extract_vmax	   = self.airdata_inst.vapor_max(self.extract_ave)
-			#moisture 		   = extract_vmax*self.extract_humidity
-			#inlet_vmax  	   = self.airdata_inst.vapor_max(self.inlet_ave)
 			self.dew_point 	   = self.airdata_inst.dew_point(self.extract_humidity*100,self.extract_ave)
-			#dew_point_moisture = self.airdata_inst.vapor_max(self.dew_point) #dew point in extracted air
-			#self.condensate    = (dew_point_moisture - inlet_vmax) #diff in moisture content between inlet max vapor and dewpoint extracted
-
 		except:pass
 		self.cond_eff=.20#  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
-		######### SAT MOIST IPDATE ############
+		######### SAT MOIST UPDATE ############
 		if self.energy_diff > 0 and self.rotor_active=="Yes":
 			try:
 				#d_pw = (self.airdata_inst.energy_to_pwdiff(numpy.average(self.cond_data),self.extract_ave)/self.cond_eff)/(float(self.ef)/1000)
@@ -571,29 +560,19 @@ class Systemair(object):
 			except: d_pw=0
 		else: d_pw = 0
 		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
-		#div = (self.inlet_ave+(self.prev_static_temp*2))/3
-		self.div += (self.inlet_ave-self.div)*(0.00005*self.ef)
+		self.div = self.prev_static_temp #-self.div)*(0.00005*self.ef)
 		low_pw = self.airdata_inst.sat_vapor_press(self.div)
-		if "debug" in sys.argv:self.msg += str(round( max_pw,2))+"Pa "+str(round( low_pw,2))+"Pa "+str( round(d_pw,2))+"Pa "+str(round(d_pw/max_pw*100,2))+"% "+str(round(self.div,2))+"C "+str(round( self.energy_diff,2))+"W\n"
-		if d_pw != 0:self.new_humidity = ((low_pw+d_pw) / max_pw) * 100
-		else: self.new_humidity = self.airdata_inst.sat_vapor_press(self.prev_static_temp)/max_pw*100
+
+		self.div = self.airdata_inst.sat_vapor_press(self.prev_static_temp)/max_pw*100
+
+		if "debug" in sys.argv:self.msg += str(round( max_pw,2))+"Pa "+str(round( low_pw,2))+"Pa "+str( round(d_pw,2))+"Pa "+str(round(d_pw/max_pw*100,2))+"% "+str(round( self.energy_diff,2))+"W\n"
+
+		if d_pw != 0: self.new_humidity += (((( low_pw+d_pw ) / max_pw ) * 100 )-self.new_humidity) *0.01
+		#if d_pw != 0:self.new_humidity = ((low_pw+d_pw) / max_pw) * 100
+		else: self.new_humidity -= (self.new_humidity - self.airdata_inst.sat_vapor_press(self.prev_static_temp)/max_pw*100)*0.01
 
 		#####END
-		"""if len(self.i_diff)>10 and (self.dew_point > self.inlet_ave) :
-			self.extract_humidity +=0.00001*self.i_diff[-1]-0.00001*(self.i_diff[-1]-self.i_diff[-2])+0.000001*numpy.sum(self.i_diff)
-		elif self.dew_point < self.inlet_ave: self.extract_humidity += (self.inlet_ave -self.dew_point)/float(100) +0.0001
-		if self.extract_humidity>=1:self.extract_humidity = 1
-		if self.extract_humidity<=0:self.extract_humidity = 0
-		if self.condensate >0:
-			self.condensate_compensation= (self.airdata_inst.condensation_energy(self.condensate)/1000)*self.ef*self.cond_eff
 
-			self.extract_humidity_comp =self.extract_humidity#+abs((self.extract_humidity*( self.inlet_ave/(self.exhaust_ave-self.inlet_ave)*(1-0.87))))
-			if self.extract_humidity==numpy.nan: self.extract_humidity=0
-		else:
-			self.extract_humidity_comp   = 0
-			self.condensate_compensation = 0
-			if self.diff_ave[0] <0:self.extract_humidity=numpy.nan
-		"""
 	#calc long and short derivatives
 	def derivatives(self):
 		#SHORT
@@ -611,7 +590,7 @@ class Systemair(object):
 
 	# decect if shower is on
 	def shower_detect(self):
-		try: # SHOWER CONTROLLER (should be moved to monitor method)
+		try: # SHOWER CONTROLLER
 			lim = 0.05
 			if self.ef >50: lim = 0.07
 			if self.extract_dt > lim and self.inhibit ==0 and numpy.average(self.extract_dt_list)*60>0.50:
@@ -701,7 +680,7 @@ class Systemair(object):
 		if self.iter %30==0 and "debug" in sys.argv :
 			try:
 				ave, dev = statistics.stddev(self.cond_data)
-				self.msg += str(len(self.cond_data))+" mean:"+str(ave)+" stddev:"+str(dev)+" "+ str(dev/ave*100)+"%\n"
+				self.msg += str(len(self.cond_data))+" mean:"+str(ave)+" stddev:"+str(dev)+"\n"
 				#print self.msg
 			except : print "mean error"
 		tmp +=  self.msg+"\n"
@@ -801,28 +780,49 @@ class Systemair(object):
 	    if self.forcast[0]< 10: self.target = 23
 	    else: self.target = 22
 	    if self.modetoken<=0 and self.cool_mode==0 :
-		if self.extract_ave >self.target and self.exchanger_mode <> 0 and self.shower == False and self.inlet_ave >10:
-			self.modetoken =time.time()
-			self.cycle_exchanger(0)
-		if self.supply_ave > self.target and self.exchanger_mode <> 0 and self.shower== False:
-			self.cycle_exchanger(0)
-			self.modetoken=time.time()
-		if self.extract_ave < self.target-1 and self.exchanger_mode ==0 and not self.cool_mode :
-			self.cycle_exchanger(5)
-			self.modetoken=time.time()
-		if self.supply_ave <10 and self.extract_ave < self.target and  self.exchanger_mode ==0 and not self.cool_mode :
-			self.cycle_exchanger(5)
-			self.modetoken=time.time()
-		if self.exchanger_mode == 0 and self.inlet_ave < 10 and self.forcast[0] < 10 and self.forcast[1] <> -1 and self.fanspeed == 1 and not self.cool_mode and not self.shower:
-			self.modetoken=time.time()
-			self.cycle_exchanger(5)
+
+		if self.extract_ave >self.target 		\
+			and self.exchanger_mode <> 0 		\
+			and self.shower == False 		\
+			and self.inlet_ave >10:
+				self.modetoken =time.time()
+				self.cycle_exchanger(0)
+		if self.supply_ave > self.target 		\
+			and self.exchanger_mode <> 0 		\
+			and self.shower== False:
+				self.cycle_exchanger(0)
+				self.modetoken=time.time()
+		if self.extract_ave < self.target-1 		\
+			and self.exchanger_mode <> 5 		\
+			and not self.cool_mode :
+				self.cycle_exchanger(5)
+				self.modetoken=time.time()
+		if self.supply_ave <10 				\
+			and self.extract_ave < self.target+1 	\
+			and  self.exchanger_mode <> 5 		\
+			and not self.cool_mode :
+				self.cycle_exchanger(5)
+				self.modetoken=time.time()
+		if self.exchanger_mode <> 5 			\
+			and self.inlet_ave < 10 		\
+			and self.forcast[0] < 10		\
+			and self.forcast[1] <> -1 		\
+			and self.fanspeed == 1 			\
+			and not self.cool_mode 			\
+			and not self.shower:
+				self.modetoken=time.time()
+				self.cycle_exchanger(5)
 
 	    #FORECAST RELATED COOLING
-	    if self.forcast[0]>16 and self.forcast[1]<4 and self.cool_mode == False and self.extract_ave+0.1 > self.supply_ave and self.extract_ave>20.4:
-		self.msg += "predictive Cooling enaged\n"
-		if self.exchanger_mode <>0:self.cycle_exchanger(0)
-		self.set_fanspeed(3)
-		self.cool_mode = True
+	    if self.forcast[0] > 16				\
+		and self.forcast[1] < 4 			\
+		and self.cool_mode == False 			\
+		and self.extract_ave+0.1 > self.supply_ave 	\
+		and self.extract_ave>20.7:
+			self.msg += "predictive Cooling enaged\n"
+			if self.exchanger_mode <>0:	self.cycle_exchanger(0)
+			self.set_fanspeed(3)
+			self.cool_mode = True
 
 	    if self.cool_mode ==True:
 		if (self.extract_ave <20.7 ) and self.fanspeed <> 1 :
@@ -839,25 +839,56 @@ class Systemair(object):
 		if (self.forcast[0] <= 16 or self.forcast[1]>=4) and time.localtime().tm_hour >12: self.cool_mode=False
 	    #DYNAMIC FANSPEED CONTROL
 
-	    if self.fanspeed == 1 and self.extract_ave>self.target and self.extract_ave -self.supply_ave>0.1 and (self.extract_dt_long >= 0.2 and numpy.average(self.extract_dt_list) > 0.2)  and not self.shower and not self.cool_mode:
-		 self.set_fanspeed(2)
-		 self.msg += "Dynamic fanspeed 2\n"
+	    if self.fanspeed <> 2 				\
+		and self.extract_ave > self.target 		\
+		and self.extract_ave < self.target + 0.5 	\
+		and self.extract_ave - self.supply_ave>0.1 	\
+		and (self.extract_dt_long >= 0.2 		\
+		and numpy.average(self.extract_dt_list) > 0.2)  \
+		and not self.shower 				\
+		and not self.inhibit 				\
+		and not self.cool_mode:
+		 	self.set_fanspeed(2)
+		 	self.msg += "Dynamic fanspeed 2\n"
 
-	    if self.fanspeed <> 3 and self.extract_ave-0.1 > self.supply_ave and  self.inhibit==0 and (self.extract_ave >= 22.5 or (self.extract_dt_long >=0.7 and numpy.average(self.extract_dt_list)>0.7) and self.inlet_ave > 5 or self.extract_ave > 23.0 ) and not self.extract_dt_long < -0.2 and self.exchanger_mode <> 5 and not self.cool_mode and not self.shower:
-		self.set_fanspeed(3)
-		self.msg += "Dynamic fanspeed 3\n"
+	    if self.fanspeed <> 3 													\
+		and self.extract_ave-0.1 > self.supply_ave 										\
+		and (self.extract_ave >= self.target+1 or (self.extract_dt_long >=0.7 and numpy.average(self.extract_dt_list)>0.7)	\
+		and self.inlet_ave > 5 or self.extract_ave > self.target+2 )								\
+		and self.exchanger_mode <> 5 												\
+		and not self.extract_dt_long < -0.2 											\
+		and not self.inhibit 													\
+		and not self.cool_mode 													\
+		and not self.shower:
+			self.set_fanspeed(3)
+			self.msg += "Dynamic fanspeed 3\n"
 
-	    if self.fanspeed <>1 and self.extract_ave <self.target and self.inhibit == 0 and self.cool_mode == False and not self.shower:
-		self.set_fanspeed(1)
-		self.msg += "Dynamic fanspeed 1\n"
+	    if self.fanspeed <> 1 			\
+		and self.extract_ave < self.target	\
+		and not self.inhibit			\
+		and not self.cool_mode	 		\
+		and not self.shower:		
+			self.set_fanspeed(1)
+			self.msg += "Dynamic fanspeed 1\n"
 
-	    if self.extract_ave < self.supply_ave and self.fanspeed <> 1 and self.inhibit == 0 and self.cool_mode == False and not self.shower:
-		self.set_fanspeed(1)
-		self.msg += "Dynamic fanspeed, recover cool air\n"
+	    if self.extract_ave < self.supply_ave 	\
+		and self.fanspeed <> 1 			\
+		and self.cool_mode == False 		\
+		and not self.inhibit			\
+		and not self.shower:
+			self.set_fanspeed(1)
+			self.msg += "Dynamic fanspeed, recover cool air\n"
 
-	    if self.fanspeed== 3 and self.extract_ave < self.target+2 and self.extract_ave > self.target and self.exchanger_mode == 5 and not self.cool_mode and not self.inhibit and not self.shower:
-		self.set_fanspeed(2)
-		self.msg  +="Dynamic fanspeed 2\n"
+	    if (self.fanspeed== 3			\
+ 		and self.extract_ave < self.target + 1 	\
+		and self.extract_ave > self.target) 	\
+		or  self.supply_ave < 10		\
+		and self.extract_dt_long < 0		\
+		and not self.cool_mode 			\
+		and not self.inhibit 			\
+		and not self.shower:
+			self.set_fanspeed(2)
+			self.msg  +="Dynamic fanspeed 2\n"
 
 	    # SHOWER MODE TIMEOUT #
 	    if self.shower == True and self.shower_initial -time.time() < -30*60:
@@ -966,10 +997,10 @@ if __name__:# not  "__main__":
 	    print "Setting up coeficients;"
 	    sys.stdout.flush()
 	    if device.rotor_active == "No":
-		device.coef = 0.19+(float(device.fanspeed)/100)
+		device.coef = 0.18+(float(device.fanspeed)/400)
 		device.inlet_coef=0.14
 	    else:
-		device.coef= 0.07
+		device.coef= 0.08
 		device.inlet_coef = 0.08
 	    print "Read initial temperatures;"
 	    device.update_temps()
