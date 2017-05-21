@@ -12,7 +12,7 @@ os.system("./ip-replace.sh")  # reset ip-addresses on buttons.html
 os.chdir("/home/pi/airiana/")
 os.system("./http &> /dev/null") ## START WEB SERVICE
 os.system("./forcast.py &> /dev/null") ## Get forcast
-if os.path.lexists("./RAM/data.log"): os.system("touch data.log")
+if not os.path.lexists("./RAM/data.log"): os.system("cp data.log ./RAM/data.log")
 if "debug" in sys.argv and not os.path.lexists("./sensors"): os.system("touch sensors")
 if "debug" in sys.argv: os.system("./status.py &")
 starttime=time.time()
@@ -236,6 +236,9 @@ req = Request()
 class Systemair(object):
 	def __init__(self):
 		self.fanspeed=1
+		self.system_types = {0:"VR400",1:"VR700",2:"VR700DK",3:"VR400DE",4:"VTC300",5:"VTC700",
+					12:"VTR150K",13:"VTR200B",14:"VSR300",15:"VSR500",16:"VSR150",
+					17:"VTR300",18:"VTR500",19:"VSR300DE",20:"VTC200",21:"VTC100"}
 		self.rotor_states={0:"Normal",1:"Rotor Fault",2:"Rotor Fault Detected"
 				,3:"Summer Mode transitioning",4:"Summer Mode"
 				,5:"Leaving Summer Mode",6:"Manual Summer Mode"
@@ -287,6 +290,7 @@ class Systemair(object):
 		self.supply_ave=0
 		self.extract = []
 		self.extract_ave=0
+		self.house_heat_limit = 8
 		self.exhaust = []
 		self.exhaust_ave=0
 		self.supply_power=0
@@ -315,6 +319,7 @@ class Systemair(object):
 		self.rotor_state = 0
 		self.rotor_active = "Yes"
 		self.inhibit = time.time()
+		self.system_name = ""
 		self.sensor_temp = 0
 		self.sensor_humid = 0
 		self.modetoken = 0
@@ -346,6 +351,11 @@ class Systemair(object):
 		self.energy_diff=0
 		self.new_humidity=0
 		self.div =0
+		self.set_system_name()
+
+	def set_system_name(self):
+		req.modbusregister(500,0)
+		self.system_name = self.system_types[req.response]
 
 	def get_filter_status(self):
 		req.modbusregister(601,0)
@@ -621,7 +631,7 @@ class Systemair(object):
 	# PRINT OUTPUT
 	def print_xchanger(self):
 		global monitoring,vers
-		tmp =  "***"+time.ctime()+" status: "+str(int(time.time()-starttime))+'('+str(self.iter)+")"+str(round((time.time()-starttime)/self.iter,2))+" Vers. "+vers+" ***\n"
+		tmp =  self.system_name+" "+time.ctime()+" status: "+str(int(time.time()-starttime))+'('+str(self.iter)+")"+str(round((time.time()-starttime)/self.iter,2))+" Vers. "+vers+" ***\n"
 		if "debug" in sys.argv: tmp += str(sys.argv)+"\n"
 
 		try:
@@ -693,7 +703,7 @@ class Systemair(object):
 		for each in range(100,900,100):
 			if   each == 100: addresses = 36
 			elif each == 200: addresses = 21
-			elif each == 300: addresses = 52
+			elif each == 300: addresses = 84
 			elif each == 400: addresses = 59
 			elif each == 500: addresses = 57
 			elif each == 600: addresses = 72
@@ -710,7 +720,7 @@ class Systemair(object):
 	def print_registers(self):
 		try:
 			print "\n",
-			for each in range(1,73):
+			for each in range(1,84):
 				tmp=""
 				for address in range(100,900,100):
 				    try:
@@ -777,6 +787,7 @@ class Systemair(object):
 	    if self.sf_rpm <1550 and self.fanspeed == 2 : self.inhibit = time.time()
 	    if self.sf_rpm <1000 and self.fanspeed == 1 : self.inhibit = time.time()
 	    #### EXCHANGER CONTROL
+	    self.house_heat_limit = 8  # daily low limit on cooling
 	    if self.forcast[0]< 10: self.target = 23
 	    else: self.target = 22
 	    if self.modetoken<=0 and self.cool_mode==0 :
@@ -814,22 +825,23 @@ class Systemair(object):
 				self.cycle_exchanger(5)
 
 	    #FORECAST RELATED COOLING
-	    if self.forcast[0] > 16				\
-		and self.forcast[1] < 4 			\
-		and self.cool_mode == False 			\
-		and self.extract_ave+0.1 > self.supply_ave 	\
+	    if self.forcast[0] > 16 and self.prev_static_temp > self.house_heat_limit	\
+		and self.forcast[1] < 4 				\
+		and self.cool_mode == False 				\
+		and self.extract_ave+0.1 > self.supply_ave 		\
 		and self.extract_ave>20.7:
 			self.msg += "predictive Cooling enaged\n"
 			if self.exchanger_mode <>0:	self.cycle_exchanger(0)
 			self.set_fanspeed(3)
 			self.cool_mode = True
 
-	    if self.cool_mode ==True:
+	    if self.cool_mode and not self.inhibit and not self.shower:
 		if (self.extract_ave <20.7 ) and self.fanspeed <> 1 :
 			self.set_fanspeed(1)
 			self.msg += "cooling complete\n"
 		if self.fanspeed == 3 and self.supply_ave < 10:
 			self.set_fanspeed(2)
+			self.msg = "cooling reduced\n" 
 		if self.fanspeed ==1 and self.extract_ave > 20.8 and self.extract_ave > self.supply_ave:
 			self.set_fanspeed(3)
 		if self.supply_ave>self.extract_ave+0.1 and self.fanspeed<>1:
@@ -843,8 +855,8 @@ class Systemair(object):
 		and self.extract_ave > self.target 		\
 		and self.extract_ave < self.target + 0.5 	\
 		and self.extract_ave - self.supply_ave>0.1 	\
-		and (self.extract_dt_long >= 0.2 		\
-		and numpy.average(self.extract_dt_list) > 0.2)  \
+		and self.extract_dt_long >= 0.2 		\
+		and numpy.average(self.extract_dt_list) >= 0.2	\
 		and not self.shower 				\
 		and not self.inhibit 				\
 		and not self.cool_mode:
@@ -863,11 +875,16 @@ class Systemair(object):
 			self.set_fanspeed(3)
 			self.msg += "Dynamic fanspeed 3\n"
 
-	    if self.fanspeed <> 1 			\
-		and self.extract_ave < self.target	\
-		and not self.inhibit			\
-		and not self.cool_mode	 		\
-		and not self.shower:		
+	    if self.fanspeed <> 1 				\
+		and ((self.extract_ave < self.target		\
+		and not self.inhibit				\
+		and not self.cool_mode	 			\
+		and not self.shower)				\
+		or (self.extract_ave < self.target + 0.5 	\
+		and numpy.average(self.extract_dt_list)<0.0 	\
+		and not self.inhibit				\
+		and not self.cool_mode				\
+		and not self.shower)) :
 			self.set_fanspeed(1)
 			self.msg += "Dynamic fanspeed 1\n"
 
@@ -881,12 +898,15 @@ class Systemair(object):
 
 	    if (self.fanspeed== 3			\
  		and self.extract_ave < self.target + 1 	\
-		and self.extract_ave > self.target) 	\
-		or  self.supply_ave < 10		\
+		and self.extract_ave > self.target	\
+		and not self.shower			\
+		and not self.inhibit			\
+		and not self.cool_mode)		 	\
+		or  (self.supply_ave < 10		\
 		and self.extract_dt_long < 0		\
 		and not self.cool_mode 			\
 		and not self.inhibit 			\
-		and not self.shower:
+		and not self.shower):
 			self.set_fanspeed(2)
 			self.msg  +="Dynamic fanspeed 2\n"
 

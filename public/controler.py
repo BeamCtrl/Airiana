@@ -33,6 +33,7 @@ class myHandler (SocketServer.BaseRequestHandler):
 			if "utility" in data[0]:
 				os.chdir("/home/pi/airiana/")
 				if "reboot" in data[0]:
+					os.system("sudo cp ./RAM/data.log ../")
 					os.system("sudo reboot")
 				if "update" in data[0]:
 					os.system("git pull")
