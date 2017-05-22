@@ -573,13 +573,13 @@ class Systemair(object):
 		self.div = self.prev_static_temp-self.kinetic_compensation #-self.div)*(0.00005*self.ef)
 		low_pw = self.airdata_inst.sat_vapor_press(self.div)
 
-		self.div = self.airdata_inst.sat_vapor_press(self.prev_static_temp)/max_pw*100
+		self.div = low_pw/max_pw*100
 
 		if "debug" in sys.argv:self.msg += str(round( max_pw,2))+"Pa "+str(round( low_pw,2))+"Pa "+str( round(d_pw,2))+"Pa "+str(round(d_pw/max_pw*100,2))+"% "+str(round( self.energy_diff,2))+"W kinetic_comp:"+str(self.kinetic_compensation)+"\n"
 
 		if d_pw != 0: self.new_humidity += (((( low_pw+d_pw ) / max_pw ) * 100 )-self.new_humidity) *0.01
 		#if d_pw != 0:self.new_humidity = ((low_pw+d_pw) / max_pw) * 100
-		else: self.new_humidity -= (self.new_humidity - self.airdata_inst.sat_vapor_press(self.prev_static_temp)/max_pw*100)*0.01
+		else: self.new_humidity -= (self.new_humidity - low_pw/max_pw*100)*0.01
 
 		#####END
 
