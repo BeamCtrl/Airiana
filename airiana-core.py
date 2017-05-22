@@ -349,7 +349,7 @@ class Systemair(object):
 		self.indoor_dewpoint = 0
 		self.target = 22
 		self.energy_diff=0
-		self.new_humidity=0
+		self.new_humidity=40
 		self.div =0
 		self.set_system_name()
 
@@ -570,12 +570,12 @@ class Systemair(object):
 			except: d_pw=0
 		else: d_pw = 0
 		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
-		self.div = self.prev_static_temp #-self.div)*(0.00005*self.ef)
+		self.div = self.prev_static_temp-self.kinetic_compensation #-self.div)*(0.00005*self.ef)
 		low_pw = self.airdata_inst.sat_vapor_press(self.div)
 
 		self.div = self.airdata_inst.sat_vapor_press(self.prev_static_temp)/max_pw*100
 
-		if "debug" in sys.argv:self.msg += str(round( max_pw,2))+"Pa "+str(round( low_pw,2))+"Pa "+str( round(d_pw,2))+"Pa "+str(round(d_pw/max_pw*100,2))+"% "+str(round( self.energy_diff,2))+"W\n"
+		if "debug" in sys.argv:self.msg += str(round( max_pw,2))+"Pa "+str(round( low_pw,2))+"Pa "+str( round(d_pw,2))+"Pa "+str(round(d_pw/max_pw*100,2))+"% "+str(round( self.energy_diff,2))+"W kinetic_comp:"+str(self.kinetic_compensation)+"\n"
 
 		if d_pw != 0: self.new_humidity += (((( low_pw+d_pw ) / max_pw ) * 100 )-self.new_humidity) *0.01
 		#if d_pw != 0:self.new_humidity = ((low_pw+d_pw) / max_pw) * 100
@@ -970,6 +970,10 @@ class Systemair(object):
 			temp = float(tmp[1])
 			if temp <> self.prev_static_temp:
 				self.prev_static_temp = temp
+				self.kinetic_compensation = \
+					float(os.popen("./forcast.py now").read().split(" ")[-3][:-3])/5
+				if float(os.popen("./forcast.py now").read().split(" ")[-1]) >3:
+					self.kinetic_compensation += 1
 				self.humidity_comp = 0
 			return self.local_humidity
 		except:pass

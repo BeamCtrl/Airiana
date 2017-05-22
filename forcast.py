@@ -24,7 +24,7 @@ class Weather():
 		self.pressure =0
 		self.symbolic ={}
 	def __str__(self):
-	 	 return time.asctime(self.valid_from)+" "+str(self.temp)+"C "+str(self.pressure)+"hPa "+str(self.precipitation)+"mm"
+	 	 return time.asctime(self.valid_from)+" "+str(self.temp)+"C "+str(self.pressure)+"hPa "+str(self.precipitation)+"mm "+str(self.wind_speed)+"m/s Weather type:"+str(self.weather_type)
 parser = xml.parsers.expat.ParserCreate()
 fd = open('./RAM/forecast.xml','r')
 forcasts = []
@@ -59,8 +59,11 @@ if len(sys.argv)<2:
 			print each.symbolic["name"].encode("ascii","ignore"),
 			print each.temp,"C",
 			print each.pressure,"hPa",
+			print each.wind_speed,"m/s",
 			print "weather type",each.weather_type
 			#break
+if "now" in sys.argv:
+	print forcasts[0]
 if "all" in sys.argv:
 	for each in forcasts: print each
 
