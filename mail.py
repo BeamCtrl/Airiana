@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import smtplib,sys
+import smtplib,sys, os
 from  email.mime.text import MIMEText
 arg = sys.argv
 
@@ -11,14 +11,14 @@ class Smtp(object):
 		self.to = to
 		self.fr = fr
 		self.mail = MIMEText (self.content)
-		self.mail["Subject"]="Self generated mail"
+		self.mail["Subject"]="Airiana system has changed status."
 		self.mail["From"]=self.fr
 		self.mail["To"]=self.to
 	def send (self):
 		print "sending mail to:",self.to, "doing it from", self.fr
                 print self.content
 		socket = smtplib.SMTP_SSL(server)
-		socket.login("mb299291", "Klinten1")
+		socket.login(os.popen("cat mailuser").read()[:-1], os.popen("cat mailpasswd").read()[:-1])
 		socket.sendmail(self.fr,self.to,self.mail.as_string())
 		socket.quit()
 if __name__ == "__main__":
