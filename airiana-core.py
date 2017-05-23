@@ -971,7 +971,7 @@ class Systemair(object):
 			temp = float(tmp[1])
 			if temp <> self.prev_static_temp:
 				self.prev_static_temp = temp
-				self.kinetic_compensation = float(os.popen("./forcast.py now").read().split(" ")[-4][:-3])/5
+				self.kinetic_compensation = float(os.popen("./forcast.py now").read().split(" ")[-5][:-3])/5
 				if int(os.popen("./forcast.py now").read().split(" ")[-2]) >=3:
 					self.kinetic_compensation += 1
 				self.humidity_comp = 0

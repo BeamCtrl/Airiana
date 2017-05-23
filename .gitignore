@@ -13,6 +13,9 @@ RAM/
 *.log
 err
 out
+#mailerdata
+mailuser
+mailpasswd
 
 # C extensions
 *.so

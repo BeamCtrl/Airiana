@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
 import os, time
+import mail
+mailer = mail.Smtp()
 users = {\
 	"7c:dd:90:42:61:6f":"Halling", \
 	"48:ee:0c:f2:ca:b7":"Broden",\
@@ -10,6 +12,11 @@ users = {\
 status = {}
 for each in users.keys():
 	status[each]= 0
+
+mail_sent = {}
+for each in users.keys():
+	mail_sent[each] = False
+
 files = os.listdir("./public/local_links/")
 #for each in users.keys():
 #	print each, ": ",users[each]
@@ -26,7 +33,11 @@ while True:
 				status[str(each.split(".")[0])] =status[str(each.split(".")[0])]*0.99
 				if (time.time()-mod)/3600<2:
 					flag = "<font color=\"green\"> Alive </font>"
-				else: flag = "<font color=\"red\"> Inactive </font>"
+				else: 
+					flag = "<font color=\"red\"> Inactive </font>"
+					mail_sent[each.split(".")[0]] = True
+					mailer.setup ("daniel.halling@outlook.com","airiana@abiding.se","Airiana user: "+str(users[str(each.split(".")[0])])+" has changed staus to inactive.")
+					mailer.send()
 				html += "<tr><td><a href=\"/local_links/"+each+"\">"+users[str(each.split(".")[0])]+"</a></td><td>"+time.ctime(mod)+"</td><td>"+flag+" "+str(round(status[str(each.split(".")[0])],2))+" </td></tr>\n" 
 			except KeyError: print "no hit on:",each
 		html +="<br></table></html>"
