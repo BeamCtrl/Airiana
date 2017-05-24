@@ -1,11 +1,10 @@
 #!/bin/bash
 echo stop aircontroler and loggers
-sudo pkill --signal 9 airiana-core.py
-sudo pkill --signal 9 air3.py
-sudo pkill --signal 9 httpsrv.py
-sudo pkill --signal 9 controler.py
-sudo pkill --signal 9 envlogger.py
-sudo pkill --signal 9 grapher.py
+sudo pkill --signal 15 airiana-core.py
+sudo pkill --signal 15 httpsrv.py
+sudo pkill --signal 15 controler.py
+sudo pkill --signal 15 envlogger.py
+sudo pkill --signal 15 grapher.py
 
 ps ax | grep .py
 

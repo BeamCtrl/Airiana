@@ -7,10 +7,17 @@ import statistics
 from signal import *
 from mail import *
 vers = "7.4b"
-# Register cleanup as raise KeyboardInterrupt
-def exit_callback():
-	print "Gracefull shutdown"
-	raise KeyboardInterruupt
+# Register cleanup 
+def exit_callback(self, arg):
+		print "Gracefull shutdown"
+                print "\nexiting..."
+                for each in os.popen("ls -mr data.log.*").read().split(","):  listme.append(int(each.split(".")[-1]))
+                listme.sort()
+                last_file = listme[-1]
+                os.system("cp ./RAM/data.log ./data.log."+str(last_file+1))
+                os.system("rm ./RAM/data.log")
+                if threading.enumerate()[-1].name=="Timer": threading.enumerate()[-1].cancel()
+                cmd_socket.close()
 signal(SIGTERM, exit_callback)
 signal(SIGINT , exit_callback)
 
@@ -20,7 +27,14 @@ os.system("./ip-replace.sh")  # reset ip-addresses on buttons.html
 os.chdir("/home/pi/airiana/")
 os.system("./http &> /dev/null") ## START WEB SERVICE
 os.system("./forcast.py &> /dev/null") ## Get forcast
-if not os.path.lexists("./RAM/data.log"): os.system("cp data.log ./RAM/data.log")
+listme=[]
+
+for each in os.popen("ls -mr data.log.*").read().split(","):  listme.append(int(each.split(".")[-1]))
+listme.sort()
+last_file = listme[-1]
+if not os.path.lexists("./RAM/data.log"): 
+	os.system("cp data.log."+str(last_file)+ " ./RAM/data.log")
+	os.system("rm data.log."+str(last_file))
 if "debug" in sys.argv and not os.path.lexists("./sensors"): os.system("touch sensors")
 if "debug" in sys.argv: os.system("./status.py &")
 starttime=time.time()
@@ -1230,7 +1244,4 @@ if __name__:# not  "__main__":
 			if "daemon" not in sys.argv:raw_input("press enter to resume")
 
 	except KeyboardInterrupt:
-		print "\nexiting..."
-		if threading.enumerate()[-1].name=="Timer": threading.enumerate()[-1].cancel()
-		cmd_socket.close()
-
+		exit_callback()
