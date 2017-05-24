@@ -239,6 +239,7 @@ class Systemair(object):
 		self.system_types = {0:"VR400",1:"VR700",2:"VR700DK",3:"VR400DE",4:"VTC300",5:"VTC700",
 					12:"VTR150K",13:"VTR200B",14:"VSR300",15:"VSR500",16:"VSR150",
 					17:"VTR300",18:"VTR500",19:"VSR300DE",20:"VTC200",21:"VTC100"}
+		self.has_RH_sensor = ("VTR300")
 		self.rotor_states={0:"Normal",1:"Rotor Fault",2:"Rotor Fault Detected"
 				,3:"Summer Mode transitioning",4:"Summer Mode"
 				,5:"Leaving Summer Mode",6:"Manual Summer Mode"
@@ -353,10 +354,19 @@ class Systemair(object):
 		self.new_humidity=40
 		self.div =0
 		self.set_system_name()
-
+		self.RH_valid = True
+	
+	#get and set the Unit System name, from system types dict
 	def set_system_name(self):
 		req.modbusregister(500,0)
 		self.system_name = self.system_types[req.response]
+
+	#Get relative humidity from internal sensor, valid units in self.has_RH_sensor tuple
+	def get_RH (self):
+		req.modbusregister(380)
+		self.new_humidity = int(req.response)
+		req.modbusregister(382)
+		self.RH_valid = int(req.response)
 
 	def get_filter_status(self):
 		req.modbusregister(601,0)
@@ -788,7 +798,7 @@ class Systemair(object):
 	    if self.sf_rpm <1550 and self.fanspeed == 2 : self.inhibit = time.time()
 	    if self.sf_rpm <1000 and self.fanspeed == 1 : self.inhibit = time.time()
 	    #### EXCHANGER CONTROL
-	    self.house_heat_limit = 8  # daily low limit on cooling
+	    self.house_heat_limit = 7  # daily low limit on cooling
 	    if self.forcast[0]< 10: self.target = 23
 	    else: self.target = 22
 	    if self.modetoken<=0 and self.cool_mode==0 :
@@ -826,7 +836,7 @@ class Systemair(object):
 				self.cycle_exchanger(5)
 
 	    #FORECAST RELATED COOLING
-	    if self.forcast[0] > 16 and self.prev_static_temp > self.house_heat_limit	\
+	    if self.forcast[0] > 16 and int(os.popen("./forcast.py tomorrows-low").read().split(" ")[0]) > self.house_heat_limit	\
 		and self.forcast[1] < 4 				\
 		and self.cool_mode == False 				\
 		and self.extract_ave+0.1 > self.supply_ave 		\
@@ -840,15 +850,18 @@ class Systemair(object):
 		if (self.extract_ave <20.7 ) and self.fanspeed <> 1 :
 			self.set_fanspeed(1)
 			self.msg += "cooling complete\n"
+
 		if self.fanspeed == 3 and self.supply_ave < 10:
 			self.set_fanspeed(2)
 			self.msg = "cooling reduced\n" 
+		
 		if self.fanspeed ==1 and self.extract_ave > 20.8 and self.extract_ave > self.supply_ave:
 			self.set_fanspeed(3)
+		
 		if self.supply_ave>self.extract_ave+0.1 and self.fanspeed<>1:
 			self.set_fanspeed(1)
-
 			self.msg += "no cooling posible due to temperature conditions\n"
+		
 		if (self.forcast[0] <= 16 or self.forcast[1]>=4) and time.localtime().tm_hour >12: self.cool_mode=False
 	    #DYNAMIC FANSPEED CONTROL
 
@@ -891,7 +904,7 @@ class Systemair(object):
 
 	    if self.extract_ave < self.supply_ave 	\
 		and self.fanspeed <> 1 			\
-		and self.cool_mode == False 		\
+		and not self.cool_mode	 		\
 		and not self.inhibit			\
 		and not self.shower:
 			self.set_fanspeed(1)
@@ -1049,13 +1062,16 @@ if __name__:# not  "__main__":
 		#check states and flags
 		if device.iter%3 ==0:
 			device.check_flags()
+		# update moisture and rotor/rpm
+		if device.iter%5==0:
 			if monitoring:
 				device.monitor()
 				device.shower_detect()
-		# update moisture and rotor/rpm
-		if device.iter%5==0:
-			if "humidity" in sys.argv:
+
+			if "humidity" in sys.argv and device.system_name not in device.has_RH_sensor:
 				device.moisture_calcs()
+			else:
+				pass ## Read sensor humidity
 			device.update_fan_rpm()
 			device.get_rotor_state()
 		#update fans
