@@ -4,8 +4,16 @@ import serial, numpy, select, threading
 import minimalmodbus, os, traceback
 import time,struct,sys
 import statistics
+from signal import *
 from mail import *
 vers = "7.4b"
+# Register cleanup as raise KeyboardInterrupt
+def exit_callback():
+	print "Gracefull shutdown"
+	raise KeyboardInterruupt
+signal(SIGTERM, exit_callback)
+signal(SIGINT , exit_callback)
+
 #exec util fnctns
 os.chdir("/home/pi/airiana/public")
 os.system("./ip-replace.sh")  # reset ip-addresses on buttons.html
@@ -632,13 +640,13 @@ class Systemair(object):
 				self.msg="shower wait state, "+str(round(self.extract_ave,2))+"C "+str(round(self.initial_temp+0.3,2))+"C\n"
 				if self.extract_ave<=(self.initial_temp+0.3) or self.shower_initial -time.time() < -30*60:
 					self.shower=False
-					self.msg ="shower mode off, returning to "+str(self.speeds[self.initial_fanspeed])
+					self.msg ="shower mode off, returning to "+str(self.speeds[self.initial_fanspeed]+"\n")
 					self.set_fanspeed(self.initial_fanspeed)
 
 		except:
 			print self.msg
 			print traceback.print_exc()
-			print "shower detect system error"
+			print "shower detect system error\n"
 	# PRINT OUTPUT
 	def print_xchanger(self):
 		global monitoring,vers
@@ -1225,3 +1233,4 @@ if __name__:# not  "__main__":
 		print "\nexiting..."
 		if threading.enumerate()[-1].name=="Timer": threading.enumerate()[-1].cancel()
 		cmd_socket.close()
+
