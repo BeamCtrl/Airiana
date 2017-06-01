@@ -18,10 +18,7 @@ class Smtp(object):
 		print "sending mail to:",self.to, "doing it from", self.fr
                 print self.content
 		socket = smtplib.SMTP_SSL(server)
-<<<<<<< Updated upstream
 		socket.login(os.popen("cat mailuser").read()[:-1], os.popen("cat mailpasswd").read()[:-1])
-=======
->>>>>>> Stashed changes
 		socket.sendmail(self.fr,self.to,self.mail.as_string())
 		socket.quit()
 if __name__ == "__main__":
