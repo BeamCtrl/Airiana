@@ -7,7 +7,7 @@ import os, time, sys,datetime
 try:
 	if os.stat("./RAM/forecast.xml").st_ctime -time.time() < -3600 or os.stat("./RAM/forecast.xml").st_size ==0:
 		#print "Downloading updated forcast" 
-		os.system("sudo wget  -q -O ./RAM/forecast.xml http://www.yr.no/sted/Sverige/V%C3%A4stmanland/V%C3%A4ster%C3%A5s-Barkar%C3%B6~2664448/forecast.xml")
+		os.system("wget -q -O ./RAM/forecast.xml http://www.yr.no/sted/Sverige/V%C3%A4stmanland/V%C3%A4ster%C3%A5s-Barkar%C3%B6~2664448/forecast.xml")
 except:
 		print "Error getting Forcast from YR.no"#os.system("sudo wget  -q -O forecast.xml http://www.yr.no/sted/Sverige/V%C3%A4stmanland/V%C3%A4ster%C3%A5s-Barkar%C3%B6~2664448/forecast.xml")
 		os.system("touch ./RAM/forecast.xml")

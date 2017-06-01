@@ -858,15 +858,17 @@ class Systemair(object):
 				self.cycle_exchanger(5)
 
 	    #FORECAST RELATED COOLING
-	    if self.forcast[0] > 16 and int(os.popen("./forcast.py tomorrows-low").read().split(" ")[0]) > self.house_heat_limit	\
-		and self.forcast[1] < 4 				\
-		and self.cool_mode == False 				\
-		and self.extract_ave+0.1 > self.supply_ave 		\
-		and self.extract_ave>20.7:
-			self.msg += "predictive Cooling enaged\n"
-			if self.exchanger_mode <>0:	self.cycle_exchanger(0)
-			self.set_fanspeed(3)
-			self.cool_mode = True
+	    try:
+		if self.forcast[0] > 16 and int(os.popen("./forcast.py tomorrows-low").read().split(" ")[0]) > self.house_heat_limit	\
+			and self.forcast[1] < 4 				\
+			and self.cool_mode == False 				\
+			and self.extract_ave+0.1 > self.supply_ave 		\
+			and self.extract_ave>20.7:
+				self.msg += "predictive Cooling enaged\n"
+				if self.exchanger_mode <>0:	self.cycle_exchanger(0)
+				self.set_fanspeed(3)
+				self.cool_mode = True
+	    except: oa.write(ferr, "Forcast cooling error")
 
 	    if self.cool_mode and not self.inhibit and not self.shower:
 		if (self.extract_ave <20.7 ) and self.fanspeed <> 1 :
@@ -916,8 +918,8 @@ class Systemair(object):
 		and not self.inhibit				\
 		and not self.cool_mode	 			\
 		and not self.shower)				\
-		or (self.extract_ave < self.target + 0.5 	\
-		and numpy.average(self.extract_dt_list)<0.0 	\
+		or (self.extract_ave < self.target + 1.0 	\
+		and numpy.average(self.extract_dt_list)<-.5 	\
 		and not self.inhibit				\
 		and not self.cool_mode				\
 		and not self.shower)) :
@@ -939,7 +941,7 @@ class Systemair(object):
 		and not self.inhibit			\
 		and not self.cool_mode)		 	\
 		or  (self.supply_ave < 10		\
-		and self.extract_dt_long < 0		\
+		and numpy.average(self.extract_dt_list)<-.5 \
 		and not self.cool_mode 			\
 		and not self.inhibit 			\
 		and not self.shower):
@@ -1006,7 +1008,7 @@ class Systemair(object):
 			temp = float(tmp[1])
 			if temp <> self.prev_static_temp:
 				self.prev_static_temp = temp
-				self.kinetic_compensation = float(os.popen("./forcast.py now").read().split(" ")[-5][:-3])/5
+				self.kinetic_compensation = float(os.popen("./forcast.py now").read().split(" ")[-5][:-3])/2
 				if int(os.popen("./forcast.py now").read().split(" ")[-2]) >=3:
 					self.kinetic_compensation += 1
 				self.humidity_comp = 0
