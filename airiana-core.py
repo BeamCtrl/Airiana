@@ -889,11 +889,10 @@ class Systemair(object):
 		if (self.forcast[0] <= 16 or self.forcast[1]>=4) and time.localtime().tm_hour >12: self.cool_mode=False
 	    #DYNAMIC FANSPEED CONTROL
 
-	    if self.fanspeed <> 2 				\
+	    if self.fanspeed < 2 				\
 		and self.extract_ave > self.target 		\
 		and self.extract_ave < self.target + 0.5 	\
 		and self.extract_ave - self.supply_ave>0.1 	\
-		and self.extract_dt_long >= 0.2 		\
 		and numpy.average(self.extract_dt_list) >= 0.2	\
 		and not self.shower 				\
 		and not self.inhibit 				\
