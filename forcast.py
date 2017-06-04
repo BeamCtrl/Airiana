@@ -5,7 +5,7 @@ import os, time, sys,datetime
 #print dir(os.stat("forecast.xml"))
 #print os.stat("forecast.xml").st_ctime -time.time()
 try:
-	if os.stat("/home/pi/airiana/RAM/forecast.xml").st_ctime -time.time() < -3600 or os.stat("./RAM/forecast.xml").st_size ==0:
+	if os.stat("/home/pi/airiana/RAM/forecast.xml").st_ctime -time.time() < -3600 or os.stat("/home/pi/airiana/RAM/forecast.xml").st_size ==0:
 		#print "Downloading updated forcast" 
 		os.system("wget -q -O /home/pi/airiana/RAM/forecast.xml http://www.yr.no/sted/Sverige/V%C3%A4stmanland/V%C3%A4ster%C3%A5s-Barkar%C3%B6~2664448/forecast.xml")
 except Exception as err:
