@@ -44,7 +44,9 @@ while True:
 						mailer.setup ("daniel.halling@outlook.com","airiana@abiding.se","Airiana user: "+str(users[str(each.split(".")[0])])+" has changed status to inactive.")
 						mailer.send()
 				html += "<tr><td><a href=\"/local_links/"+each+"\">"+users[str(each.split(".")[0])]+"</a></td><td>"+time.ctime(mod)+"</td><td>"+flag+" "+str(round(status[str(each.split(".")[0])],2))+" </td></tr>\n" 
-			except KeyError: print "no hit on:",each
+			except KeyError:
+ 				html += "<tr><td><a href=\"/local_links/"+each+"\">"+each+"</a></td><td>"+time.ctime(mod)+"</td><td>"+flag+" "+str(round(status[str(each.split(".")[0])],2))+" </td></tr>\n" 
+
 		html +="<br></table></html>"
 		file = open("./RAM/status.html","w")
 		file.write(html)		
