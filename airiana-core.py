@@ -1008,8 +1008,11 @@ class Systemair(object):
 			if temp <> self.prev_static_temp:
 				self.prev_static_temp = temp
 				self.kinetic_compensation = float(os.popen("./forcast.py now").read().split(" ")[-5][:-3])/2
-				if int(os.popen("./forcast.py now").read().split(" ")[-2]) >=3:
+				temp = int(os.popen("./forcast.py now").read().split(" ")[-2])
+				if temp >=3:
 					self.kinetic_compensation += 1
+				elif temp == 15:
+					sef√lf.kinetic_compensation = 0
 				self.humidity_comp = 0
 			return self.local_humidity
 		except: print "dayliy low calc error"
