@@ -1012,7 +1012,7 @@ class Systemair(object):
 				if temp >=3:
 					self.kinetic_compensation += 1
 				elif temp == 15:
-					sef√lf.kinetic_compensation = 0
+					self.kinetic_compensation = 0
 				self.humidity_comp = 0
 			return self.local_humidity
 		except: print "dayliy low calc error"
