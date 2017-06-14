@@ -48,7 +48,8 @@ try:
 	     tmp =each.split(":")
 	     for entry in tmp: 
 		if entry==np.nan: entry=0
-	     if float(tmp[0]) > tm.time()-(day):	
+	     temp = (tm.time()-day)-((tm.time()-day)%(3600))	
+	     if float(tmp[0]) > temp:	
 		sen_hum.append(float(tmp[3]))
 		sen_temp.append(float(tmp[1]))
 		extract.append(float(tmp[2]))
