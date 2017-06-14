@@ -33,5 +33,6 @@
 #chmod 766 humid.py
 #chmod 755 ./public/ip-replace.sh
 
-
+sudo systemctl stop airiana.service controller.service
 git pull origin
+sudo systemctl start airiana.service controller.service
