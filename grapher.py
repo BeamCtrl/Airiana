@@ -20,7 +20,7 @@ if int(os.stat("./RAM/data.log").st_size) > 102400*5:
 ######################
 #if len(sys.argv) >=2  and "debug" not in sys.argv[1] and "humidities" not in sys.argv :day= int(sys.argv[1])
 day = int(float(3600*24))
-fil = os.popen("tail -n "+str(day/60)+" ./RAM/data.log")
+fil = os.popen("tail -n "+str(day/30)+" ./RAM/data.log")
 data = fil.readlines()
 #print data[-1], tm.time()
 sen_hum = []
