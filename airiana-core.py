@@ -173,7 +173,7 @@ class Request(object):
 		self.checksum_errors=0
 		self.buff= ""
 		self.counter = 0
-	def modbusregisters(self,start,count):
+	def modbusregisters(self,start,count,signed=False):
 		try:
 			self.response= "no data"
 			self.buff = ""
@@ -183,6 +183,9 @@ class Request(object):
 			self.buff += os.read(bus,1000) # re purge
 			time.sleep(wait_time)
 			self.response = client.read_registers(start,count)
+			if signed:
+				for each in self.response:
+					if each & 0x8000: each -= 0xFFFF
 		except ValueError as error:
 			#print "checksum error,retry:",self.checksum_errors,error.message
 			#print error.message.find("\x01\x83\x02\xc0\xf1")
@@ -297,6 +300,7 @@ class Systemair(object):
 				14:"Snow and thunder",\
 				34:"Heavy snow and thunder",\
 				15:"Fog",-1:"No weather data"}
+		self.rawdata = []
 		self.press_inhibit = 0
 		self.local_humidity = 0.0
 		self.eff_ave=[90]
@@ -419,14 +423,14 @@ class Systemair(object):
 		return self.fanspeed
 
 	def update_temps(self):
-		req.modbusregisters(213,5)# Tempsensors 1 -5
+		req.modbusregisters(213,5,signed=True)# Tempsensors 1 -5
 		self.time.insert(0,time.time())
 		if len(self.time) > self.averagelimit: self.time.pop(-1)
 		self.temps = req.response[:]
-		#req.response[1] #EXTRACT
-		#req.response[2] #EXHAUST
-		#req.response[0] #Supply pre elec heater
-		#req.response[3] #Supply post electric heater
+		self.rawdata.insert(0,self.temps)
+		if len(self.rawdata)>self.averagelimit:self.rawdata.pop(-1)
+		#req.response[1] #EXTRACTreq.response[2] #EXHAUST req.response[0] #Supply pre elec heater
+		#req.response[3] #Supply post electric heater req.response[4] Inlet
 		if self.rotor_active ==  "No" and self.coef <> 0.18+(float(self.fanspeed)/400):
 			if self.coef-( 0.18+(float(self.fanspeed)/400))>0:self.coef -= 0.00035#0.04
                         else: self.coef += 0.0002
@@ -462,6 +466,41 @@ class Systemair(object):
 		except ZeroDivisionError:self.eff = 100
 		self.eff_ave.insert(0,self.eff)
 		if len(self.eff_ave) >self.averagelimit: self.eff_ave.pop(-1)
+
+	def flow_calcs(self):
+		extr_vol = self.ef
+		supp_vol = self.sf
+		inlet_T  = 0
+		extract_T= 0 
+		exhaust_T= 0
+		supply_T = 0 
+		for each in self.rawdata:
+			inlet_T   += float(each[4])/10
+			extract_T += float(each[1])/10
+			exhaust_T += float(each[0])/10
+			supply_T  += float(each[3])/10
+		inlet_T   = inlet_T/len(self.rawdata)
+		extract_T = extract_T/len(self.rawdata)
+		exhaust_T = exhaust_T/len(self.rawdata)
+		supply_T  = supply_T/len(self.rawdata)
+
+		ener_in = 0
+		ener_out = 0
+
+		casing_diff = extract_T - inlet_T 
+		in_ave = supply_T - inlet_T 
+		out_ave = extract_T - exhaust_T
+		duct_diff = out_ave - in_ave
+			
+		ener_in  = self.airdata_inst.energy_flow(supp_vol,inlet_T,supply_T)
+		ener_out = self.airdata_inst.energy_flow(extr_vol,exhaust_T,extract_T)
+		ener_diff = ener_out - ener_in
+		diff_deg = ener_diff / casing_diff
+		
+		self.msg += "\nflow Fifferential: "+str(diff_deg)+"W/deg\nin:"+str(int(ener_in))+" out:"+str(int(ener_out))\
+				+"casing_diff"+str(casing_diff)+"C\n"
+		self.msg += "inlet\tsupply\textract\texhaust\n"+str(inlet_T)+"\t"+str(supply_T)+"\t"\
+				+str(extract_T)+"\t"+str(exhaust_T)+"\n"
 
 	def set_fanspeed(self,target):
 		self.inhibit = time.time()
@@ -1109,6 +1148,7 @@ if __name__:# not  "__main__":
 			if "debug" in sys.argv:
 				update_sensors()
 				device.get_temp_status()
+				device.flow_calcs()
 		#refresh airdata class
 		if device.iter%79==0:
 			device.update_airdata_instance()

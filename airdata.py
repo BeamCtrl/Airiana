@@ -42,7 +42,7 @@ class Energy(object):
 			d_T= 0.01  # K
 			mass = density*volume #kg/m3 * m3 = kg
 			energy = mass * self.specific_heat*d_T #kg  * J/gK  * K  = J
-			#print energy, float(each)/100,"C", total
+			#print energy, float(each)/100,"C", total,"W"
 			total += energy*1000
 		#print "high",high,"low",low,"litres",litres,round(self.get_mass(high/10),2),round(self.get_mass(low/10),2), "energy", int(total)
 		return total
@@ -100,6 +100,8 @@ if  "__main__" in __name__:
 	#print air.sat_vapor_press(10)
 	#print air.sat_vapor_press(20)
 	#print air.sat_vapor_press(100)
-	for each in range(-60,121):
-		print air.density(each),"kg/m3",each, "C", air.sat_vapor_press(each),"Pa"
-	print air.dew_point(30,22.0)		
+	#for each in range(-60,121):
+	#	print air.density(each),"kg/m3",each, "C", air.sat_vapor_press(each),"Pa"
+	#print air.dew_point(30,22.0)		
+	air.energy_flow(34,19.5,21.1)
+	air.energy_flow(34,21.1,19.5)
