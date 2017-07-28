@@ -67,6 +67,8 @@ os.system("echo " +boot_cmd+"> /boot/cmdline.txt" )
 ##
 ## setup airiana as host#
 os.system ("cp ./systemfiles/hosts /etc/")
+#Touch a data log file
+os.system ("touch data.log.1")
 
 os.chdir("./public/")
 # link files to RAM-disk
