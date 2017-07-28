@@ -29,13 +29,13 @@ os.system("./http &> /dev/null") ## START WEB SERVICE
 os.system("./forcast.py &> /dev/null") ## Get forcast
 listme=[]
 
+if  not os.path.lexists("./data.log.1"): os.system("touch data.log.1")
 for each in os.popen("ls -mr data.log.*").read().split(","):  listme.append(int(each.split(".")[-1]))
 listme.sort()
 last_file = listme[-1]
 if not os.path.lexists("./RAM/data.log"): 
 	os.system("cp data.log."+str(last_file)+ " ./RAM/data.log")
 	os.system("rm data.log."+str(last_file))
-if  not os.path.lexists("./data.log.1"): os.system("touch data.log.1")
 if "debug" in sys.argv and not os.path.lexists("./sensors"): os.system("touch sensors")
 if "debug" in sys.argv: os.system("./status.py &")
 starttime=time.time()
