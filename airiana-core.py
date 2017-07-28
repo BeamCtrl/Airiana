@@ -35,6 +35,7 @@ last_file = listme[-1]
 if not os.path.lexists("./RAM/data.log"): 
 	os.system("cp data.log."+str(last_file)+ " ./RAM/data.log")
 	os.system("rm data.log."+str(last_file))
+if "debug" in sys.argv and not os.path.lexists("./data.log.1"): os.system("touch data.log.1")
 if "debug" in sys.argv and not os.path.lexists("./sensors"): os.system("touch sensors")
 if "debug" in sys.argv: os.system("./status.py &")
 starttime=time.time()
@@ -477,7 +478,7 @@ class Systemair(object):
 		for each in self.rawdata:
 			inlet_T   += float(each[4])/10
 			extract_T += float(each[1])/10
-			exhaust_T += float(each[0])/10
+			exhaust_T += float(each[2])/10
 			supply_T  += float(each[3])/10
 		inlet_T   = inlet_T/len(self.rawdata)
 		extract_T = extract_T/len(self.rawdata)
@@ -497,8 +498,8 @@ class Systemair(object):
 		ener_diff = ener_out - ener_in
 		diff_deg = ener_diff / casing_diff
 		
-		self.msg += "\nflow Fifferential: "+str(diff_deg)+"W/deg\nin:"+str(int(ener_in))+" out:"+str(int(ener_out))\
-				+"casing_diff"+str(casing_diff)+"C\n"
+		self.msg += "\Energ.flow Differential: "+str(diff_deg)+"W/deg\nin: "+str(int(ener_in))+" out: "+str(int(ener_out))\
+				+" casing_diff"+str(int(casing_diff))+"C\n"
 		self.msg += "inlet\tsupply\textract\texhaust\n"+str(inlet_T)+"\t"+str(supply_T)+"\t"\
 				+str(extract_T)+"\t"+str(exhaust_T)+"\n"
 
@@ -651,7 +652,7 @@ class Systemair(object):
 
 		if d_pw != 0: self.new_humidity += (((( low_pw+d_pw ) / max_pw ) * 100 )-self.new_humidity) *0.01
 		#if d_pw != 0:self.new_humidity = ((low_pw+d_pw) / max_pw) * 100
-		else: self.new_humidity -= (self.new_humidity - low_pw/max_pw*100)*0.01
+		else: self.new_humidity -= (self.new_humidity - low_pw/max_pw*100)*0.001
 
 		#####END
 
@@ -1049,7 +1050,7 @@ class Systemair(object):
 				self.kinetic_compensation = float(os.popen("./forcast.py now").read().split(" ")[-5][:-3])/2
 				temp = int(os.popen("./forcast.py now").read().split(" ")[-2])
 				if temp >=3:
-					self.kinetic_compensation += 1
+					self.kinetic_compensation += 0.5
 				elif temp == 15:
 					self.kinetic_compensation = 0
 				self.humidity_comp = 0
