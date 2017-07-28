@@ -35,7 +35,7 @@ last_file = listme[-1]
 if not os.path.lexists("./RAM/data.log"): 
 	os.system("cp data.log."+str(last_file)+ " ./RAM/data.log")
 	os.system("rm data.log."+str(last_file))
-if "debug" in sys.argv and not os.path.lexists("./data.log.1"): os.system("touch data.log.1")
+if  not os.path.lexists("./data.log.1"): os.system("touch data.log.1")
 if "debug" in sys.argv and not os.path.lexists("./sensors"): os.system("touch sensors")
 if "debug" in sys.argv: os.system("./status.py &")
 starttime=time.time()

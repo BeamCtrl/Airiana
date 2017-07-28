@@ -31,7 +31,7 @@ while True:
 				if (time.time()-mod)/3600>status[str(each.split(".")[0])]:
 					status[str(each.split(".")[0])] = round((time.time()-mod)/3600,2)
 				status[str(each.split(".")[0])] =status[str(each.split(".")[0])]*0.99
-				if (time.time()-mod)/3600<2:
+				if (time.time()-mod)/3600<3:
 					flag = "<font color=\"green\"> Alive </font>"
 					if  mail_sent[each.split(".")[0]]:
                                                 mail_sent[each.split(".")[0]] = False
