@@ -5,7 +5,7 @@ import mail
 mailer = mail.Smtp()
 users = {\
 	"7c:dd:90:42:61:6f":"Halling", \
-	"48:ee:0c:f2:ca:b7":"Broden",\
+	"b8:27:eb:02:86:1e":"Broden",\
 	"b8:27:eb:57:ef:d9":"Dev.",\
 	"b8:27:eb:dc:38:7b":"Malmstrom",\
 	"b8:27:eb:1d:ed:11":"Fransson"}

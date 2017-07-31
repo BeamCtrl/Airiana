@@ -9,8 +9,7 @@ from mail import *
 vers = "7.4b"
 # Register cleanup 
 def exit_callback(self, arg):
-		print "Gracefull shutdown"
-                print "\nexiting..."
+		print "Gracefull shutdown\nexiting..."
                 for each in os.popen("ls -mr data.log.*").read().split(","):  listme.append(int(each.split(".")[-1]))
                 listme.sort()
                 last_file = listme[-1]
@@ -18,6 +17,7 @@ def exit_callback(self, arg):
                 os.system("rm ./RAM/data.log")
                 if threading.enumerate()[-1].name=="Timer": threading.enumerate()[-1].cancel()
                 cmd_socket.close()
+		sys.exit()
 signal(SIGTERM, exit_callback)
 signal(SIGINT , exit_callback)
 
@@ -197,6 +197,7 @@ class Request(object):
 			self.modbusregisters(start,count)
 		except IOError:
 			self.connect_errors += 1
+			if self.connect_errors > 200: exit_callback(self,None)
 			self.modbusregisters(start,count)
 	def modbusregister (self,address,decimals):
 		try:
@@ -1290,4 +1291,4 @@ if __name__:# not  "__main__":
 			if "daemon" not in sys.argv:raw_input("press enter to resume")
 
 	except KeyboardInterrupt:
-		exit_callback()
+		exit_callback(device,None)
