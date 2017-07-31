@@ -1059,6 +1059,7 @@ class Systemair(object):
 
 ## Init base class ##
 if __name__:# not "__main__":
+	report_alive()
 	device = Systemair()
 
 ###################################################################
