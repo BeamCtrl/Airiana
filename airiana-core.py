@@ -908,7 +908,7 @@ class Systemair(object):
 				if self.exchanger_mode <>0:	self.cycle_exchanger(0)
 				self.set_fanspeed(3)
 				self.cool_mode = True
-	    except: oa.write(ferr, "Forcast cooling error")
+	    except: os.write(ferr, "Forcast cooling error")
 
 	    if self.cool_mode and not self.inhibit and not self.shower:
 		if (self.extract_ave <20.7 ) and self.fanspeed <> 1 :
