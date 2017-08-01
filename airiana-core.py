@@ -19,7 +19,7 @@ def exit_callback(self, arg):
                 cmd_socket.close()
 		sys.exit()
 signal(SIGTERM, exit_callback)
-signal(SIGINT , exit_callback)
+#signal(SIGINT , exit_callback)
 
 #exec util fnctns
 os.chdir("/home/pi/airiana/public")
@@ -197,7 +197,7 @@ class Request(object):
 			self.modbusregisters(start,count)
 		except IOError:
 			self.connect_errors += 1
-			if self.connect_errors > 200: exit_callback(self,None)
+			#if self.connect_errors > 200: exit_callback(self,None)
 			self.modbusregisters(start,count)
 	def modbusregister (self,address,decimals):
 		try:

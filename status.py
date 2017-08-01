@@ -45,7 +45,7 @@ while True:
 						mailer.send()
 				html += "<tr><td><a href=\"/local_links/"+each+"\">"+users[str(each.split(".")[0])]+"</a></td><td>"+time.ctime(mod)+"</td><td>"+flag+" "+str(round(status[str(each.split(".")[0])],2))+" </td></tr>\n" 
 			except KeyError:
- 				html += "<tr><td><a href=\"/local_links/"+each+"\">"+each+"</a></td><td>"+time.ctime(mod)+"</td><td>"+flag+" "+str(round(status[str(each.split(".")[0])],2))+" </td></tr>\n" 
+ 				html += "<tr><td><a href=\"/local_links/"+each+"\">"+each+"</a></td><td>"+time.ctime(mod)+"</td><td>"+flag+" </td></tr>\n" 
 
 		html +="<br></table></html>"
 		file = open("./RAM/status.html","w")
