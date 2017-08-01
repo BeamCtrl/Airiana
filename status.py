@@ -8,7 +8,8 @@ users = {\
 	"b8:27:eb:02:86:1e":"Broden",\
 	"b8:27:eb:57:ef:d9":"Dev.",\
 	"b8:27:eb:dc:38:7b":"Malmstrom",\
-	"b8:27:eb:1d:ed:11":"Fransson"}
+	"b8:27:eb:1d:ed:11":"Fransson",\
+	"b8:27:eb:d1:80:7c":"Hjelm"}
 status = {}
 for each in users.keys():
 	status[each]= 0

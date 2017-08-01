@@ -439,7 +439,7 @@ class Systemair(object):
 		if self.rotor_active == "Yes" and self.coef <> 0.08:
 			if self.coef-( 0.08)>0:self.coef -= 0.00015#0.04
 			else: self.coef += 0.0004
-		# NEGATYIVE VAL sign bit compensation
+		# NEGATYIVE VAL sign bit twos complement
 		if req.response[4]>60000:
 			req.response[4] -= 0xFFFF
 		if self.sf <> 0:
@@ -449,20 +449,21 @@ class Systemair(object):
 		if self.rotor_active =="Yes" and self.inlet_coef >0.08:self.inlet_coef-= 0.00014 # ON
 		req.response[4]  -= (req.response[1]-req.response[4])*self.inlet_coef #inlet compensation exchanger OFF/ON
 
-		self.inlet.insert(0,float(req.response[4])/10)
 
 		if req.response[2]>6000:
 			req.response[2] -=0xFFFF
 		if self.rotor_active =="No" :
 			req.response[2]  -= (req.response[1]-req.response[4])*0.01  #exhaust compensation exch off
 		else : 	req.response[2]  -= (req.response[1]-req.response[4])*0.06  #exhaust compensation exch ON
-		self.exhaust.insert(0,float(req.response[2])/10)
+
+		self.extract.insert(0, float(req.response[1])/10)
+		self.exhaust.insert(0, float(req.response[2])/10)
+		self.supply.insert( 0, float(req.response[3])/10)
+		self.inlet.insert(  0, float(req.response[4])/10)
 
       		#limit array size
 		for each in [self.inlet,self.supply,self.extract,self.exhaust]:
 			if len(each)>self.averagelimit: each.pop(-1)
-		self.supply.insert(0,float(req.response[3])/10)
-		self.extract.insert(0, float(req.response[1])/10)
 		try:
 			self.eff = (self.supply[0]-self.inlet[0])/(self.extract[0]-self.inlet[0])*100
 		except ZeroDivisionError:self.eff = 100
