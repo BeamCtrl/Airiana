@@ -368,6 +368,7 @@ class Systemair(object):
 		self.tcomp = 0
 		self.inlet_coef = 0.1
 		self.filter = 0
+		self.filter_limit = 0
 		self.cond_data = []
 		self.cond_valid = False
 		self.cond_dev= 0
@@ -397,8 +398,11 @@ class Systemair(object):
 		self.RH_valid = int(req.response)
 
 	def get_filter_status(self):
+		req.modbusregister(600,0)
+		self.filter_limit = int(req.response)*31
 		req.modbusregister(601,0)
 		self.filter = req.response
+
 
 	def get_temp_status(self):
 		req.modbusregister(218,0)
@@ -747,7 +751,7 @@ class Systemair(object):
 		if self.rotor_active == "Yes" or "debug" in sys.argv:
 			tmp += "Temperature Efficiency: "+str(round(numpy.average(self.eff_ave),2))+"%\n"
 			#tmp += "Energy efficiency:"+str(str(round((self.used_energy/self.availible_energy)*100,3))+"%\n")
-		tmp += "Filter has been installed for "+ str(self.filter)+" days.\n\n"
+		tmp += "Filter has been installed for "+ str(self.filter)+" days ,"+str(100*(1-(self.filter / self.filter_limit)))+"% remaining\n\n"
 		tmp += "Ambient Pressure:"+ str(self.airdata_inst.press)+"hPa\n"
 		if self.forcast[1]<>-1: tmp += "Weather forecast for tomorrow is: "+str(self.forcast[0])+"C "+self.weather_types[self.forcast[1]]+".\n\n"
 		if "Timer" in threading.enumerate()[-1].name: tmp+= "Ventilation timer on: "+str((int(time.time())-int(device.timer))/60)+":"+str((int(time.time()-int(self.timer))%60))+"\n"

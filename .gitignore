@@ -23,6 +23,8 @@ mailpasswd
 *.log
 *.out
 
+#users
+users.py
 # Distribution / packaging
 .Python
 env/

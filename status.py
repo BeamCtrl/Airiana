@@ -3,26 +3,29 @@
 import os, time
 import mail
 mailer = mail.Smtp()
-users = {\
-	"7c:dd:90:42:61:6f":"Halling", \
-	"b8:27:eb:02:86:1e":"Broden",\
-	"b8:27:eb:57:ef:d9":"Dev.",\
-	"b8:27:eb:dc:38:7b":"Malmstrom",\
-	"b8:27:eb:1d:ed:11":"Fransson",\
-	"b8:27:eb:d1:80:7c":"Hjelm"}
-status = {}
-for each in users.keys():
-	status[each]= 0
 
-mail_sent = {}
-for each in users.keys():
-	mail_sent[each] = False
+def init():
+	from users import users
+	global users
+	status = {}
+	global status
+	for each in users.keys():
+		status[each]= 0
 
+	mail_sent = {}
+	global mail_sent
+	for each in users.keys():
+		mail_sent[each] = False
+init()
 files = os.listdir("./public/local_links/")
 #for each in users.keys():
 #	print each, ": ",users[each]
 while True:
     try:
+		users_prev = users
+		from users import users
+		if users_prev <> users:
+			init()
 		html = "<html>STATUS VIEW AIRIANA SYSTEMS<br><table><tr><th>Name</th><th>Ping</th><th>Status</th></tr>"
 
 		for each in files:
