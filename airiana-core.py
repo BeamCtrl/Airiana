@@ -402,8 +402,9 @@ class Systemair(object):
 		self.filter_limit = int(req.response)*31
 		req.modbusregister(601,0)
 		self.filter = req.response
-
-
+		self.filter_remaining = round(100*(1 - (float(self.filter)/self.filter_limit)),1)
+		if self.filter_remaining <0: self.filter_remaining = 0
+		if "debug" in sys.argv: print str(self.filter_limit),str(self.filter)
 	def get_temp_status(self):
 		req.modbusregister(218,0)
 		self.temp_state= req.response
@@ -437,8 +438,8 @@ class Systemair(object):
 		if len(self.rawdata)>self.averagelimit:self.rawdata.pop(-1)
 		#req.response[1] #EXTRACTreq.response[2] #EXHAUST req.response[0] #Supply pre elec heater
 		#req.response[3] #Supply post electric heater req.response[4] Inlet
-		if self.rotor_active ==  "No" and self.coef <> 0.18+(float(self.fanspeed)/400):
-			if self.coef-( 0.18+(float(self.fanspeed)/400))>0:self.coef -= 0.00035#0.04
+		if self.rotor_active ==  "No" and self.coef <> 0.11+(float(self.fanspeed)/400):
+			if self.coef-( 0.11+(float(self.fanspeed)/400))>0:self.coef -= 0.00035#0.04
                         else: self.coef += 0.0002
 		if self.rotor_active == "Yes" and self.coef <> 0.08:
 			if self.coef-( 0.08)>0:self.coef -= 0.00015#0.04
@@ -751,7 +752,7 @@ class Systemair(object):
 		if self.rotor_active == "Yes" or "debug" in sys.argv:
 			tmp += "Temperature Efficiency: "+str(round(numpy.average(self.eff_ave),2))+"%\n"
 			#tmp += "Energy efficiency:"+str(str(round((self.used_energy/self.availible_energy)*100,3))+"%\n")
-		tmp += "Filter has been installed for "+ str(self.filter)+" days ,"+str(100*(1-(self.filter / self.filter_limit)))+"% remaining\n\n"
+		tmp += "Filter has been installed for "+ str(self.filter)+" days ,"+str(self.filter_remaining)+"% remaining.\n\n"
 		tmp += "Ambient Pressure:"+ str(self.airdata_inst.press)+"hPa\n"
 		if self.forcast[1]<>-1: tmp += "Weather forecast for tomorrow is: "+str(self.forcast[0])+"C "+self.weather_types[self.forcast[1]]+".\n\n"
 		if "Timer" in threading.enumerate()[-1].name: tmp+= "Ventilation timer on: "+str((int(time.time())-int(device.timer))/60)+":"+str((int(time.time()-int(self.timer))%60))+"\n"
