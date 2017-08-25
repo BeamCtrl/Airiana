@@ -1208,10 +1208,10 @@ if __name__:# not  "__main__":
 							input = sock[0]
 							sender = sock[1]
 							device.msg += "Network command recieved: Processing...\n"
-							device.print_xchanger()
-							sys.stdout.flush()
-							log = "echo " + str(time.ctime())+":"+str(input)+str(sender)+">>netlog.log"
-							print log
+							#device.print_xchanger()
+							#sys.stdout.flush()
+							log = "echo " + str(time.ctime())+":"+str(input)+str(sender)+" >> netlog.log"
+							#print log
 							os.system(log)
 			elif sys.stdin in input: 	input = sys.stdin.readline()
 		   	try:
