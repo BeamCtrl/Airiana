@@ -1209,12 +1209,14 @@ if __name__:# not  "__main__":
 							sender = sock[1]
 							device.msg += "Network command recieved: Processing...\n"
 							#device.print_xchanger()
-							#sys.stdout.flush()
+							sys.stdout.flush()
 							log = "echo " + str(time.ctime())+":"+str(input)+str(sender)+" >> netlog.log"
-							#print log
+							print log
+							sys.stdout.flush()
 							os.system(log)
-			elif sys.stdin in input: 	input = sys.stdin.readline()
-		   	try:
+			elif sys.stdin in input:
+				 	input = sys.stdin.readline()
+
 				if int(input) ==1:monitoring = not monitoring # Toggle monitoring on / off
 
 				elif int(input) == 2:
@@ -1286,7 +1288,6 @@ if __name__:# not  "__main__":
 					device.set_fanspeed(3)
 					device.msg += "fanspeed to High\n"
 
-			except:pass# traceback.print_exc()
 		except TypeError:pass
 		except ValueError:
 			pass
