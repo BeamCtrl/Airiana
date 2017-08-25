@@ -1,4 +1,3 @@
-
 #!/usr/bin/python
 import airdata
 import serial, numpy, select, threading
@@ -1021,13 +1020,13 @@ class Systemair(object):
 	    	forcast = os.popen("./forcast.py tomorrow")
 	    	forcast = forcast.readlines()[0]
 	    	self.forcast = forcast.split(" ")
-			self.forcast[0]=int(self.forcast[0])
-			self.forcast[1]=int(self.forcast[1])
-			#print self.forcast[0],self.forcast[1]
-			if os.stat("./RAM/forecast.xml").st_ctime < time.time()-3600*24 :raise Exception("FileError")
+		self.forcast[0]=int(self.forcast[0])
+		self.forcast[1]=int(self.forcast[1])
+		#print self.forcast[0],self.forcast[1]
+		if os.stat("./RAM/forecast.xml").st_ctime < time.time()-3600*24 :raise Exception("FileError")
 	    except:
-			self.msg+= "error getting forecast\n"
-			self.forcast=[-1,-1]
+		self.msg+= "error getting forecast\n"
+		self.forcast=[-1,-1]
 	#set the fan pressure diff
 	def set_differential(self, percent):
 		if percent>20:percent = 20
