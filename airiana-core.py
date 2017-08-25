@@ -1,3 +1,4 @@
+
 #!/usr/bin/python
 import airdata
 import serial, numpy, select, threading
@@ -6,7 +7,7 @@ import time,struct,sys
 import statistics
 from signal import *
 from mail import *
-vers = "7.4b"
+vers = "7.4c"
 # Register cleanup 
 def exit_callback(self, arg):
 		print "Gracefull shutdown\nexiting..."
@@ -148,7 +149,7 @@ def logger ():
 		+":"				\
 		+str(device.inside)		\
 		+":"				\
-		+str(round(device.energy_diff,2))\
+		+str(round(numpy.average(device.cond_data),1))\
 		+":"+str(device.inside_humid) 	
 		fdo.write(cmd+"\n")
 		fdo.close()
@@ -502,13 +503,15 @@ class Systemair(object):
 			
 		ener_in  = self.airdata_inst.energy_flow(supp_vol,inlet_T,supply_T)
 		ener_out = self.airdata_inst.energy_flow(extr_vol,exhaust_T,extract_T)
+
 		ener_diff = ener_out - ener_in
-		diff_deg = ener_diff / casing_diff
-		
-		self.msg += "\Energ.flow Differential: "+str(diff_deg)+"W/deg\nin: "+str(int(ener_in))+" out: "+str(int(ener_out))\
-				+" casing_diff"+str(int(casing_diff))+"C\n"
-		self.msg += "inlet\tsupply\textract\texhaust\n"+str(inlet_T)+"\t"+str(supply_T)+"\t"\
-				+str(extract_T)+"\t"+str(exhaust_T)+"\n"
+		try:
+			diff_deg = ener_diff / casing_diff
+		except ZeroDivisionError: pass
+		#self.msg += "\Energ.flow Differential: "+str(diff_deg)+"W/deg\nin: "+str(int(ener_in))+" out: "+str(int(ener_out))\
+		#		+" casing_diff"+str(int(casing_diff))+"C\n"
+		#self.msg += "inlet\tsupply\textract\texhaust\n"+str(inlet_T)+"\t"+str(supply_T)+"\t"\
+		#		+str(extract_T)+"\t"+str(exhaust_T)+"\n"
 
 	def set_fanspeed(self,target):
 		self.inhibit = time.time()
@@ -592,7 +595,7 @@ class Systemair(object):
 				elif self.fanspeed ==1:
 					if self.ef == self.sf: factor = 3.95 		 
 					else : factor=2.9
-				elif self.fanspeed ==2:
+				elif self.fanspeed ==2: # corrective factors W/deg
 					factor = 5.65
 			elif self.rotor_active =="No":
 				if self.fanspeed == 1   :
@@ -600,11 +603,11 @@ class Systemair(object):
 				elif self.fanspeed == 2 :
 					factor = 1.9#  - 16 constant# red  from casing heat transfer
 				elif self.fanspeed == 3 :
-					factor = 4.5
+					factor = 0
 			else: factor=1
  			if self.rotor_active == "Yes":
-				self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*factor#  constant# red  from casing heat transfer
- 			else: self.supply_power   = self.used_energy-10-(self.extract_ave-self.inlet_ave)*factor#  constant# red  from casing heat transfer
+				self.supply_power   = self.used_energy-10-(self.extract_ave-self.inlet_ave)*factor#  constant# red  from casing heat transfer
+ 			else: self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*factor#  constant# red  from casing heat transfer
 
 			try:self.extract_exchanger  = self.airdata_inst.energy_flow(self.ef,self.extract_ave,self.exhaust_ave)
 			except: self.extract_exchanger = 0
@@ -655,7 +658,7 @@ class Systemair(object):
 
 		self.div = low_pw/max_pw*100
 
-		if "debug" in sys.argv:self.msg += str(round( max_pw,2))+"Pa "+str(round( low_pw,2))+"Pa "+str( round(d_pw,2))+"Pa "+str(round(d_pw/max_pw*100,2))+"% "+str(round( self.energy_diff,2))+"W kinetic_comp:"+str(self.kinetic_compensation)+"\n"
+		#if "debug" in sys.argv:self.msg += str(round( max_pw,2))+"Pa "+str(round( low_pw,2))+"Pa "+str( round(d_pw,2))+"Pa "+str(round(d_pw/max_pw*100,2))+"% "+str(round( self.energy_diff,2))+"W kinetic_comp:"+str(self.kinetic_compensation)+"\n"
 
 		if d_pw != 0: self.new_humidity += (((( low_pw+d_pw ) / max_pw ) * 100 )-self.new_humidity) *0.01
 		#if d_pw != 0:self.new_humidity = ((low_pw+d_pw) / max_pw) * 100
