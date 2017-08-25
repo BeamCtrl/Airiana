@@ -8,7 +8,7 @@ import statistics
 from signal import *
 from mail import *
 vers = "7.4c"
-# Register cleanup 
+# Register cleanup
 def exit_callback(self, arg):
 		print "Gracefull shutdown\nexiting..."
                 for each in os.popen("ls -mr data.log.*").read().split(","):  listme.append(int(each.split(".")[-1]))
@@ -34,7 +34,7 @@ if  not os.path.lexists("./data.log.1"): os.system("touch data.log.1")
 for each in os.popen("ls -mr data.log.*").read().split(","):  listme.append(int(each.split(".")[-1]))
 listme.sort()
 last_file = listme[-1]
-if not os.path.lexists("./RAM/data.log"): 
+if not os.path.lexists("./RAM/data.log"):
 	os.system("cp data.log."+str(last_file)+ " ./RAM/data.log")
 	os.system("rm data.log."+str(last_file))
 if "debug" in sys.argv and not os.path.lexists("./sensors"): os.system("touch sensors")
@@ -150,7 +150,7 @@ def logger ():
 		+str(device.inside)		\
 		+":"				\
 		+str(round(numpy.average(device.cond_data),1))\
-		+":"+str(device.inside_humid) 	
+		+":"+str(device.inside_humid)
 		fdo.write(cmd+"\n")
 		fdo.close()
 	except:traceback.print_exc()
@@ -385,7 +385,7 @@ class Systemair(object):
 		self.div =0
 		self.set_system_name()
 		self.RH_valid = True
-	
+
 	#get and set the Unit System name, from system types dict
 	def set_system_name(self):
 		req.modbusregister(500,0)
@@ -480,9 +480,9 @@ class Systemair(object):
 		extr_vol = self.ef
 		supp_vol = self.sf
 		inlet_T  = 0
-		extract_T= 0 
+		extract_T= 0
 		exhaust_T= 0
-		supply_T = 0 
+		supply_T = 0
 		for each in self.rawdata:
 			inlet_T   += float(each[4])/10
 			extract_T += float(each[1])/10
@@ -496,11 +496,11 @@ class Systemair(object):
 		ener_in = 0
 		ener_out = 0
 
-		casing_diff = extract_T - inlet_T 
-		in_ave = supply_T - inlet_T 
+		casing_diff = extract_T - inlet_T
+		in_ave = supply_T - inlet_T
 		out_ave = extract_T - exhaust_T
 		duct_diff = out_ave - in_ave
-			
+
 		ener_in  = self.airdata_inst.energy_flow(supp_vol,inlet_T,supply_T)
 		ener_out = self.airdata_inst.energy_flow(extr_vol,exhaust_T,extract_T)
 
@@ -585,7 +585,7 @@ class Systemair(object):
 		self.exhaust_ave = numpy.average(self.exhaust)
 		if self.fanspeed <> 0:
 			#self.availible_energy =  self.airdata_inst.energy_flow(self.ef,self.extract_ave,self.inlet_ave)+self.airdata_inst.condensation_energy((self.airdata_inst.vapor_max(self.exhaust_ave)-self.airdata_inst.vapor_max(self.inlet_ave))*((self.ef)/1000))
-			
+
 			try:self.used_energy    = self.airdata_inst.energy_flow(self.sf,self.supply_ave,self.inlet_ave)
 			except: self.used_energy = 0
 			factor = 1 # casing transfer correction factor
@@ -593,7 +593,7 @@ class Systemair(object):
 				if self.fanspeed ==3:
 					factor = 3.3
 				elif self.fanspeed ==1:
-					if self.ef == self.sf: factor = 3.95 		 
+					if self.ef == self.sf: factor = 3.95
 					else : factor=2.9
 				elif self.fanspeed ==2: # corrective factors W/deg
 					factor = 5.65
@@ -927,15 +927,15 @@ class Systemair(object):
 
 		if self.fanspeed == 3 and self.supply_ave < 10:
 			self.set_fanspeed(2)
-			self.msg = "cooling reduced\n" 
-		
+			self.msg = "cooling reduced\n"
+
 		if self.fanspeed ==1 and self.extract_ave > 20.8 and self.extract_ave > self.supply_ave:
 			self.set_fanspeed(3)
-		
+
 		if self.supply_ave>self.extract_ave+0.1 and self.fanspeed<>1:
 			self.set_fanspeed(1)
 			self.msg += "no cooling posible due to temperature conditions\n"
-		
+
 		if (self.forcast[0] <= 16 or self.forcast[1]>=4) and time.localtime().tm_hour >12: self.cool_mode=False
 	    #DYNAMIC FANSPEED CONTROL
 
@@ -1004,15 +1004,15 @@ class Systemair(object):
 	    #Dynamic pressure control
 	    if self.new_humidity > 20.0: #Low humidity limit, restriction to not set margin lower than 30%RH
 		self.indoor_dewpoint = self.airdata_inst.dew_point(self.new_humidity+10,self.extract_ave)
-	    else: 
+	    else:
 		self.indoor_dewpoint = 5.0
-	    if self.inlet_ave > self.indoor_dewpoint+0.1   and self.sf <> self.ef and not self.press_inhibit:
+	    if self.inlet_ave > self.indoor_dewpoint+0.1   and self.sf <> self.ef and not self.press_inhibit and not self.forcast[1] == -1 :
 		self.set_differential(0)
-		if "debug" in sys.argv: self.msg += "\nPressure diff to 0%" 
-	    if self.inlet_ave < self.indoor_dewpoint-0.1  and self.sf == self.ef and self.inlet_ave < 15 and not self.press_inhibit:
+		if "debug" in sys.argv: self.msg += "\nPressure diff to 0%"
+	    if (self.inlet_ave < self.indoor_dewpoint-0.1  and self.sf == self.ef and self.inlet_ave < 15 and not self.press_inhibit) or self.forcast[-1] == -1:
 		self.set_differential(10)
-		if "debug" in sys.argv: self.msg += "\nPressure diff to +10%" 
-    	    #if "debug" in sys.argv: print "Pressure inhibit = " , str(time.ctime(self.press_inhibit)) 
+		if "debug" in sys.argv: self.msg += "\nPressure diff to +10%"
+    	    #if "debug" in sys.argv: print "Pressure inhibit = " , str(time.ctime(self.press_inhibit))
 
 	#Get the active forcast
 	def get_forcast (self):
@@ -1021,20 +1021,20 @@ class Systemair(object):
 	    	forcast = os.popen("./forcast.py tomorrow")
 	    	forcast = forcast.readlines()[0]
 	    	self.forcast = forcast.split(" ")
-		self.forcast[0]=int(self.forcast[0])
-		self.forcast[1]=int(self.forcast[1])
-		#print self.forcast[0],self.forcast[1]
-		if os.stat("./RAM/forecast.xml").st_ctime < time.time()-3600*24 :raise Exception("FileError")
+			self.forcast[0]=int(self.forcast[0])
+			self.forcast[1]=int(self.forcast[1])
+			#print self.forcast[0],self.forcast[1]
+			if os.stat("./RAM/forecast.xml").st_ctime < time.time()-3600*24 :raise Exception("FileError")
 	    except:
-		self.msg+= "error getting forecast\n"
-		self.forcast=[-1,-1]
+			self.msg+= "error getting forecast\n"
+			self.forcast=[-1,-1]
 	#set the fan pressure diff
 	def set_differential(self, percent):
 		if percent>20:percent = 20
 		if percent<-20:percent =-20
 		req.modbusregister(103,0) #nominal supply flow
 		#print "sf_nom is", req.response
-		target = req.response + req.response * (float(percent)/100)
+		target = int(req.response + req.response * (float(percent)/100))
 		#print "to set ef_no to",target
 		req.write_register(104,target) # nominal extract flow
 		req.modbusregister(104,0) #nominal supply flow
@@ -1122,7 +1122,7 @@ if __name__:# not  "__main__":
 	    device.get_local()
 	    device.div = device.inlet_ave
 	    starttime=time.time()
-	    if "humidity" in sys.argv: 	
+	    if "humidity" in sys.argv:
 		device.moisture_calcs()
 
 	    print "system started:",time.ctime(starttime),";"
