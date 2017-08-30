@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import airdata
+import airdata 
 import serial, numpy, select, threading
 import minimalmodbus, os, traceback
 import time,struct,sys
