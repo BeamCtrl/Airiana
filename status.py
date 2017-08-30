@@ -52,7 +52,7 @@ while True:
  				html += "<tr><td><a href=\"/local_links/"+each+"\">"+each+"</a></td><td>"+time.ctime(mod)+"</td><td>"+flag+" </td></tr>\n" 
 
 		html +="<br></table></html>"
-		file = open("./RAM/status.html","w")
+		file = open("./RAM/status.html","w+")
 		file.write(html)		
 		file.close()
 		time.sleep(60)

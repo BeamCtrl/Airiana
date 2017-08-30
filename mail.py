@@ -3,7 +3,7 @@ import smtplib,sys, os
 from  email.mime.text import MIMEText
 arg = sys.argv
 
-server = "mail2.bahnhof.se"
+server = "mailout.privat.bahnhof.se"
 
 class Smtp(object):
 	def setup(self,to,fr,message):

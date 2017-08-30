@@ -652,15 +652,22 @@ class Systemair(object):
 			except: d_pw=0
 		else: d_pw = 0
 		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
-		self.div = self.prev_static_temp-self.kinetic_compensation #-self.div)*(0.00005*self.ef)
+
+		self.div = self.prev_static_temp-self.kinetic_compensation 
 		low_pw = self.airdata_inst.sat_vapor_press(self.div)
 
 		self.div = low_pw/max_pw*100
 
-		#if "debug" in sys.argv:self.msg += str(round( max_pw,2))+"Pa "+str(round( low_pw,2))+"Pa "+str( round(d_pw,2))+"Pa "+str(round(d_pw/max_pw*100,2))+"% "+str(round( self.energy_diff,2))+"W kinetic_comp:"+str(self.kinetic_compensation)+"\n"
+		if "debug" in sys.argv:self.msg += str(round( max_pw,2))+ \
+					"Pa "+str(round( low_pw,2))+"Pa "+\
+					str( round(d_pw,2))+"Pa "+\
+					str(round(d_pw/max_pw*100,2))+"% "+\
+					str(round( self.energy_diff,2))+\
+					"W kinetic_comp:"+str(round(self.kinetic_compensation,3))+\
+					"C target:"+str(round((( low_pw+d_pw ) / max_pw ) * 100,2))+ "%\n"
 
 		if d_pw != 0: self.new_humidity += (((( low_pw+d_pw ) / max_pw ) * 100 )-self.new_humidity) *0.01
-		#if d_pw != 0:self.new_humidity = ((low_pw+d_pw) / max_pw) * 100
+		
 		else: self.new_humidity -= (self.new_humidity - low_pw/max_pw*100)*0.001
 
 		#####END
@@ -733,7 +740,7 @@ class Systemair(object):
 		if "humidity" in sys.argv :
 			if "debug" in sys.argv:
 				#tmp += "Calculated humidity: "+str(round(self.extract_humidity*100,2))+"% at:"+str(round(self.extract_ave,1))+"C Dewpoint:"+str(round(self.dew_point,2))+"C\n"
-				tmp += "Static: "+str(round(self.local_humidity+self.humidity_comp,2))+"% "+str(round(self.humidity_comp,2))+"\n"
+				tmp += "Static: "+str(round(self.local_humidity+self.humidity_comp,2))+"%\n"
 			tmp += "Calculated Humidity: " + str(round (self.new_humidity,2))+"% Pressure limit: "+str(round(self.indoor_dewpoint,2))+"C\n"
 		if "debug" in sys.argv:
 			try:
@@ -1054,15 +1061,19 @@ class Systemair(object):
 			tmp = out.split(" ")
 			self.local_humidity = float(tmp[0])
 			temp = float(tmp[1])
+			comp = float( os.popen("./humid.py "+str((int(os.popen("./forcast.py tomorrows-low").read().split(" ")[0])))).read().split(" ")[0])/100
+			self.kinetic_compensation += ((self.prev_static_temp * comp)-self.prev_static_temp)/100
+
 			if temp <> self.prev_static_temp:
 				self.prev_static_temp = temp
-				self.kinetic_compensation = float(os.popen("./forcast.py now").read().split(" ")[-5][:-3])/2
+				self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/2
 				temp = int(os.popen("./forcast.py now").read().split(" ")[-2])
 				if temp >=3:
 					self.kinetic_compensation += 0.5
 				elif temp == 15:
 					self.kinetic_compensation = 0
 				self.humidity_comp = 0
+			#if self.kinetic_compensation <0: self.kinetic_compensation = 0
 			return self.local_humidity
 		except: print "dayliy low calc error"
 
@@ -1201,34 +1212,48 @@ if __name__:# not  "__main__":
 		else: timeout=0.05
 		try:sys.stdout.flush()
 		except:pass
+		data = -1
 		input = select.select([sys.stdin,cmd_socket],[],[],timeout)[0]
 		try:
 			if cmd_socket in input:
-							sock = cmd_socket.recvfrom(128)
-							input = sock[0]
-							sender = sock[1]
-							device.msg += "Network command recieved: Processing...\n"
-							#device.print_xchanger()
-							sys.stdout.flush()
-							log = "echo " + str(time.ctime())+":"+str(input)+str(sender)+" >> netlog.log"
-							print log
-							sys.stdout.flush()
-							os.system(log)
-			elif sys.stdin in input:
-				 	input = sys.stdin.readline()
+				try:
+					sock = cmd_socket.recvfrom(128)
+					data = sock[0]
+					data = int(str(data))
+					sender = sock[1]
+				except: pass 
+				try:	
+					device.msg += "Network command recieved: Processing...\n"
+					log = "echo \"" + str(time.ctime()) +":" +str(sender) +":" +str(data) +"\" >> netlog.log &"
+					os.system(log)
+					#device.msg += log+"\n"+str(data)+" "+str(type(data))+" "+str(len(data))+"\n"
+				except:	
+					device.msg += "net log error\n"
+					traceback.print_exc()
 
-				if int(input) ==1:monitoring = not monitoring # Toggle monitoring on / off
 
-				elif int(input) == 2:
+			if "daemon" not in sys.argv and sys.stdin in input:
+				try:
+					data = sys.stdin.readline()
+					data = int(str(data))
+				except: 
+					device.msg += "stdin error\n"
+					traceback.print_exc()
+
+			if data <> -1:
+				if data == 1:	
+					monitoring = not monitoring # Toggle monitoring on / off
+
+				if data == 2:
 					device.set_fanspeed(device.fanspeed+1)
 					if "daemon" not in sys.argv:raw_input("press enter to resume")
-				elif int(input) == 3:
+				if data == 3:
 					clear_screen()
 					device.print_attributes()
 					sys.stdout.flush()
 					time.sleep(10)
 					if "daemon" not in sys.argv:raw_input("press enter to resume")
-				elif int(input)== 4:
+				if data == 4:
 					display_settings()
 					sys.stdout.flush()
 					time.sleep(10)
@@ -1236,12 +1261,12 @@ if __name__:# not  "__main__":
 					else: print "break"
 					recent=4
 
-				elif int(input)==6:
+				if data ==6:
 					device.update_registers()
 					if "daemon" not in sys.argv:raw_input("press enter to resume")
 					else:print "break"
 
-				elif int(input)==7:
+				if data ==7:
 					try:
 						if "daemon" not in sys.argv :inp =int( raw_input("set differential pressure(-20% -> 20%):"))
 						else:
@@ -1252,7 +1277,7 @@ if __name__:# not  "__main__":
 					except:
 						traceback.print_exc()
 						#raw_input("break")
-				elif int(input)== 8:
+				if data == 8:
 					device.msg += "Forced Ventilation on timer\n"
 					prev = device.fanspeed
 					device.set_fanspeed(3)
@@ -1268,36 +1293,36 @@ if __name__:# not  "__main__":
 					except:
 						traceback.print_exc()
 						print "force vent error"
-				elif int(input)== 9:
+				if data == 9:
 					device.print_registers()
 					sys.stdout.flush()
 					time.sleep(10)
 					if "daemon" not in sys.argv:raw_input("press enter to resume")
 					else: print "break"
-				elif int(input)==0:
+				if data == 0:
 					device.cycle_exchanger(None)
 
-				if int(input)==97:
+				if data == 97:
 					clear_screen()
 					device.msg += "Fanspeed to Low\n"
 					device.set_fanspeed(1)
-				elif int (input)==98:
+				if data == 98:
 					device.set_fanspeed(2)
 					device.msg += "Fanspeed to Norm\n"
-				elif int(input)==99:
+				if data == 99:
 					device.set_fanspeed(3)
 					device.msg += "fanspeed to High\n"
+				
 
 		except TypeError:pass
-		except ValueError:
-			pass
-		except:
-			error  = open("error.txt","w")
-			traceback.print_tb(sys.exc_info()[-1],error)
-			traceback.print_exc(error)
-			error.close()
-			traceback.print_exc()
-			if "daemon" not in sys.argv:raw_input("press enter to resume")
+		except ValueError:pass
+		#except:
+		#	error  = open("error.txt","w")
+		#	traceback.print_tb(sys.exc_info()[-1],error)
+		#	traceback.print_exc(error)
+		#	error.close()
+		#	traceback.print_exc()
+		#	if "daemon" not in sys.argv:raw_input("press enter to resume")
 
 	except KeyboardInterrupt:
 		exit_callback(device,None)
