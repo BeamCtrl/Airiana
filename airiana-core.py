@@ -37,7 +37,7 @@ if not os.path.lexists("./RAM/data.log"):
 	os.system("cp data.log."+str(last_file)+ " ./RAM/data.log")
 	os.system("rm data.log."+str(last_file))
 if "debug" in sys.argv and not os.path.lexists("./sensors"): os.system("touch sensors")
-if "status" in sys.argv: os.system("./status.py &")
+
 starttime=time.time()
 #Setup deamon env
 if "daemon" in sys.argv:
@@ -321,7 +321,7 @@ class Systemair(object):
 		self.eff_ave=[90]
 		self.diff_ave=[0]
 		self.totalenergy = 0.0
-		self.averagelimit = 300#min122
+		self.averagelimit = 600#min122
 		self.sf = 34
 		self.ef = 34
 		self.ef_rpm = 1500
@@ -350,7 +350,6 @@ class Systemair(object):
 		self.extract_humidity_comp=0.00 # relative humidity re compensated
 		self.condensate_compensation =0
 		self.cond_eff = 1
-		self.dew_point=10
 		self.dur=1.0
 		self.extract_dt = 0.0
 		self.update_airdata_instance()
@@ -641,8 +640,8 @@ class Systemair(object):
 				else: self.gain += (self.loss*self.dur)/3600
 			except: pass
 
-			self.cond_data.append(-self.extract_power+self.used_energy)
-			if len(self.cond_data)> 400:self.cond_data.pop(0)
+			self.cond_data.append(self.energy_diff)
+			if len(self.cond_data)> self.averagelimit:self.cond_data.pop(0)
 
 	def get_rotor_state(self):
 		req.modbusregister(206,0)
@@ -653,14 +652,11 @@ class Systemair(object):
                 else: device.rotor_active = "No"
 
 	def moisture_calcs(self):## calculate moisure/humidities
-		try:
-			self.dew_point 	   = self.airdata_inst.dew_point(self.extract_humidity*100,self.extract_ave)
-		except:pass
+
 		self.cond_eff=.20#  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
 		######### SAT MOIST UPDATE ############
 		if self.energy_diff > 0 and self.rotor_active=="Yes":
 			try:
-				#d_pw = (self.airdata_inst.energy_to_pwdiff(numpy.average(self.cond_data),self.extract_ave)/self.cond_eff)/(float(self.ef)/1000)
 				d_pw = (self.airdata_inst.energy_to_pwdiff(self.energy_diff,self.extract_ave)/self.cond_eff)/(float(self.ef)/1000)
 			except: d_pw=0
 		else: d_pw = 0
@@ -748,11 +744,10 @@ class Systemair(object):
 		if self.rotor_active=="Yes" or "debug" in sys.argv:
 			tmp += "HeatExchange supply "+str(round(self.supply_power,1))+"W \n"
 			tmp += "HeatExchange extract "+str(round(self.extract_power+self.condensate_compensation,1))+"W\n"
-			if "debug" in sys.argv: tmp += "Diff:"+str(round(numpy.average(self.diff_ave),2))+"% "+str(round(self.supply_power-self.extract_combined,1))+"W\n"
+			if "debug" in sys.argv: tmp += "Diff:"+str(round(numpy.average(self.diff_ave),2))+"% "+str(round(self.energy_diff,1))+"W\n"
 			if "humidity" in sys.argv and "debug" in sys.argv : tmp +="\nCondensation  efficiency: " +str(round(self.cond_eff,2)*100)+"%\n"
 		if "humidity" in sys.argv :
 			if "debug" in sys.argv:
-				#tmp += "Calculated humidity: "+str(round(self.extract_humidity*100,2))+"% at:"+str(round(self.extract_ave,1))+"C Dewpoint:"+str(round(self.dew_point,2))+"C\n"
 				tmp += "Static: "+str(round(self.local_humidity+self.humidity_comp,2))+"%\n"
 			tmp += "Calculated Humidity: " + str(round (self.new_humidity,2))+"% Pressure limit: "+str(round(self.indoor_dewpoint,2))+"C\n"
 		if "debug" in sys.argv:
@@ -1078,7 +1073,8 @@ class Systemair(object):
 			temp = float(tmp[1])
 			comp = float( os.popen("./humid.py "+str((int(os.popen("./forcast.py tomorrows-low").read().split(" ")[0])))).read().split(" ")[0])/100
 			self.kinetic_compensation += ((self.prev_static_temp * comp)-self.prev_static_temp)/1000
-
+			if "debug" in sys.argv:
+				self.msg += "static comp set to: " +str(round(comp,4))+"C/iter"
 			if temp <> self.prev_static_temp:
 				self.prev_static_temp = temp
 				self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/2

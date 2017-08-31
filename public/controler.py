@@ -43,13 +43,13 @@ class myHandler (SocketServer.BaseRequestHandler):
 						os.system("sudo systemctl restart airiana.service controller.service")
 				if "restart" in data[0]:
 					if os.path.lexists("/dev/ttyAMA0"):
-                                                os.system("./restart &")
+                                                os.system("./restart airiana-core.py &")
                                         else:
 						os.system("sudo systemctl restart airiana.service controller.service")
 			 	     	
 				if "coffee" in data[0]:
 					self.request.send("HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://"+str(ip)+"/coffee.txt\" /></head></html> \n\r")
-				
+					return 0
 				os.chdir("/home/pi/airiana/public/")
 				self.request.send("HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://"+str(ip)+"/util.html\" /></head></html> \n\r")
 
