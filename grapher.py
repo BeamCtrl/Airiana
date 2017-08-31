@@ -82,7 +82,7 @@ for each in calc_hum:
 
 #fig, ax = subplots()
 #print fig.properties()
-fig=figure(1,figsize=(7,15),dpi=20)
+fig=figure(1,figsize=(7,15),dpi=100)
 
 s1=subplot(211)
 s1.set_title("Temperatures")

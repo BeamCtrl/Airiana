@@ -19,7 +19,7 @@ def exit_callback(self, arg):
                 cmd_socket.close()
 		sys.exit()
 signal(SIGTERM, exit_callback)
-#signal(SIGINT , exit_callback)
+signal(SIGINT , exit_callback)
 
 #exec util fnctns
 os.chdir("/home/pi/airiana/public")
@@ -37,7 +37,7 @@ if not os.path.lexists("./RAM/data.log"):
 	os.system("cp data.log."+str(last_file)+ " ./RAM/data.log")
 	os.system("rm data.log."+str(last_file))
 if "debug" in sys.argv and not os.path.lexists("./sensors"): os.system("touch sensors")
-if "debug" in sys.argv: os.system("./status.py &")
+if "status" in sys.argv: os.system("./status.py &")
 starttime=time.time()
 #Setup deamon env
 if "daemon" in sys.argv:
@@ -50,6 +50,7 @@ if "daemon" in sys.argv:
 if os.path.lexists("/dev/serial0"):
 	print "Communication started on device Serial0;"
 	unit = "/dev/serial0"
+	os.system("sleep 2")
 else :
 	print "Communication started on device ttyAMA0;"
 	unit = "/dev/ttyAMA0"
@@ -59,7 +60,7 @@ minimalmodbus.BYTESIZE = 8
 minimalmodbus.STOPBITS=1
 client = minimalmodbus.Instrument(unit,1)
 client.debug=False
-client.precalculate_read_size=True
+client.precalculate_read_size=False
 #############################################
 wait_time = 0.1
 bus=os.open(unit,os.O_RDONLY)
@@ -76,6 +77,7 @@ while True:
 		break
 	except:
 		os.system("sleep 1")
+		print "sleeping"
 		if time.time()-starttime> 60:break
 
 ########### global uty functions################
@@ -175,23 +177,24 @@ class Request(object):
 		self.buff= ""
 		self.counter = 0
 	def modbusregisters(self,start,count,signed=False):
+		client.precalculate_read_size=True
 		try:
 			self.response= "no data"
 			self.buff = ""
 			self.buff += os.read(bus,1000) # purge content on bus
 			time.sleep(wait_time)
 			self.response = client.read_registers(start,count)
-			self.buff += os.read(bus,1000) # re purge
+			#self.buff += os.read(bus,1000) # re purge
 			time.sleep(wait_time)
-			self.response = client.read_registers(start,count)
+			#self.response = client.read_registers(start,count)
 			if signed:
 				for each in self.response:
 					if each & 0x8000: each -= 0xFFFF
 		except ValueError as error:
-			#print "checksum error,retry:",self.checksum_errors,error.message
+			#print "multi, checksum error,retry:",self.checksum_errors,error.message,";"
 			#print error.message.find("\x01\x83\x02\xc0\xf1")
 			if  error.message.find("\x01\x83\x02\xc0\xf1")<>-1:
-				print "address out of range"
+				print "multi, address out of range;"
 				exit()
 			self.checksum_errors +=1
 			self.modbusregisters(start,count)
@@ -199,36 +202,44 @@ class Request(object):
 			self.connect_errors += 1
 			#if self.connect_errors > 200: exit_callback(self,None)
 			self.modbusregisters(start,count)
+		client.precalculate_read_size=False
+
 	def modbusregister (self,address,decimals):
+		client.precalculate_read_size=True
+
 		try:
 			self.response = "no data"
 			self.buff = ""
 			time.sleep(wait_time)
                         self.response = client.read_register(address,decimals)
-			time.sleep(wait_time)
-			self.response = client.read_register(address,decimals)
+			#time.sleep(wait_time)
+			#self.response = client.read_register(address,decimals)
 		except IOError:
 	 		self.connect_errors += 1
-			#print "no response, retry:",self.connect_errors,address
+			#print "single, no response, retry:",self.connect_errors,address,";"
 			self.modbusregister(address,decimals)
-		except ValueError:
-			#print "checksum error,retry:",self.checksum_errors
+		except ValueError as error:
+			#print "single, checksum error,retry:",self.checksum_errors,error,";"
 			os.read(bus,1000) # bus purge
 			self.checksum_errors +=1
 			self.modbusregister(address,decimals)
+		client.precalculate_read_size=False
+
 	def write_register(self, reg, value):
+		client.precalculate_read_size=False
 		self.modbusregister(reg, 0)
 		start = self.response
 		if start == value: return 0
 		try:
 			#print "set", reg, "to",value
-			resp = client.write_register(reg,value)
+			time.sleep(wait_time)
+			resp = client.write_register(reg,value,functioncode=6)
 		except IOError as error:
-			#print "ioerror",error,os.read(bus,100)
+			#print "write, ioerror",error,os.read(bus,100),";"
 			#self.write_register(reg,value)
 			pass
 		except ValueError as error:
-			#print "val error",error,os.read(bus,100)
+			#print "write, val error",error,os.read(bus,100),";"
 			#self.write_register(reg,value)
 			pass
 		#print "buffer",os.read(bus,1000)
@@ -246,14 +257,16 @@ class Request(object):
 				self.counter = 0
 				return False
 		except IOError as error:
-			#print os.read(bus,100)
+			#print "write,",os.read(bus,100),error
 			#self.write_register(reg,value)
 			#print error
 			pass
 		except ValueError as error:
-			#print error, os.read(bus,100)
+			#print "write",error, os.read(bus,100)
 			#self.write_register(reg,value)
 			pass
+		client.precalculate_read_size=False
+
 
 #################################################################################
 start = time.time() # START TIME
@@ -430,7 +443,7 @@ class Systemair(object):
 		return self.fanspeed
 
 	def update_temps(self):
-		req.modbusregisters(213,5,signed=True)# Tempsensors 1 -5
+		req.modbusregisters(213,5)# Tempsensors 1 -5
 		self.time.insert(0,time.time())
 		if len(self.time) > self.averagelimit: self.time.pop(-1)
 		self.temps = req.response[:]
@@ -1036,6 +1049,7 @@ class Systemair(object):
 		self.forcast=[-1,-1]
 	#set the fan pressure diff
 	def set_differential(self, percent):
+		if "debug" in sys.argv: self.msg += "start pressure change " +str( percent)+"\n"
 		if percent>20:percent = 20
 		if percent<-20:percent =-20
 		req.modbusregister(103,0) #nominal supply flow
@@ -1046,13 +1060,14 @@ class Systemair(object):
 		req.modbusregister(104,0) #nominal supply flow
 		if req.response == target:
 			self.press_inhibit = time.time()
-		#print "one down"
+		if "debug" in sys.argv: self.msg+= "supply completed \n"
 		high_flow = 107
 		if percent < 0 :high_flow += 107*float(percent)/100
 		if high_flow >107: high_flow= 107
 		#print "high should be extract:", int(high_flow)
 		req.write_register(106,int(high_flow)) # reset high extract
 		#raw_input(" diff set done")
+		if "debug" in sys.argv: self.msg += "change completed\n"
 
 	#get and set the local low/static humidity
 	def get_local(self):
@@ -1062,7 +1077,7 @@ class Systemair(object):
 			self.local_humidity = float(tmp[0])
 			temp = float(tmp[1])
 			comp = float( os.popen("./humid.py "+str((int(os.popen("./forcast.py tomorrows-low").read().split(" ")[0])))).read().split(" ")[0])/100
-			self.kinetic_compensation += ((self.prev_static_temp * comp)-self.prev_static_temp)/100
+			self.kinetic_compensation += ((self.prev_static_temp * comp)-self.prev_static_temp)/1000
 
 			if temp <> self.prev_static_temp:
 				self.prev_static_temp = temp
@@ -1078,18 +1093,20 @@ class Systemair(object):
 		except: print "dayliy low calc error"
 
 ## Init base class ##
-if __name__:# not "__main__":
+if __name__: #  not "__main__":
 	report_alive()
+	print "Reporting system start"
 	device = Systemair()
-
+	
 ###################################################################
 ############################ RUN MAIN loop ########################
-if __name__:# not  "__main__":
+if __name__: # not  "__main__":
 	monitoring = True
 	def set_monitoring(bool):
 		global monitoring
 		monitoring = bool
 	input = ""
+	print "Going in for first PASS"
 	try:
 	    #FIRST PASS ONLY #
             clear_screen()

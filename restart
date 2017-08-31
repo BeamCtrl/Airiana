@@ -1,24 +1,26 @@
 #!/bin/bash
-echo stoping relevant services
-sudo pkill --signal 15 airiana-core.py
-sudo pkill --signal 15 httpsrv.py
-sudo pkill --signal 15 controler.py
-sudo pkill --signal 15 envlogger.py
-sudo pkill --signal 15 alive_logger.py
-sudo pkill --signal 15 status.py
-echo starting aircontrol daemon
-sudo nohup ./airiana-core.py daemon debug temperatur.nu humidity ping > /dev/null &
-sudo nohup ./public/controler.py  >> /dev/null &
+#echo stoping relevant services
+#sudo pkill --signal 15 airiana-core.py
+#sudo pkill --signal 15 httpsrv.py
+#sudo pkill --signal 15 controler.py
+#sudo pkill --signal 15 envlogger.py
+#sudo pkill --signal 15 alive_logger.py
+#sudo pkill --signal 15 status.py
+#echo starting aircontrol daemon
+#sudo nohup ./airiana-core.py daemon debug temperatur.nu humidity ping > /dev/null &
+#sudo nohup ./public/controler.py  >> /dev/null &
 
-echo starting loggers
-sudo nohup ./alive_logger.py &
-sudo nohup ./envlogger.py 135  >> /dev/null 2<&1 &
-sudo nohup ./envlogger.py 91  >> /dev/null 2>&1 &
-sudo nohup ./envlogger.py 92  >> /dev/null 2>&1 &
-sudo nohup ./envlogger.py 93  >> /dev/null 2>&1 &
-sleep 5
-head -c 1 ./RAM/out
-ps ax | grep ".py"
+#echo starting loggers
+#sudo nohup ./alive_logger.py &
+#sudo nohup ./envlogger.py 135  >> /dev/null 2<&1 &
+#sudo nohup ./envlogger.py 91  >> /dev/null 2>&1 &
+#sudo nohup ./envlogger.py 92  >> /dev/null 2>&1 &
+#sudo nohup ./envlogger.py 93  >> /dev/null 2>&1 &
+#sleep 5
+#head -c 1 ./RAM/out
+#ps ax | grep ".py"
+sudo systemctl restart airiana.service
+systemctl status airiana.service
 
 
 
