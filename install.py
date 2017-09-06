@@ -13,7 +13,7 @@
 #
 #################################################################
 import os, sys
-print "Upgrading Raspbian OS"
+print "Upgrading Raspberry Firmware"
 os.system("rpi-update")
 os.system("apt-get update")
 
@@ -31,9 +31,9 @@ fstab_cmd = "tmpfs /home/pi/airiana/RAM tmpfs defaults,noatime,nosuid,mode=0755,
 ########################
 
 # INSTALL DEPS#
-os.system("apt-get install python-matplotlib")
-os.system("pip install minimalmodbus")
-os.system("apt-get install ntp")
+os.system("apt-get -y install python-matplotlib")
+os.system("pip install  minimalmodbus")
+os.system("apt-get -y install ntp")
 # NEED TO SET LOCALE
 os.system("cp ./systemfiles/timezone /etc/")
 

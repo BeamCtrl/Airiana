@@ -4,11 +4,11 @@ import sys
 if "airiana-core.py" in sys.argv:
 	os.system("sudo systemctl restart airiana.service")
 	os.system("sleep 5")
-	os.system("systemctl status airiana.service")
+	os.system("systemctl status airiana.service |tail -c 2000")
 if "controller" in sys.argv:
 	os.system("sudo systemctl restart controller.service")
 	os.system("sleep 5")
-	os.system("systemctl status controller.service")
+	os.system("systemctl status controller.service |tail -c 2000")
 
 if "status.py" in sys.argv:
 	os.system("sudo pkill -15 status.py")
@@ -21,10 +21,12 @@ if "envlogger.py" in sys.argv:
 	os.system("sudo ./envlogger.py 92 > /dev/null &")
 	os.system("sudo ./envlogger.py 93 > /dev/null &")
 
-if "aliv_elogger.py" in sys.argv:
+if "alive_logger.py" in sys.argv:
 	os.system("sudo pkill --signal 15 alive_logger.py")
 	os.system("sudo ./alive_logger.py > /dev/null &")
 
+if "http" in sys.argv:
+	os.system("sudo pkill --signal 15 httpsrvr.py")
 
 os.system("disown")
 

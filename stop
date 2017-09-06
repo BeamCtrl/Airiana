@@ -1,12 +1,23 @@
-#!/bin/bash
-echo stop aircontroler and loggers
-sudo pkill --signal 15 airiana-core.py
-sudo pkill --signal 15 httpsrv.py
-sudo pkill --signal 15 controler.py
-sudo pkill --signal 15 envlogger.py
-sudo pkill --signal 15 grapher.py
+#!/usr/bin/python
+import os
+import sys
+if "airiana-core.py" in sys.argv:
+	os.system("sudo systemctl stop airiana.service")
+if "controller" in sys.argv:
+	os.system("sudo systemctl stop controller.service")
 
-ps ax | grep .py
+if "status.py" in sys.argv:
+	os.system("sudo pkill -15 status.py")
+
+if "envlogger.py" in sys.argv:
+	os.system("sudo pkill --signal 15 envlogger.py")
+
+if "alive_logger.py" in sys.argv:
+	os.system("sudo pkill --signal 15 alive_logger.py")
+if "http" in sys.argv:
+	os.system("sudo pkill --signal 15 httpsrv.py")
+
+
 
 
 

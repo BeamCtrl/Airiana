@@ -7,13 +7,14 @@ mailer = mail.Smtp()
 def init():
 	from users import users
 	global users
-	status = {}
 	global status
+	global mail_sent
+	status = {}
+	mail_sent = {}
+
 	for each in users.keys():
 		status[each]= 0
 
-	mail_sent = {}
-	global mail_sent
 	for each in users.keys():
 		mail_sent[each] = False
 init()
@@ -27,7 +28,8 @@ while True:
 		if users_prev <> users:
 			init()
 		html = "<html>STATUS VIEW AIRIANA SYSTEMS<br><table><tr><th>Name</th><th>Ping</th><th>Status</th></tr>"
-
+		flag = "unknown"
+		files = os.listdir("./public/local_links/")
 		for each in files:
 			try:
 				mod = os.stat(str("./public/local_links/"+each)).st_mtime

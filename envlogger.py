@@ -60,7 +60,7 @@ for each in fd.readlines():
 	temp.append(float(data[1]))
 	humid.append(int(data[2][0:-1]))
 	dewpoint.append(air_obj.dew_point(humid[-1],temp[-1]))
-fig=figure(1,figsize=(11,8),dpi=25)
+fig=figure(1,figsize=(11,8),dpi=250)
 #s1=subplot("111")
 #temp_line=plot(time,temp)[0]
 #hum_line=plot(time,humid)[0]
