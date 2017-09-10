@@ -1,0 +1,3 @@
+#!/usr/bin/bash
+
+./restart status.py alive_logger.py
