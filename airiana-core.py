@@ -61,8 +61,9 @@ minimalmodbus.STOPBITS=1
 client = minimalmodbus.Instrument(unit,1)
 client.debug=False
 client.precalculate_read_size=False
+client.timeout= 0.05
 #############################################
-wait_time = 0.1
+wait_time = 0.00
 bus=os.open(unit,os.O_RDONLY)
 ################################# command socket setup
 import socket
@@ -173,16 +174,18 @@ def clear_screen():
 #######Request object for doing modbus comms##
 class Request(object):
 	def __init__(self):
-		self.connect_errors= -1
-		self.checksum_errors=0
+		self.connect_errors= 0
+		self.checksum_errors = 0
+		self.write_errors = 0
 		self.buff= ""
 		self.counter = 0
 	def modbusregisters(self,start,count,signed=False):
 		client.precalculate_read_size=True
 		try:
 			self.response= "no data"
-			self.buff = ""
-			self.buff += os.read(bus,1000) # purge content on bus
+			#self.buff = ""
+
+			self.buff += os.read(bus,20) # purge content on bus
 			time.sleep(wait_time)
 			self.response = client.read_registers(start,count)
 			#self.buff += os.read(bus,1000) # re purge
@@ -210,18 +213,21 @@ class Request(object):
 
 		try:
 			self.response = "no data"
-			self.buff = ""
+			#self.buff = ""
+			#if "debug" in sysargv: print bus.availible()
+			self.buff += os.read(bus,20) # bus purge
 			time.sleep(wait_time)
                         self.response = client.read_register(address,decimals)
 			#time.sleep(wait_time)
 			#self.response = client.read_register(address,decimals)
 		except IOError:
 	 		self.connect_errors += 1
+			self.buff += os.read(bus,20) # bus purge
 			#print "single, no response, retry:",self.connect_errors,address,";"
 			self.modbusregister(address,decimals)
 		except ValueError as error:
 			#print "single, checksum error,retry:",self.checksum_errors,error,";"
-			os.read(bus,1000) # bus purge
+			self.buff += os.read(bus,20) # bus purge
 			self.checksum_errors +=1
 			self.modbusregister(address,decimals)
 		client.precalculate_read_size=False
@@ -234,14 +240,16 @@ class Request(object):
 		try:
 			#print "set", reg, "to",value
 			time.sleep(wait_time)
-			print os.read(bus,1000)
+			#print os.read(bus,20)
 			resp = client.write_register(reg,value)
 		except IOError as error:
-			print "write, ioerror",error,os.read(bus,100),";"
+			print "write, ioerror",error,os.read(bus,20),";"
+			self.write_errors += 1
 			#self.write_register(reg,value)
 			pass
 		except ValueError as error:
-			print "write, val error",error,os.read(bus,100),";"
+			print "write, val error",error,os.read(bus,20),";"
+			self.write_errors += 1
 			#self.write_register(reg,value)
 			pass
 		#print "buffer",os.read(bus,1000)
@@ -324,7 +332,7 @@ class Systemair(object):
 		self.eff_ave=[90]
 		self.diff_ave=[0]
 		self.totalenergy = 0.0
-		self.averagelimit = 600#min122
+		self.averagelimit = 1800#min122
 		self.sf = 34
 		self.ef = 34
 		self.ef_rpm = 1500
@@ -693,7 +701,7 @@ class Systemair(object):
 			self.extract_dt_long= float((self.extract_ave-self.dt_hold))/((time.time()-self.extract_dt_long_time)/3600)
 			self.extract_dt_long_time=time.time()
 			self.dt_hold= self.extract_ave
-
+			self.avg_frame_time=(time.time()-starttime)/self.iter
 	# decect if shower is on
 	def shower_detect(self):
 		try: # SHOWER CONTROLLER
@@ -725,8 +733,13 @@ class Systemair(object):
 	def print_xchanger(self):
 		global monitoring,vers
 		tmp =  self.system_name+" "+time.ctime()+" status: "+str(int(time.time()-starttime))+'('+str(self.iter)+")"+str(round((time.time()-starttime)/self.iter,2))+" Vers. "+vers+" ***\n"
-		if "debug" in sys.argv: tmp += str(sys.argv)+"\n"
-
+		if "debug" in sys.argv:
+			 try:
+				tmp += "Errors -- Connect: "+str( req.connect_errors )+" Checksum: "+str(req.checksum_errors)+ " Write: "+str(req.write_errors)+" drain: "+str(len(req.buff)) +"\n"
+				tmp += "Buffer: "+str(req.buff)+"\n"
+				if len(req.buff) > 50: req.buff = ""
+				tmp += str(sys.argv)+"\n"
+			 except: pass 
 		try:
 			tmp += "Inlet: "+str(round(self.inlet_ave,2))+"C\t\tSupply: "+str(round(self.supply_ave,2))+"C\td_in : "+str(round(self.supply_ave,2)-round(self.inlet_ave,2))+"C"
 			tmp += "\nExtract: "+str(round(self.extract_ave,2))+"C\tExhaust: "+str(round(self.exhaust_ave,2))+"C\td_out: "+str(round(self.extract_ave,2)-round(self.exhaust_ave,2))+"C\n"
@@ -1053,8 +1066,8 @@ class Systemair(object):
 		if "debug" in sys.argv: 
 			if req.response == target :self.msg+= "supply flow change completed \n"
 		high_flow = 107
-		#if percent < 0 :high_flow += 107*float(percent)/100
-		#if high_flow >107: high_flow= 107
+		if percent < 0 :high_flow += 107*float(percent)/100
+		if high_flow >107: high_flow= 107
 		#print "high should be extract:", int(high_flow)
 		req.write_register(106,int(high_flow)) # reset high extract
 		#raw_input(" diff set done")
@@ -1070,7 +1083,7 @@ class Systemair(object):
 			comp = int(os.popen("./forcast.py tomorrows-low").read().split(" ")[0])
 			comp = float(os.popen("./humid.py 0").read().split(" ")[1])/comp
 			#comp = float( os.popen("./humid.py "+str((int(os.popen("./forcast.py tomorrows-low").read().split(" ")[0])))).read().split(" ")[0])/400
-			self.kinetic_compensation += ((self.prev_static_temp * comp)-self.prev_static_temp)/500
+			self.kinetic_compensation += ((self.prev_static_temp * comp)-self.prev_static_temp)/1000*self.avg_frame_time
 			if "debug" in sys.argv:
 				self.msg += "static comp set to: " +str(round(comp,4))+"\n"
 			if temp <> self.prev_static_temp:
@@ -1089,7 +1102,9 @@ class Systemair(object):
 ## Init base class ##
 if __name__  ==  "__main__":
 	report_alive()
-	print "Reporting system start"
+	print "Reporting system start;"
+	#print os.read(bus,10000)
+
 	device = Systemair()
 	
 ################

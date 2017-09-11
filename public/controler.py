@@ -6,7 +6,7 @@ import socket, os, traceback
 hostname = os.popen("hostname").read()[:-1]
 class myHandler (SocketServer.BaseRequestHandler):
 	def handle(self):
-		ip = os.popen("hostname -I").readline()[:-2]
+		ip = os.popen("hostname -I").readline().split(" ")[0]
 		data = self.request.recv(1024).strip().split("\r\n")
 		#print data
 		if "GET" in data[0]:
