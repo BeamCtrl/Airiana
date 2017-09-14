@@ -42,15 +42,16 @@ starttime=time.time()
 #Setup deamon env
 if "daemon" in sys.argv:
 	fout = os.open("./RAM/out",os.O_WRONLY|os.O_CREAT)
-	ferr = os.open("./RAM/err",os.O_WRONLY|os.O_CREAT)
 	os.dup2(fout,sys.stdout.fileno())
-	os.dup2(ferr,sys.stderr.fileno())
 	print "Output redirected to file;"
+	ferr = os.open("./RAM/err",os.O_WRONLY|os.O_CREAT)
+	os.dup2(ferr,sys.stderr.fileno())
+
 # Setup serial, RS 485 to machine
 if os.path.lexists("/dev/serial0"):
 	print "Communication started on device Serial0;"
 	unit = "/dev/serial0"
-	os.system("sleep 2")
+	#os.system("sleep 2")
 else :
 	print "Communication started on device ttyAMA0;"
 	unit = "/dev/ttyAMA0"
@@ -196,14 +197,16 @@ class Request(object):
 					if each & 0x8000: each -= 0xFFFF
 		except ValueError as error:
 			#print "multi, checksum error,retry:",self.checksum_errors,error.message,";"
+			#os.write(ferr,"read many: "+str(error)+"\n")
 			#print error.message.find("\x01\x83\x02\xc0\xf1")
 			if  error.message.find("\x01\x83\x02\xc0\xf1")<>-1:
 				print "multi, address out of range;"
 				exit()
 			self.checksum_errors +=1
 			self.modbusregisters(start,count)
-		except IOError:
+		except IOError as error:
 			self.connect_errors += 1
+			#os.write(ferr,"read many: "+str(error)+"\n")
 			#if self.connect_errors > 200: exit_callback(self,None)
 			self.modbusregisters(start,count)
 		client.precalculate_read_size=False
@@ -220,63 +223,40 @@ class Request(object):
                         self.response = client.read_register(address,decimals)
 			#time.sleep(wait_time)
 			#self.response = client.read_register(address,decimals)
-		except IOError:
+		except IOError as error:
 	 		self.connect_errors += 1
+			#os.write(ferr,"read: "+str(error)+"\n")
 			self.buff += os.read(bus,20) # bus purge
 			#print "single, no response, retry:",self.connect_errors,address,";"
 			self.modbusregister(address,decimals)
 		except ValueError as error:
 			#print "single, checksum error,retry:",self.checksum_errors,error,";"
+			#os.write(ferr,"read: "+str(error)+"\n")
 			self.buff += os.read(bus,20) # bus purge
 			self.checksum_errors +=1
 			self.modbusregister(address,decimals)
 		client.precalculate_read_size=False
 
-	def write_register(self, reg, value):
+	def write_register(self, reg, value,functioncode=6):
 		client.precalculate_read_size=True
-		self.modbusregister(reg, 0)
-		start = self.response
 		if start == value: return 0
 		try:
 			#print "set", reg, "to",value
 			time.sleep(wait_time)
 			#print os.read(bus,20)
-			resp = client.write_register(reg,value)
+			resp = client.write_register(reg,value,0,6)
 		except IOError as error:
-			print "write, ioerror",error,os.read(bus,20),";"
+			#print "write, ioerror",error,os.read(bus,20),";"
+			os.write(ferr,"write: "+str(error)+"\n")
 			self.write_errors += 1
 			#self.write_register(reg,value)
 			pass
 		except ValueError as error:
-			print "write, val error",error,os.read(bus,20),";"
+			#print "write, val error",error,os.read(bus,20),"\n--",reg," ",value,";"
+			os.write(ferr,"write: "+str(error)+"\n")
 			self.write_errors += 1
 			#self.write_register(reg,value)
 			pass
-		#print "buffer",os.read(bus,1000)
-		time.sleep(wait_time)
-		"""try:
-			self.modbusregister(reg,0)
-			#print "readback",self.response
-
-			if self.response <> start or value == req.response:
-				return True
-			else :self.counter +=1
-			self.response, start
-			if self.counter < 10:self.write_register(reg, value)
-			else:
-				self.counter = 0
-				return False
-		except IOError as error:
-			#print "write,",os.read(bus,100),error
-			#self.write_register(reg,value)
-			#print error
-			pass
-		except ValueError as error:
-			#print "write",error, os.read(bus,100)
-			#self.write_register(reg,value)
-			pass
-		"""
-		client.precalculate_read_size=False
 
 
 #################################################################################
@@ -326,6 +306,7 @@ class Systemair(object):
 				14:"Snow and thunder",\
 				34:"Heavy snow and thunder",\
 				15:"Fog",-1:"No weather data"}
+		self.avg_frame_time = 1
 		self.rawdata = []
 		self.press_inhibit = 0
 		self.local_humidity = 0.0
@@ -387,7 +368,7 @@ class Systemair(object):
 		self.temps = []
 		self.temp_state = 0
 		self.condensate = 0
-		self.coef = 0.12
+		self.coef = 0.17
 		self.tcomp = 0
 		self.inlet_coef = 0.1
 		self.filter = 0
@@ -456,11 +437,11 @@ class Systemair(object):
 		if len(self.rawdata)>self.averagelimit:self.rawdata.pop(-1)
 		#req.response[1] #EXTRACTreq.response[2] #EXHAUST req.response[0] #Supply pre elec heater
 		#req.response[3] #Supply post electric heater req.response[4] Inlet
-		if self.rotor_active == "No" and self.coef <> 0.11+(float(self.fanspeed)/400):
-			if self.coef-( 0.11+(float(self.fanspeed)/400))>0:self.coef -= 0.00035#0.04
+		if self.rotor_active == "No" and self.coef <> 0.17+(float(self.fanspeed)/400):
+			if self.coef-( 0.17+(float(self.fanspeed)/400))>0:self.coef -= 0.00035#0.04
                         else: self.coef += 0.0002
-		if self.rotor_active == "Yes" and self.coef <> 0.08:
-			if self.coef-( 0.08)>0:self.coef -= 0.00015 #0.04
+		if self.rotor_active == "Yes" and self.coef <> 0.17:
+			if self.coef-( 0.17)>0:self.coef -= 0.00015 #0.04
 			else: self.coef += 0.0004
 		# NEGATYIVE VAL sign bit twos complement
 		if req.response[4]>60000:
@@ -542,9 +523,9 @@ class Systemair(object):
 				#print "done"
 	    		else:
 				#print "write to device", target
-				client.write_register(100,target)
-	    			os.read(bus	,100)
-	    			time.sleep(wait_time*50)
+				req.write_register(100,target)
+	    			os.read(bus,20)
+	    			#time.sleep(wait_time*50)
 			if int(self.get_fanspeed()) == target :
 				#print "succsess", target
 				self.fanspeed=target
@@ -707,7 +688,7 @@ class Systemair(object):
 		try: # SHOWER CONTROLLER
 			lim = 0.05
 			if self.ef >50: lim = 0.07
-			if self.extract_dt > lim and self.inhibit ==0 and numpy.average(self.extract_dt_list)*60>0.50:
+			if self.extract_dt > lim and self.inhibit ==0 and numpy.average(self.extract_dt_list)*60>0.80:
 				self.msg = "shower mode engaged\n"
 				if self.shower==False:
 					self.shower = True
@@ -717,7 +698,7 @@ class Systemair(object):
 
 					self.inhibit=time.time()
 					self.shower_initial=self.inhibit
-			if self.extract_dt <0.02 and self.shower==True:
+			if self.extract_dt < 0 and self.shower==True:
 				if "debug" in sys.argv:
 					self.msg="shower wait state, "+str(round(self.extract_ave,2))+"C "+str(round(self.initial_temp+0.3,2))+"C\n"
 				if self.extract_ave<=(self.initial_temp+0.3) or self.shower_initial -time.time() < -30*60:
@@ -736,10 +717,10 @@ class Systemair(object):
 		if "debug" in sys.argv:
 			 try:
 				tmp += "Errors -- Connect: "+str( req.connect_errors )+" Checksum: "+str(req.checksum_errors)+ " Write: "+str(req.write_errors)+" drain: "+str(len(req.buff)) +"\n"
-				tmp += "Buffer: "+str(req.buff)+"\n"
+				#tmp += "Buffer: "+str(req.buff)+"\n"
 				if len(req.buff) > 50: req.buff = ""
 				tmp += str(sys.argv)+"\n"
-			 except: pass 
+			 except: pass
 		try:
 			tmp += "Inlet: "+str(round(self.inlet_ave,2))+"C\t\tSupply: "+str(round(self.supply_ave,2))+"C\td_in : "+str(round(self.supply_ave,2)-round(self.inlet_ave,2))+"C"
 			tmp += "\nExtract: "+str(round(self.extract_ave,2))+"C\tExhaust: "+str(round(self.exhaust_ave,2))+"C\td_out: "+str(round(self.extract_ave,2)-round(self.exhaust_ave,2))+"C\n"
@@ -792,7 +773,7 @@ class Systemair(object):
 
 		#CLEAR SCREEN AND REPRINT
 		clear_screen()
-		if self.iter %30==0 and "debug" in sys.argv :
+		if self.iter %60==0 and "debug" in sys.argv :
 			try:
 				ave, dev = statistics.stddev(self.cond_data)
 				self.msg += str(len(self.cond_data))+" mean:"+str(ave)+" stddev:"+str(dev)+"\n"
@@ -842,7 +823,7 @@ class Systemair(object):
 	    def set_val(val):
 		try:
 			#self.msg += "\nwriting mode "+str(val)+"\n"
-                        client.write_register(206,val,functioncode=6)
+                        req.write_register(206,val,functioncode=6)
 			return 1
 		except: return 0
 	    def get_val():
@@ -1148,10 +1129,10 @@ if __name__  ==  "__main__":
 	    print "Setting up coeficients;"
 	    sys.stdout.flush()
 	    if device.rotor_active == "No":
-		device.coef = 0.11+(float(device.fanspeed)/400)
+		device.coef = 0.17+(float(device.fanspeed)/400)
 		device.inlet_coef=0.14
 	    else:
-		device.coef= 0.08
+		device.coef= 0.17
 		device.inlet_coef = 0.08
 	    print "Read initial temperatures;"
 	    device.update_temps()
@@ -1201,25 +1182,25 @@ if __name__  ==  "__main__":
 				device.get_temp_status()
 		#refresh airdata class
 		if device.iter%79==0:
-			device.update_airdata_instance()
-		#calc local humidity and exec logger
-		if device.iter%60==0:
 			device.msg = ""
+		#calc local humidity and exec logger
+		if device.iter%181==0:
 			device.get_local()
 			logger()
 		#send local tempt to temperatur.nu
-		if device.iter%29==0 and "temperatur.nu" in sys.argv:
+		if device.iter%137==0 and "temperatur.nu" in sys.argv:
                         os.system("wget -q -O temperatur.nu  http://www.temperatur.nu/rapportera.php?hash=42bc157ea497be87b86e8269d8dc2d42\\&t="+str(round(device.inlet_ave,1))+" &")
 		#genetarte graphs
-		if device.iter%181==0:
+		if device.iter%563==0:
+			device.update_airdata_instance()
 			if "debug" in sys.argv:os.system("nice ./grapher.py debug & >>/dev/null")
 			else : os.system("nice ./grapher.py  & >> /dev/null")
 		# send alive packet to headmaster
-		if device.iter%3600==0:
+		if device.iter % int(3600/device.avg_frame_time)==0:
 			if "ping" in sys.argv:
 				report_alive()
 		#restart HTTP SERVER
-		if device.iter %(3600*2)==0:
+		if device.iter %(int(3600*2 /device.avg_frame_time))==0:
 			device.get_filter_status()
 			os.system("./http")
 			os.system("./public/ip-replace.sh")  # reset ip-addresses on buttons.html

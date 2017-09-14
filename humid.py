@@ -6,7 +6,7 @@ def get_humidity():
 		global airdata_inst,extract
                 day = 60*24
                 templist = []
-                data = os.popen("tail -n "+str(day/1)+" ./RAM/data.log")
+                data = os.popen("tail -n "+str(int(day/0.5))+" ./RAM/data.log")
                 for each in data.readlines():
                          tmp = each.split(":")
 			 try:

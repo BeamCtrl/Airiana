@@ -11,9 +11,9 @@ rev = 1
 if int(os.stat("./RAM/data.log").st_size) > 102400*5:
 	while os.path.isfile("data.log."+str(rev)): rev += 1
 	os.system("mv ./RAM/data.log ./data.log."+str(rev))
-	os.system("tail -n "+str(60*24)+" data.log."+str(rev)+" > ./RAM/data.log")
+	os.system("tail -n "+str(60*24*3)+" data.log."+str(rev)+" > ./RAM/data.log")
 	lines= int(subprocess.check_output(["wc", "-l", "data.log."+str(rev)]).split(" ")[0])
-	os.system("head -n "+str(lines-60*24)+" data.log."+str(rev) +" > tmp.log")
+	os.system("head -n "+str(lines-60*24*3)+" data.log."+str(rev) +" > tmp.log")
 	os.system("rm data.log."+str(rev))
 	os.system("mv tmp.log data.log."+str(rev))
 
