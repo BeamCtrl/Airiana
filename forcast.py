@@ -9,9 +9,10 @@ try:
 		#print "Downloading updated forcast" 
 		os.system("wget -q -O /home/pi/airiana/RAM/forecast.xml http://www.yr.no/sted/Sverige/V%C3%A4stmanland/V%C3%A4ster%C3%A5s-Barkar%C3%B6~2664448/forecast.xml")
 except Exception as err:
-		print "Error getting Forcast from YR.no"#os.system("sudo wget  -q -O forecast.xml http://www.yr.no/sted/Sverige/V%C3%A4stmanland/V%C3%A4ster%C3%A5s-Barkar%C3%B6~2664448/forecast.xml")
+		print "Error getting Forcast from YR.no" #os.system("sudo wget  -q -O forecast.xml http://www.yr.no/sted/Sverige/V%C3%A4stmanland/V%C3%A4ster%C3%A5s-Barkar%C3%B6~2664448/forecast.xml")
 		print err
 		os.system("touch /home/pi/airiana/RAM/forecast.xml")
+		exit()
 class Weather():
 	def __init__(self):
 		self.wind_speed = 0
@@ -46,8 +47,12 @@ def start_element(name, attrs):
 			forcasts[-1].weather_type = attrs["number"]
 
 parser.StartElementHandler = start_element
-xmldoc = parser.ParseFile(fd)
-
+try:
+	xmldoc = parser.ParseFile(fd)
+except :
+	print "file error,"
+	os.system("rm RAM/forecast.xml")
+	exit()
 #for each in forcasts: print each
 
 now = time.gmtime()

@@ -2,7 +2,7 @@
 import os
 import sys
 if "airiana-core.py" in sys.argv:
-	os.system("sudo systemctl restart airiana.service")
+	os.system("sudo systemctl restart airiana.service &")
 	os.system("sleep 5")
 	os.system("systemctl status airiana.service |tail -c 2000")
 if "controller" in sys.argv:
