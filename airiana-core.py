@@ -6,7 +6,7 @@ import time,struct,sys
 import statistics
 from signal import *
 from mail import *
-vers = "7.4c"
+vers = "7.4d"
 # Register cleanup
 def exit_callback(self, arg):
 		print "Gracefull shutdown\nexiting..."
@@ -683,7 +683,7 @@ class Systemair(object):
 		#			"C target:"+str(round((( low_pw+d_pw ) / max_pw ) * 100,2))+ "%\n"
 
 		self.new_humidity += (((( low_pw+d_pw ) / max_pw ) * 100 )-self.new_humidity) *0.0001
-		if self.iter %30 == 0:
+		if self.iter %30 == 0 and "debug" in sys.argv:
 			self.msg += "Humidity target: "+str((( low_pw+d_pw ) / max_pw ) * 100 )+"\n"	
 		return (( low_pw+d_pw ) / max_pw ) * 100 
 		#####END
