@@ -9,6 +9,7 @@ ioff()
 ## make backup of datafile if large##
 rev = 1
 if int(os.stat("./RAM/data.log").st_size) > 102400*5:
+	os.system("./humtest.py >> humtest.log")
 	while os.path.isfile("data.log."+str(rev)): rev += 1
 	os.system("mv ./RAM/data.log ./data.log."+str(rev))
 	os.system("tail -n "+str(60*24*3)+" data.log."+str(rev)+" > ./RAM/data.log")
@@ -18,8 +19,13 @@ if int(os.stat("./RAM/data.log").st_size) > 102400*5:
 	os.system("mv tmp.log data.log."+str(rev))
 
 ######################
-#if len(sys.argv) >=2  and "debug" not in sys.argv[1] and "humidities" not in sys.argv :day= int(sys.argv[1])
-day = int(float(3600*24))
+if len(sys.argv) >=2  :
+	try:
+		day= int(sys.argv[1])
+		print "day set to" ,day
+	except: day= 3600*24
+else:
+	day = 3600*24
 fil = os.popen("tail -n "+str(day/5)+" ./RAM/data.log")
 data = fil.readlines()
 #print data[-1], tm.time()

@@ -267,13 +267,13 @@ class Request(object):
 			resp = client.write_register(reg,value,0,6)
 		except IOError as error:
 			#print "write, ioerror",error,os.read(bus,20),";"
-			os.write(ferr,"write: "+str(error)+"\n")
+			#os.write(ferr,"write: "+str(error)+"\n")
 			self.write_errors += 1
 			#self.write_register(reg,value)
 			pass
 		except ValueError as error:
 			#print "write, val error",error,os.read(bus,20),"\n--",reg," ",value,";"
-			os.write(ferr,"write: "+str(error)+"\n")
+			#os.write(ferr,"write: "+str(error)+"\n")
 			self.write_errors += 1
 			#self.write_register(reg,value)
 			pass
@@ -683,8 +683,9 @@ class Systemair(object):
 		#			"C target:"+str(round((( low_pw+d_pw ) / max_pw ) * 100,2))+ "%\n"
 
 		self.new_humidity += (((( low_pw+d_pw ) / max_pw ) * 100 )-self.new_humidity) *0.0001
-		if self.iter %81 == 0:
-			self.msg += "Humidity target: "+str((( low_pw+d_pw ) / max_pw ) * 100 )
+		if self.iter %30 == 0:
+			self.msg += "Humidity target: "+str((( low_pw+d_pw ) / max_pw ) * 100 )+"\n"	
+		return (( low_pw+d_pw ) / max_pw ) * 100 
 		#####END
 
 	#calc long and short derivatives
@@ -1081,10 +1082,10 @@ class Systemair(object):
 			temp = float(tmp[1])
 			self.local_humidity = float(tmp[0])
 			comp = float(os.popen("./forcast.py tomorrows-low").read().split(" ")[0])
-			comp = float(comp - temp)/1000
-			self.kinetic_compensation -= comp * self.avg_frame_time
+			comp = float(comp - temp)/2500
+			self.kinetic_compensation += comp * self.avg_frame_time
 			if "debug" in sys.argv:
-				self.msg += "static comp set to: " +str(round(comp,4))+"\n"
+				self.msg += "Comp set to: " +str(round(comp,4))+" Static offset:"+str(round(self.kinetic_compensation,2))+"\n"
 			if temp <> self.prev_static_temp:
 				self.prev_static_temp = temp
 				self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/2
@@ -1158,7 +1159,7 @@ if __name__  ==  "__main__":
 	    device.div = device.inlet_ave
 	    starttime=time.time()
 	    if "humidity" in sys.argv:
-		device.moisture_calcs()
+		device.new_humidity = device.moisture_calcs()
 
 	    print "system started:",time.ctime(starttime),";"
 	    sys.stdout.flush()
