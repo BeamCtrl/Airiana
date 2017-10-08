@@ -1204,10 +1204,10 @@ if __name__  ==  "__main__":
 			if "humidity" in sys.argv and device.system_name not in device.has_RH_sensor:
 				device.get_local()
 		#calc local humidity and exec logger
-		if device.iter%181==0:
+		if device.iter%int(float(120)/device.average_frame_time)==0:
 			logger()
 		#send local tempt to temperatur.nu
-		if device.iter%137==0 and "temperatur.nu" in sys.argv:
+		if device.iter%251==0 and "temperatur.nu" in sys.argv:
                         os.system("wget -q -O temperatur.nu  http://www.temperatur.nu/rapportera.php?hash=42bc157ea497be87b86e8269d8dc2d42\\&t="+str(round(device.inlet_ave,1))+" &")
 		#genetarte graphs
 		if device.iter%563==0:
