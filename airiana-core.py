@@ -1025,11 +1025,11 @@ class Systemair(object):
 		self.shower = False
 
 	    #Dynamic pressure control
-	    if self.new_humidity > 20.0: #Low humidity limit, restriction to not set margin lower than 30%RH
+	    if self.new_humidity > 20.0: #Low humidity limit, restriction to not set margin lower than 20%RH
 		self.indoor_dewpoint = self.airdata_inst.dew_point(self.new_humidity+10,self.extract_ave)
 	    else:
 		self.indoor_dewpoint = 5.0
-	    if self.inlet_ave > self.indoor_dewpoint+0.1   and self.sf <> self.ef and not self.press_inhibit and not self.forcast[1] == -1 :
+	    if self.inlet_ave > self.indoor_dewpoint+0.2   and self.sf <> self.ef and not self.press_inhibit and not self.forcast[1] == -1 :
 		self.set_differential(0)
 		if "debug" in sys.argv: self.msg += "\nPressure diff to 0%"
 	    if (self.inlet_ave < self.indoor_dewpoint-0.1  and self.sf == self.ef and self.inlet_ave < 15 and not self.press_inhibit) or (self.forcast[-1] == -1 and self.sf == self.ef):
