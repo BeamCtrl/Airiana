@@ -1148,24 +1148,23 @@ if __name__  ==  "__main__":
 	    sys.stdout.flush()
 	    if device.rotor_active == "No":
 		device.coef = 0.11+(float(device.fanspeed)/400)
-		device.inlet_coef=0.14
+		device.inlet_coef=0.07
 	    else:
-		device.coef= 0.11
-		device.inlet_coef = 0.08
+		device.coef= 0.11+(float(device.fanspeed)/400)
+		device.inlet_coef = 0.07
 	    print "Read initial temperatures;"
 	    device.update_temps()
 	    device.update_xchanger()
-	    device.get_local()
 	    device.div = device.inlet_ave
 	    starttime=time.time()
 	    if "humidity" in sys.argv:
+		device.get_local()
 		device.new_humidity = device.moisture_calcs()
 
 	    print "system started:",time.ctime(starttime),";"
 	    sys.stdout.flush()
 	    time.sleep(2)
 	    while True:##### mainloop do each pass ###########
-		timeout =0.5
 		now = int(time.time()-starttime)
 		#do temps,energy and derivatives
 		device.update_temps()
@@ -1193,23 +1192,23 @@ if __name__  ==  "__main__":
 		if device.iter%7==0:
 			device.update_fanspeed()
 			device.update_airflow()
-		#debug specific and static humidity gain updatade
+		#debug specific sensors and temp probe status
 		if device.iter%11==0:
 			if "debug" in sys.argv:
 				update_sensors()
 				device.get_temp_status()
-		#refresh airdata class
+		#refresh static humidity
 		if device.iter%79==0:
 			device.msg = ""
 			if "humidity" in sys.argv and device.system_name not in device.has_RH_sensor:
 				device.get_local()
 		#calc local humidity and exec logger
-		if device.iter%int(float(120)/device.average_frame_time)==0:
+		if device.iter%int(float(120)/device.avg_frame_time)==0:
 			logger()
 		#send local tempt to temperatur.nu
 		if device.iter%251==0 and "temperatur.nu" in sys.argv:
                         os.system("wget -q -O temperatur.nu  http://www.temperatur.nu/rapportera.php?hash=42bc157ea497be87b86e8269d8dc2d42\\&t="+str(round(device.inlet_ave,1))+" &")
-		#genetarte graphs
+		#generarte graphs and refresh airdata instance.
 		if device.iter%563==0:
 			device.update_airdata_instance()
 			if "debug" in sys.argv:os.system("nice ./grapher.py debug & >>/dev/null")
@@ -1218,7 +1217,7 @@ if __name__  ==  "__main__":
 		if device.iter % int(3600/device.avg_frame_time)==0:
 			if "ping" in sys.argv:
 				report_alive()
-		#restart HTTP SERVER
+		#restart HTTP SERVER get filterstatus, reset IP on buttons page, update weather forcast
 		if device.iter %(int(3600*2 /device.avg_frame_time))==0:
 			device.get_filter_status()
 			os.system("./http")
@@ -1229,6 +1228,7 @@ if __name__  ==  "__main__":
 		device.iter+=1
 		########### Selection menu if not daemon######
 		if "daemon" not in sys.argv:
+			timeout = 1
 			print """
 	CTRL-C to exit,
 1: Toggle auto Monitoring	 6: Retrive all Modbus Registers
