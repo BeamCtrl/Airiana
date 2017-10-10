@@ -1,0 +1,17 @@
+#!/usr/bin/python
+import os
+
+directory = os.listdir("./")
+#print directory
+datalist = []
+for each in directory:
+	if "data.log." in each : datalist.append(each)
+datalist.sort()
+print datalist
+i = 1
+for each in datalist:
+	if "data.log."+str(i) in datalist: 
+		print i
+		os.system ("cat data.log."+str(i)+" >> data.log")
+		os.system ("rm -f data.log."+str(i))
+	i+=1

@@ -758,12 +758,15 @@ class Systemair(object):
 		if "humidity" in sys.argv :
 			if "debug" in sys.argv:
 				tmp += "Static: "+str(round(self.local_humidity+self.humidity_comp,2))+"%\n"
-			tmp += "Calculated Humidity: " + str(round (self.new_humidity,2))+"% Pressure limit: "+str(round(self.indoor_dewpoint,2))+"C\n"
+			tmp += "Calculated:\t " +str(round(self.extract_ave,1))+"C "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave),2))+"C\n" 
 		if "debug" in sys.argv:
 			try:
-				tmp += "Outdoor Sensor: "+str(self.sensor_temp)+"C "+str(self.sensor_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.sensor_humid,self.sensor_temp),2))+"C\n"
-				tmp += "Indoor Sensor: "+str(self.inside)+"C "+str(self.inside_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.inside_humid,self.inside),2))+"C\n"
+				tmp += "Outdoor Sensor:\t "+str(self.sensor_temp)+"C "+str(self.sensor_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.sensor_humid,self.sensor_temp),2))+"C\n"
+				tmp += "Indoor Sensor:\t "+str(self.inside)+"C "+str(self.inside_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.inside_humid,self.inside),2))+"C\n"
 			except: pass
+		if "humidity" in sys.argv:
+			tmp+= "Pressure limit: "+str(round(self.indoor_dewpoint,2))+"C\n"
+
 		if self.rotor_active=="Yes":
 			tmp += "\nElectric power:"+str(round(self.electric_power,0))+"W COP:"+ str(round(self.supply_power/self.electric_power,1))+"\n"
 		else :  tmp += "\nElectric power:"+str(round(self.electric_power,0))+"W COP:"+ str(round(self.loss/self.electric_power,1))+"\n"
