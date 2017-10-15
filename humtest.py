@@ -72,6 +72,6 @@ print "max",max(diff),"%  min",min(diff),"%"
 ave, stddev = stat.stddev(diff)
 tmp = "stddev: "+"+-"+ str(round(stddev,2))+ "% ave:"+str(round(ave,2))+"%\n"
 #tmp = "stddev: "+u"\u00B1"+ str(round(stddev,2))+ "% ave:"+str(round(ave,2))+"%"
-tmp +=  "Now: "+ str(calc_hum[-1]-inside_hum[-1])+'%'
+tmp +=  "Last: "+ str(calc_hum[-1]-inside_hum[-1])+'%'
 print tmp
 print "End: " + tm.ctime(float(-red_time[-1]+tm.time()))

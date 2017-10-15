@@ -428,7 +428,7 @@ class Systemair(object):
 		self.filter = req.response
 		self.filter_remaining = round(100*(1 - (float(self.filter)/self.filter_limit)),1)
 		if self.filter_remaining <0: self.filter_remaining = 0
-		if "debug" in sys.argv: print str(self.filter_limit),str(self.filter)
+
 	def get_temp_status(self):
 		req.modbusregister(218,0)
 		self.temp_state= req.response
@@ -1086,7 +1086,11 @@ class Systemair(object):
 			self.local_humidity = float(tmp[0])
 			comp = float(os.popen("./forcast.py tomorrows-low").read().split(" ")[0])
 			comp = float(comp - temp)/2500
-			self.kinetic_compensation += comp * self.avg_frame_time
+			self.kinetic_compensation -= comp * self.avg_frame_time
+			weather = int(os.popen("./forcast.py now").read().split(" ")[-2])
+			if weather == 9 or weather == 10 : 
+				self.kinetic_compensation = 0
+
 			if "debug" in sys.argv:
 				self.msg += "Comp set to: " +str(round(comp,4))+" Static offset:"+str(round(self.kinetic_compensation,2))+"\n"
 			if temp <> self.prev_static_temp:
@@ -1095,7 +1099,7 @@ class Systemair(object):
 				temp = int(os.popen("./forcast.py now").read().split(" ")[-2])
 				if temp >=3:
 					self.kinetic_compensation += 0.5
-				elif temp == 15:
+				elif temp == 15 or temp == 9 or temp == 10:
 					self.kinetic_compensation = 0
 				self.humidity_comp = 0
 			#if self.kinetic_compensation <0: self.kinetic_compensation = 0
