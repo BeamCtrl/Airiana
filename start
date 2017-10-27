@@ -1,11 +1,24 @@
-#!/bin/bash
-echo stoping relevant services
-sudo pkill --signal 15 airiana-core.py
-sudo pkill --signal 15 httpsrv.py
-sudo pkill --signal 15 controler.py
-echo starting aircontrol daemon
-sudo nohup ./airiana-core.py daemon humidity sensors temperatur.nu debug > /dev/null &
-sudo nohup ./public/controler.py  >> /dev/null &
+#!/usr/bin/python
+import os
+import sys
+if "airiana-core.py" in sys.argv:
+	os.system("sudo systemctl start airiana.service")
+if "controller" in sys.argv:
+	os.system("sudo systemctl start controller.service")
+
+if "status.py" in sys.argv:
+	os.system("sudo nohup ./status.py&")
+
+if "envlogger.py" in sys.argv:
+	os.system("sudo nohup ./envlogger.py&")
+
+if "alive_logger.py" in sys.argv:
+	os.system("sudo nohup ./alive_logger.py 135&")
+	os.system("sudo nohup ./alive_logger.py 91&")
+	os.system("sudo nohup ./alive_logger.py 92&")
+	os.system("sudo nohup ./alive_logger.py 93&")
+if "http" in sys.argv:
+	os.system("sudo nohup ./httpsrv.py&")
 
 
 

@@ -10,6 +10,7 @@ vers = "7.4d"
 # Register cleanup
 def exit_callback(self, arg):
 		print "Gracefull shutdown\nexiting..."
+		listme= []
                 for each in os.popen("ls -mr data.log.*").read().split(","):  listme.append(int(each.split(".")[-1]))
                 listme.sort()
                 last_file = listme[-1]
@@ -149,7 +150,7 @@ def logger ():
 		+":"				\
 		+str(round(device.supply_ave,2))		\
 		+":"				\
-		+str(round(device.local_humidity+device.humidity_comp,1))	\
+		+str(round(device.humidity_target,2))	\
 		+":"				\
 		+str(device.inside)		\
 		+":"				\
@@ -345,6 +346,7 @@ class Systemair(object):
 		self.extract = []
 		self.extract_ave=0
 		self.house_heat_limit = 8
+		self.humidity_target =0
 		self.exhaust = []
 		self.exhaust_ave=0
 		self.supply_power=0
@@ -457,12 +459,12 @@ class Systemair(object):
 		if len(self.rawdata)>self.averagelimit:self.rawdata.pop(-1)
 		#req.response[1] #EXTRACTreq.response[2] #EXHAUST req.response[0] #Supply pre elec heater
 		#req.response[3] #Supply post electric heater req.response[4] Inlet
-		if self.rotor_active == "No" and self.coef <> 0.11+(float(self.fanspeed)/400):
-			if self.coef-( 0.11+(float(self.fanspeed)/400))>0:self.coef -= 0.00035#0.04
-                        else: self.coef += 0.0002
-		if self.rotor_active == "Yes" and self.coef <> 0.11:
-			if self.coef-( 0.11)>0:self.coef -= 0.00015 #0.04
-			else: self.coef += 0.0004
+		if self.rotor_active == "No" and self.coef <> 0.10-(float(self.fanspeed)/400):
+			if self.coef-( 0.10-(float(self.fanspeed)/400))>0:self.coef -= 0.0005#0.04
+                        else: self.coef += 0.0005
+		if self.rotor_active == "Yes" and self.coef <> 0.10-(float(self.fanspeed)/400):
+			if self.coef-(0.10-(float(self.fanspeed)/400))>0:self.coef -= 0.00015 #0.04
+			else: self.coef += 0.0005
 		# NEGATYIVE VAL sign bit twos complement
 		if req.response[4]>60000:
 			req.response[4] -= 0xFFFF
@@ -685,6 +687,7 @@ class Systemair(object):
 		self.new_humidity += (((( low_pw+d_pw ) / max_pw ) * 100 )-self.new_humidity) *0.0001
 		if self.iter %30 == 0 and "debug" in sys.argv:
 			self.msg += "Humidity target: "+str((( low_pw+d_pw ) / max_pw ) * 100 )+"\n"	
+			self.humidity_target =(( low_pw+d_pw ) / max_pw ) * 100 	
 		return (( low_pw+d_pw ) / max_pw ) * 100 
 		#####END
 
@@ -1085,17 +1088,17 @@ class Systemair(object):
 			temp = float(tmp[1])
 			self.local_humidity = float(tmp[0])
 			comp = float(os.popen("./forcast.py tomorrows-low").read().split(" ")[0])
-			comp = float(comp - temp)/2500
+			comp = float(comp - temp)/1500
 			self.kinetic_compensation -= comp * self.avg_frame_time
 			weather = int(os.popen("./forcast.py now").read().split(" ")[-2])
-			if weather == 9 or weather == 10 : 
+			if weather == 9 or weather == 10 or weather == 15:
 				self.kinetic_compensation = 0
 
 			if "debug" in sys.argv:
 				self.msg += "Comp set to: " +str(round(comp,4))+" Static offset:"+str(round(self.kinetic_compensation,2))+"\n"
 			if temp <> self.prev_static_temp:
 				self.prev_static_temp = temp
-				self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/2
+				self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/3
 				temp = int(os.popen("./forcast.py now").read().split(" ")[-2])
 				if temp >=3:
 					self.kinetic_compensation += 0.5
@@ -1154,10 +1157,10 @@ if __name__  ==  "__main__":
 	    print "Setting up coeficients;"
 	    sys.stdout.flush()
 	    if device.rotor_active == "No":
-		device.coef = 0.11+(float(device.fanspeed)/400)
+		device.coef = 0.10+(float(device.fanspeed)/400)
 		device.inlet_coef=0.07
 	    else:
-		device.coef= 0.11+(float(device.fanspeed)/400)
+		device.coef= 0.10+(float(device.fanspeed)/400)
 		device.inlet_coef = 0.07
 	    print "Read initial temperatures;"
 	    device.update_temps()
@@ -1172,19 +1175,32 @@ if __name__  ==  "__main__":
 	    sys.stdout.flush()
 	    time.sleep(2)
 	    while True:##### mainloop do each pass ###########
+		if "debug" in sys.argv:
+			timed_tree = "" 
 		now = int(time.time()-starttime)
 		#do temps,energy and derivatives
+		if "debug" in sys.argv:
+			st = time.time()
 		device.update_temps()
 		device.update_xchanger()
 		device.derivatives()
                 if "debug" in sys.argv:
                         device.flow_calcs()
+			en = time.time() - st
+			timed_tree += "band 1: "+str(en)+"S\n"
 		## EXEC TREE, exec steps uniqe if prime##
 		#check states and flags
 		if device.iter%3 ==0:
+			if "debug" in sys.argv:
+				st = time.time()
 			device.check_flags()
+			if "debug" in sys.argv:
+	                        en = time.time() - st
+        	                timed_tree += "band 3: "+str(en)+"S\n"
 		# update moisture and rotor/rpm
 		if device.iter%5==0:
+			if "debug" in sys.argv:
+                                st = time.time()
 			if monitoring:
 				device.monitor()
 				device.shower_detect()
@@ -1195,10 +1211,18 @@ if __name__  ==  "__main__":
 				device.get_RH() ## Read sensor humidity
 			device.update_fan_rpm()
 			device.get_rotor_state()
+			if "debug" in sys.argv:
+                                en = time.time() - st
+                                timed_tree += "band 5: "+str(en)+"S\n"
 		#update fans
 		if device.iter%7==0:
+			if "debug" in sys.argv:
+                                st = time.time()
 			device.update_fanspeed()
 			device.update_airflow()
+			if "debug" in sys.argv:
+                                en = time.time() - st
+                                timed_tree += "band 7: "+str(en)+"S\n"
 		#debug specific sensors and temp probe status
 		if device.iter%11==0:
 			if "debug" in sys.argv:
@@ -1230,6 +1254,8 @@ if __name__  ==  "__main__":
 			os.system("./http")
 			os.system("./public/ip-replace.sh")  # reset ip-addresses on buttons.html
 			device.get_forcast()
+		### write timers to file
+		os.system("echo -n \" "+timed_tree+"\" > ./RAM/timed_tree")
 		## PRINT TO DISPLAY ##
 		device.print_xchanger()
 		device.iter+=1

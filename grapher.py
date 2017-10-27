@@ -67,9 +67,14 @@ try:
 		supply_humid.append(float(tmp[8]))
 		outside.append(float(tmp[9]))
 		cond_comp.append(float(tmp[10]))
-		inside_hum.append(int(tmp[11]))
-	    except IndexError:inside_hum.append(0)
-	    except ValueError: pass#print tmp[0]
+		inside_hum.append(float(tmp[11]))
+	    except IndexError as error:
+		inside_hum.append(0)
+		print error
+	    except ValueError as error:
+		print error
+		inside_hum.append(0)
+		pass#print tmp[0]
 	    except: traceback.print_exc() 	
 except:traceback.print_exc()
 red_hum = []
@@ -115,7 +120,7 @@ if "debug" in sys.argv or "humidities" in sys.argv:
 	if "debug" in sys.argv:
 			plot(time[-day:-1],sen_hum[-day:-1], '-', linewidth=1,label="outdoor sensor humidity")
 			plot(time[-day:-1],supply_humid[-day:-1],'-',linewidth=1,label="supply estimate humidity")
-			plot(time,inside_hum,'-',linewidth=1,label="inside sensor humidity")
+			plot(time[-day:-1],inside_hum[-day:-1],'-',linewidth=1,label="inside sensor humidity")
 	
 	subplots_adjust( hspace=0.75 )
 	ax = gca()
