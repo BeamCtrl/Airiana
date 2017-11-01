@@ -459,20 +459,26 @@ class Systemair(object):
 		if len(self.rawdata)>self.averagelimit:self.rawdata.pop(-1)
 		#req.response[1] #EXTRACTreq.response[2] #EXHAUST req.response[0] #Supply pre elec heater
 		#req.response[3] #Supply post electric heater req.response[4] Inlet
-		if self.rotor_active == "No" and self.coef <> 0.10-(float(self.fanspeed)/400):
-			if self.coef-( 0.10-(float(self.fanspeed)/400))>0:self.coef -= 0.0005#0.04
-                        else: self.coef += 0.0005
-		if self.rotor_active == "Yes" and self.coef <> 0.10-(float(self.fanspeed)/400):
-			if self.coef-(0.10-(float(self.fanspeed)/400))>0:self.coef -= 0.00015 #0.04
-			else: self.coef += 0.0005
+		if self.system_types[self.system_name]=="VR400":
+			if self.rotor_active == "No" and self.coef <> 0.10-(float(self.fanspeed)/400):
+				if self.coef-( 0.10-(float(self.fanspeed)/400))>0:self.coef -= 0.0005#0.04
+                        	else: self.coef += 0.0005
+			if self.rotor_active == "Yes" and self.coef <> 0.10-(float(self.fanspeed)/400):
+				if self.coef-(0.10-(float(self.fanspeed)/400))>0:self.coef -= 0.00015 #0.04
+				else: self.coef += 0.0005
+			if self.sf <> 0:
+				self.tcomp= ((req.response[1]-req.response[4])*self.coef)#float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
+				req.response[1] += self.tcomp
+			if self.rotor_active =="No"  and self.inlet_coef <0.14:self.inlet_coef+= 0.00014 #OFF
+			if self.rotor_active =="Yes" and self.inlet_coef >0.07:self.inlet_coef-= 0.00014 # ON
+
+		#DO CALC FOR REQ[2] exhaust temp expectancy for VR300 machines as they have no exhust temp sensor:
+		#########
+		###########################################
+
 		# NEGATYIVE VAL sign bit twos complement
 		if req.response[4]>60000:
 			req.response[4] -= 0xFFFF
-		if self.sf <> 0:
-			self.tcomp= ((req.response[1]-req.response[4])*self.coef)#float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
-			req.response[1] += self.tcomp
-		if self.rotor_active =="No"  and self.inlet_coef <0.14:self.inlet_coef+= 0.00014 #OFF
-		if self.rotor_active =="Yes" and self.inlet_coef >0.07:self.inlet_coef-= 0.00014 # ON
 		req.response[4]  -= (req.response[1]-req.response[4])*self.inlet_coef #inlet compensation exchanger OFF/ON
 
 
@@ -481,7 +487,6 @@ class Systemair(object):
 		#if self.rotor_active =="No" :
 		#	req.response[2]  -= (req.response[1]-req.response[4])*0.01  #exhaust compensation exch off
 		#else : 	req.response[2]  -= (req.response[1]-req.response[4])*0.06  #exhaust compensation exch ON
-
 		self.extract.insert(0, float(req.response[1])/10)
 		self.exhaust.insert(0, float(req.response[2])/10)
 		self.supply.insert (0, float(req.response[3])/10)
@@ -1191,16 +1196,9 @@ if __name__  ==  "__main__":
 		## EXEC TREE, exec steps uniqe if prime##
 		#check states and flags
 		if device.iter%3 ==0:
-			if "debug" in sys.argv:
-				st = time.time()
 			device.check_flags()
-			if "debug" in sys.argv:
-	                        en = time.time() - st
-        	                timed_tree += "band 3: "+str(en)+"S\n"
 		# update moisture and rotor/rpm
 		if device.iter%5==0:
-			if "debug" in sys.argv:
-                                st = time.time()
 			if monitoring:
 				device.monitor()
 				device.shower_detect()
@@ -1211,18 +1209,10 @@ if __name__  ==  "__main__":
 				device.get_RH() ## Read sensor humidity
 			device.update_fan_rpm()
 			device.get_rotor_state()
-			if "debug" in sys.argv:
-                                en = time.time() - st
-                                timed_tree += "band 5: "+str(en)+"S\n"
 		#update fans
 		if device.iter%7==0:
-			if "debug" in sys.argv:
-                                st = time.time()
 			device.update_fanspeed()
 			device.update_airflow()
-			if "debug" in sys.argv:
-                                en = time.time() - st
-                                timed_tree += "band 7: "+str(en)+"S\n"
 		#debug specific sensors and temp probe status
 		if device.iter%11==0:
 			if "debug" in sys.argv:
@@ -1254,8 +1244,6 @@ if __name__  ==  "__main__":
 			os.system("./http")
 			os.system("./public/ip-replace.sh")  # reset ip-addresses on buttons.html
 			device.get_forcast()
-		### write timers to file
-		os.system("echo -n \" "+timed_tree+"\" > ./RAM/timed_tree")
 		## PRINT TO DISPLAY ##
 		device.print_xchanger()
 		device.iter+=1
