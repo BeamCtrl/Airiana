@@ -30,7 +30,17 @@ class Energy(object):
 	#CALCULATE AIR DENSITY AT A GIVEN TEMPERATURE
 	def get_mass(self,temp):
 		return (self.density(temp)) #kg/m3
-
+	def temp_diff(self,energy, extract_temp,extract_flow):
+		d_W = energy
+		d_T = 0.1
+		while d_W >0:
+			density = self.density(extract_temp+d_temp)
+			mass = density * extract_flow
+			energy = mass * self.specific_heat*d_T
+			d_W -=  energy
+			d_temp += d_T
+		return d_temp
+		
 	#CALCULATE THE ENERGY REQUIRED TO SENSIBLY RAISE OR LOWER TEMPERATURE FOR A GIVVEN VOLUME
 	def energy_flow(self,litres,high,low):
 		total=0
