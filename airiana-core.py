@@ -824,6 +824,7 @@ class Systemair(object):
 	#Read all data registers
 	def update_registers(self):
 		for each in range(100,900,100):
+			print "Get series",each
 			if   each == 100: addresses = 36
 			elif each == 200: addresses = 21
 			elif each == 300: addresses = 84
@@ -835,10 +836,12 @@ class Systemair(object):
 			for i in range(addresses):
 				try:
 					req.modbusregister(each+i,0)
-					self.register[str(each+i)]=req.response[0]
 				except:
-					print "error reading address",each+i
-			print len(req.response),"entries recieved at address space:",each
+					pass # print "error reading address",each+i
+				self.register[str(each+i)]=req.response
+				print traceback.print_exc()
+				#print "entries recieved at address:",each+i,req.response
+
 
 	#print previously read modbus registers
 	def print_registers(self):
@@ -852,7 +855,7 @@ class Systemair(object):
 					tmp+= str(address+each)+":"+str( self.register[str(pos)])+" "+str( hex(self.register[str(pos)]))+"\t"
 				    except KeyError: tmp+= str(pos)+":\t\t"
 				print tmp
-				if "daemon" not in sys.argv :raw_input("enter to resume")
+			if "daemon" not in sys.argv :raw_input("enter to resume")
 			print "break"
 		except:traceback.print_exc()
 
