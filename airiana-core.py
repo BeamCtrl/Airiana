@@ -661,7 +661,7 @@ class Systemair(object):
 	# For units whithout exhaust temp sensor calc expected exhaust temp based on transfered energy in supply
 	def calc_exhaust(self):
 		self.supply_power
-		exhaust = self.airdata_inst.temp_diff(self.supply_power,self.extract_ave,self.ef)
+		exhaust = self.extract_ave- self.airdata_inst.temp_diff(self.supply_power,self.extract_ave,self.ef)
 		self.exhaust_ave=exhaust
 
 	def get_rotor_state(self):
