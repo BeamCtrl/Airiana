@@ -608,7 +608,7 @@ class Systemair(object):
 		self.inlet_ave = numpy.average(self.inlet)
 		self.supply_ave = numpy.average(self.supply)
 		self.extract_ave = numpy.average(self.extract)
-		if self.system_name <> "VTR300:":
+		if self.system_name == "VR400:":
 			self.exhaust_ave = numpy.average(self.exhaust)
 		if self.fanspeed <> 0:
 			#self.availible_energy =  self.airdata_inst.energy_flow(self.ef,self.extract_ave,self.inlet_ave)+self.airdata_inst.condensation_energy((self.airdata_inst.vapor_max(self.exhaust_ave)-self.airdata_inst.vapor_max(self.inlet_ave))*((self.ef)/1000))
