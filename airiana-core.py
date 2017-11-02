@@ -825,14 +825,17 @@ class Systemair(object):
 	def update_registers(self):
 		for each in range(100,900,100):
 			print "Get series",each
-			if   each == 100: addresses = 36
-			elif each == 200: addresses = 21
+			if   each == 100: addresses = 84#36
+			elif each == 200: addresses = 84#21
 			elif each == 300: addresses = 84
 			elif each == 400: addresses = 59
-			elif each == 500: addresses = 57
-			elif each == 600: addresses = 72
-			elif each == 700: addresses = 51
-			elif each == 800: addresses = 2
+			elif each == 500: addresses = 60
+			elif each == 600: addresses = 75
+			elif each == 700: addresses = 75
+			elif each == 800: addresses = 25
+			elif each == 900: addresses = 25
+			elif each == 1000: addresses = 25
+
 			for i in range(addresses):
 				try:
 					req.modbusregister(each+i,0)
