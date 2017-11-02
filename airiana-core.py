@@ -835,14 +835,13 @@ class Systemair(object):
 			elif each == 800: addresses = 25
 			elif each == 900: addresses = 25
 			elif each == 1000: addresses = 25
-
 			for i in range(addresses):
 				try:
 					req.modbusregister(each+i,0)
 				except:
 					pass # print "error reading address",each+i
 				self.register[str(each+i)]=req.response
-				print traceback.print_exc()
+				#print traceback.print_exc()
 				#print "entries recieved at address:",each+i,req.response
 
 
