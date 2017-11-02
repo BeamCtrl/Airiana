@@ -1187,7 +1187,6 @@ if __name__  ==  "__main__":
 	    time.sleep(2)
 	    while True:##### mainloop do each pass ###########
 		if "debug" in sys.argv:
-			timed_tree = "" 
 		now = int(time.time()-starttime)
 		#do temps,energy and derivatives
 		if "debug" in sys.argv:
@@ -1195,10 +1194,8 @@ if __name__  ==  "__main__":
 		device.update_temps()
 		device.update_xchanger()
 		device.derivatives()
-                if "debug" in sys.argv:
+                if "raw_debug" in sys.argv:
                         device.flow_calcs()
-			en = time.time() - st
-			timed_tree += "band 1: "+str(en)+"S\n"
 		## EXEC TREE, exec steps uniqe if prime##
 		#check states and flags
 		if device.iter%3 ==0:
