@@ -478,7 +478,8 @@ class Systemair(object):
 		#########
 		###########################################
 		if self.system_name=="VTR300":
-			req.response[2] = req.response[4]
+			#req.response[2] = req.response[4]
+			pass
 		# NEGATYIVE VAL sign bit twos complement
 		if req.response[4]>60000:
 			req.response[4] -= 0xFFFF
