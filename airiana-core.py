@@ -1186,8 +1186,6 @@ if __name__  ==  "__main__":
 	    sys.stdout.flush()
 	    time.sleep(2)
 	    while True:##### mainloop do each pass ###########
-		if "debug" in sys.argv:
-		now = int(time.time()-starttime)
 		#do temps,energy and derivatives
 		if "debug" in sys.argv:
 			st = time.time()
