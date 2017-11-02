@@ -45,6 +45,7 @@ if "daemon" in sys.argv:
 	fout = os.open("./RAM/out",os.O_WRONLY|os.O_CREAT)
 	os.dup2(fout,sys.stdout.fileno())
 	print "Output redirected to file;"
+	os.system("rm -f ./RAM/err")
 	ferr = os.open("./RAM/err",os.O_WRONLY|os.O_CREAT)
 	os.dup2(ferr,sys.stderr.fileno())
 
@@ -220,7 +221,7 @@ class Request(object):
 		delta = self.iter - self.error_time
 		self.error_time = self.iter
 		rate = float(self.connect_errors+self.checksum_errors+self.write_errors) / delta
-		if rate > 20:
+		if rate >= 0.9:
 			bus.read(1000)
 			time.wait(1)
 		os.system ("echo "+str(rate)+" "+ str(self.wait_time)+" > RAM/error_rate")
@@ -418,10 +419,11 @@ class Systemair(object):
 
 	#Get relative humidity from internal sensor, valid units in self.has_RH_sensor tuple
 	def get_RH (self):
-		req.modbusregister(380)
-		self.new_humidity = int(req.response)
-		req.modbusregister(382)
+		req.modbusregister(382,0)
 		self.RH_valid = int(req.response)
+		req.modbusregister(380,0)
+		if self.RH_valid:
+			self.new_humidity = int(req.response)
 
 	def get_filter_status(self):
 		req.modbusregister(600,0)
@@ -475,7 +477,8 @@ class Systemair(object):
 		#DO CALC FOR REQ[2] exhaust temp expectancy for VR300 machines as they have no exhust temp sensor:
 		#########
 		###########################################
-
+		if self.system_name=="VTR300":
+			req.response[2] = req.response[4]
 		# NEGATYIVE VAL sign bit twos complement
 		if req.response[4]>60000:
 			req.response[4] -= 0xFFFF
@@ -552,7 +555,6 @@ class Systemair(object):
 	    		else:
 				#print "write to device", target
 				req.write_register(100,target)
-	    			os.read(bus,20)
 	    			#time.sleep(wait_time*50)
 			if int(self.get_fanspeed()) == target :
 				#print "succsess", target
@@ -564,14 +566,11 @@ class Systemair(object):
 			#print error
 			if "Wrong" == error.message[0:5]:
 				self.get_fanspeed()
-				os.read(bus,100)
 				if self.fanspeed<>target:self.set_fanspeed(target)
 			if "Check" == error.message[0:5]:
-				os.read(bus,100)
 				self.set_fanspeed(target)
     		except IOError as error:
     			#print "no response", "fanspeed:", self.speeds[self.fanspeed]
-			os.read(bus,100)
 			self.set_fanspeed(target)
 		except: print "unhandled exception", sys.exc_info[0]
 		self.update_airflow()
@@ -608,7 +607,8 @@ class Systemair(object):
 		self.inlet_ave = numpy.average(self.inlet)
 		self.supply_ave = numpy.average(self.supply)
 		self.extract_ave = numpy.average(self.extract)
-		self.exhaust_ave = numpy.average(self.exhaust)
+		if self.system_name <> "VTR300:":
+			self.exhaust_ave = numpy.average(self.exhaust)
 		if self.fanspeed <> 0:
 			#self.availible_energy =  self.airdata_inst.energy_flow(self.ef,self.extract_ave,self.inlet_ave)+self.airdata_inst.condensation_energy((self.airdata_inst.vapor_max(self.exhaust_ave)-self.airdata_inst.vapor_max(self.inlet_ave))*((self.ef)/1000))
 
@@ -657,6 +657,11 @@ class Systemair(object):
 
 			self.cond_data.append(self.energy_diff)
 			if len(self.cond_data)> self.averagelimit+5000:self.cond_data.pop(0)
+	# For units whithout exhaust temp sensor calc expected exhaust temp based on transfered energy in supply
+	def calc_exhaust(self):
+		self.supply_power
+		exhaust = self.airdata_inst.temp_diff(self.supply_power,self.extract_ave,self.ef)
+		self.exhaust_ave=exhaust
 
 	def get_rotor_state(self):
 		req.modbusregister(206,0)
@@ -826,11 +831,12 @@ class Systemair(object):
 			elif each == 600: addresses = 72
 			elif each == 700: addresses = 51
 			elif each == 800: addresses = 2
-			req.modbusregisters(each,addresses)
-			time.sleep(0.1)
-			print os.read(bus,200)
-			for addr in  range(len(req.response)):
-				self.register[str(each+addr+1)]=req.response[addr]
+			for i in range(addresses):
+				try:
+					req.modbusregister(each+i,0)
+					self.register[str(each+i)]=req.response[0]
+				except:
+					print "error reading address",each+i
 			print len(req.response),"entries recieved at address space:",each
 
 	#print previously read modbus registers
@@ -1197,13 +1203,15 @@ if __name__  ==  "__main__":
 		#check states and flags
 		if device.iter%3 ==0:
 			device.check_flags()
+			if device.system_name == "VTR300":
+				device.calc_exhaust()
 		# update moisture and rotor/rpm
 		if device.iter%5==0:
 			if monitoring:
 				device.monitor()
 				device.shower_detect()
 
-			if "humidity" in sys.argv and device.system_name not in device.has_RH_sensor:
+			if "humidity" in sys.argv and (device.system_name not in device.has_RH_sensor or not device.RH_valid):
 				device.moisture_calcs()
 			elif "humidity" in sys.argv and device.system_name in device.has_RH_sensor:
 				device.get_RH() ## Read sensor humidity
@@ -1221,7 +1229,7 @@ if __name__  ==  "__main__":
 		#refresh static humidity
 		if device.iter%79==0:
 			device.msg = ""
-			if "humidity" in sys.argv and device.system_name not in device.has_RH_sensor:
+			if "humidity" in sys.argv and (device.system_name not in device.has_RH_sensor or not device.RH_valid):
 				device.get_local()
 		#calc local humidity and exec logger
 		if device.iter%int(float(120)/device.avg_frame_time)==0:
