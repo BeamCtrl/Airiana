@@ -828,13 +828,13 @@ class Systemair(object):
 			if   each == 100: addresses = 84#36
 			elif each == 200: addresses = 84#21
 			elif each == 300: addresses = 84
-			elif each == 400: addresses = 59
-			elif each == 500: addresses = 60
-			elif each == 600: addresses = 75
-			elif each == 700: addresses = 75
-			elif each == 800: addresses = 25
-			elif each == 900: addresses = 25
-			elif each == 1000: addresses = 25
+			elif each == 400: addresses = 85
+			elif each == 500: addresses = 85
+			elif each == 600: addresses = 85
+			elif each == 700: addresses = 85
+			elif each == 800: addresses = 85
+			elif each == 900: addresses = 85
+			elif each == 1000: addresses = 85
 			for i in range(addresses):
 				try:
 					req.modbusregister(each+i,0)
@@ -851,7 +851,7 @@ class Systemair(object):
 			print "\n",
 			for each in range(1,84):
 				tmp=""
-				for address in range(100,900,100):
+				for address in range(100,1100,100):
 				    try:
 					pos = address+each
 					tmp+= str(address+each)+":"+str( self.register[str(pos)])+" "+str( hex(self.register[str(pos)]))+"\t"
