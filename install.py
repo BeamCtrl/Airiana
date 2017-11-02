@@ -13,8 +13,7 @@
 #
 #################################################################
 import os, sys
-print "Upgrading Raspberry Firmware"
-os.system("rpi-update")
+print "Installing the AirianaCores"
 os.system("apt-get update")
 
 #MAKE RAM DRIVE IN FSTAB#
