@@ -33,6 +33,7 @@ class Energy(object):
 	def temp_diff(self,energy, extract_temp,extract_flow):
 		d_W = energy
 		d_T = 0.1
+		d_temp = 0.0
 		while d_W >0:
 			density = self.density(extract_temp+d_temp)
 			mass = density * extract_flow
