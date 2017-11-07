@@ -456,10 +456,19 @@ class Systemair(object):
 		req.modbusregisters(213,5)# Tempsensors 1 -5
 		self.time.insert(0,time.time())
 		if len(self.time) > self.averagelimit: self.time.pop(-1)
+		# NEGATYIVE VAL sign bit twos complement
+		if req.response[4]>6000:
+			req.response[4] -= 0xFFFF
+		req.response[4]  -= (req.response[1]-req.response[4])*self.inlet_coef #inlet compensation exchanger OFF/ON
+
+
+		if req.response[2]>6000:
+			req.response[2] -=0xFFFF
+
 		self.temps = req.response[:]
 		self.rawdata.insert(0,self.temps)
 		if len(self.rawdata)>self.averagelimit:self.rawdata.pop(-1)
-		#req.response[1] #EXTRACTreq.response[2] #EXHAUST req.response[0] #Supply pre elec heater
+		#req.response[1] #EXTRACTreq.BBresponse[2] #EXHAUST req.response[0] #Supply pre elec heater
 		#req.response[3] #Supply post electric heater req.response[4] Inlet
 		if self.system_name=="VR400":
 			if self.rotor_active == "No" and self.coef <> 0.10-(float(self.fanspeed)/400):
@@ -480,14 +489,6 @@ class Systemair(object):
 		if self.system_name=="VTR300":
 			#req.response[2] = req.response[4]
 			pass
-		# NEGATYIVE VAL sign bit twos complement
-		if req.response[4]>6000:
-			req.response[4] -= 0xFFFF
-		req.response[4]  -= (req.response[1]-req.response[4])*self.inlet_coef #inlet compensation exchanger OFF/ON
-
-
-		if req.response[2]>6000:
-			req.response[2] -=0xFFFF
 		#if self.rotor_active =="No" :
 		#	req.response[2]  -= (req.response[1]-req.response[4])*0.01  #exhaust compensation exch off
 		#else : 	req.response[2]  -= (req.response[1]-req.response[4])*0.06  #exhaust compensation exch ON
@@ -674,7 +675,7 @@ class Systemair(object):
 
 	def moisture_calcs(self):## calculate moisure/humidities
 
-		self.cond_eff=1.00 #  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
+		self.cond_eff=.60 #  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
 		######### SAT MOIST UPDATE ############
 		if self.energy_diff > 0 and self.rotor_active=="Yes":
 			try:

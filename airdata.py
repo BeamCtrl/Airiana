@@ -44,19 +44,17 @@ class Energy(object):
 		
 	#CALCULATE THE ENERGY REQUIRED TO SENSIBLY RAISE OR LOWER TEMPERATURE FOR A GIVVEN VOLUME
 	def energy_flow(self,litres,high,low):
-		total=0
-		step =1
-		if low < high:step=-1
-		for each in range(int(high*100),int(low*100),step):
-			density = self.density(float(each)/100) # kg/m3
-			volume  = float(litres)/1000 #m3
-			d_T= 0.01  # K
-			mass = density*volume #kg/m3 * m3 = kg
-			energy = mass * self.specific_heat*d_T #kg  * J/gK  * K  = J
-			#print energy, float(each)/100,"C", total,"W"
-			total += energy*1000
-		#print "high",high,"low",low,"litres",litres,round(self.get_mass(high/10),2),round(self.get_mass(low/10),2), "energy", int(total)
-		return total
+                total=0
+                step =1
+                if low > high:
+                        step = -1
+                        top = float(low)
+                        low = float(high)
+                        high = float(top)
+                volume = float(litres)/1000 #m3
+                mass = volume* self.press*100/self.R * (math.log(self.T+high)-math.log(self.T+low))/(high-low)
+                energy = mass * self.specific_heat*(high-low) * 1000 #kg * J/gK * K = J
+                return energy
 
 	#RETURN MAXIMUM VAPOR CONTENT BY MASS
 	def vapor_max(self,T):
@@ -116,3 +114,11 @@ if  "__main__" in __name__:
 	#print air.dew_point(30,22.0)		
 	print air.energy_flow(34,18.29,21.73)
 	print air.energy_flow(34,21.58,17.73)
+
+
+
+
+
+
+
+

@@ -8,7 +8,7 @@ from pylab import *
 ioff()
 ## make backup of datafile if large##
 rev = 1
-if int(os.stat("./RAM/data.log").st_size) > 102400*5:
+if int(os.stat("./RAM/data.log").st_size) > 102400*2:
 	os.system("./humtest.py >> humtest.log")
 	while os.path.isfile("data.log."+str(rev)): rev += 1
 	os.system("mv ./RAM/data.log ./data.log."+str(rev))
