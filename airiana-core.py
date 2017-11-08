@@ -4,12 +4,16 @@ import serial, numpy, select, threading
 import minimalmodbus, os, traceback
 import time,struct,sys
 import statistics
-from signal import *
-from mail import *
+import signal
+#from mail import *
 vers = "7.4d"
+Running =True
 # Register cleanup
 def exit_callback(self, arg):
-		print "Gracefull shutdown\nexiting..."
+		print "Gracefull shutdown\nexiting on signal",self
+		sys.stdout.flush()
+		Running = False
+		time.sleep(3)
 		listme= []
                 for each in os.popen("ls -mr data.log.*").read().split(","):  listme.append(int(each.split(".")[-1]))
                 listme.sort()
@@ -19,8 +23,8 @@ def exit_callback(self, arg):
                 if threading.enumerate()[-1].name=="Timer": threading.enumerate()[-1].cancel()
                 cmd_socket.close()
 		sys.exit()
-signal(SIGTERM, exit_callback)
-signal(SIGINT , exit_callback)
+signal.signal(signal.SIGTERM, exit_callback)
+signal.signal(signal.SIGINT , exit_callback)
 
 #exec util fnctns
 os.chdir("/home/pi/airiana/public")
@@ -1184,18 +1188,16 @@ if __name__  ==  "__main__":
 	    device.update_temps()
 	    device.update_xchanger()
 	    device.div = device.inlet_ave
-	    starttime=time.time()
 	    if "humidity" in sys.argv:
 		device.get_local()
 		device.new_humidity = device.moisture_calcs()
-
+	    starttime=time.time()
 	    print "system started:",time.ctime(starttime),";"
 	    sys.stdout.flush()
 	    time.sleep(2)
-	    while True:##### mainloop do each pass ###########
+	    starttime=time.time()
+	    while Running:##### mainloop do each pass ###########
 		#do temps,energy and derivatives
-		if "debug" in sys.argv:
-			st = time.time()
 		device.update_temps()
 		device.update_xchanger()
 		device.derivatives()
@@ -1384,4 +1386,4 @@ if __name__  ==  "__main__":
 		#	if "daemon" not in sys.argv:raw_input("press enter to resume")
 
 	except KeyboardInterrupt:
-		exit_callback(device,None)
+		exit_callback(2,None)

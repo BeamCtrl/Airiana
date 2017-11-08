@@ -8,6 +8,6 @@ ExecStart=/usr/bin/python /home/pi/airiana/airiana-core.py daemon ping humidity
 
 Restart=always
 User=root
-KillSignal = SIGTERM
+KillSignal = SIGKILL
 [Install]
 WantedBy=multi-user.target
