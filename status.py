@@ -18,7 +18,10 @@ def init():
 	for each in users.keys():
 		mail_sent[each] = False
 init()
+os.chdir("/home/pi/airiana")
+os.system("./alive_logger.py")
 files = os.listdir("./public/local_links/")
+
 #for each in users.keys():
 #	print each, ": ",users[each]
 while True:

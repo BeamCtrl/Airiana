@@ -3,6 +3,8 @@
 import socket
 import select
 import time
+import os
+os.chdir("/home/pi/airiana")
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 html = """ 
 <html>
