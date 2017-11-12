@@ -10,7 +10,7 @@ while buffer_len <> len(buffer) :
 	buffer_len = len(buffer)
 	for each in loglines:
 		line = each.split(":")
-		if float(line[0]) < (tm.time()-(60*24*60)):
+		if float(line[0]) < (tm.time()-(25*60*60)):
 			os.system("echo -n \""+each +"\">> ./data.log")
 			buffer.append (loglines.pop(loglines.index(each)))
 			#print "removed:",tm.ctime(float(line[0]))
