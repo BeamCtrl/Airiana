@@ -8,7 +8,7 @@ class myHandler (SocketServer.BaseRequestHandler):
 	def handle(self):
 		ip = os.popen("hostname -I").readline().split(" ")[0]
 		data = self.request.recv(1024).strip().split("\r\n")
-		#print data
+		print data[0]
 		if "GET" in data[0]:
 			if "command" in data[0]:
 				req = data[0].split(" ")
@@ -31,29 +31,29 @@ class myHandler (SocketServer.BaseRequestHandler):
                         	self.request.send("HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://"+str(ip)+"/buttons.html\" /></head></html> \n\r")
 
 			if "utility" in data[0]:
+				print data[0]
 				os.chdir("/home/pi/airiana/")
 				if "shutdown" in data[0]:
+					self.request.send("HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://"+str(ip)+"/util.html\" /></head></html> \n\r")
 					os.system("sudo shutdown")
 				if "reboot" in data[0]:
-					#os.system("sudo cp ./RAM/data.log ../")
-					os.system("sudo reboot")
+					self.request.send("HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://"+str(ip)+"/util.html\" /></head></html> \n\r")
+					os.system(" sudo reboot &")
 				if "update" in data[0]:
+					self.request.send("HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://"+str(ip)+"/util.html\" /></head></html> \n\r")
 					os.system("git pull")
 					if os.path.lexists("/dev/ttyAMA0"):
 						os.system("./restart &")
 					else:
-						os.system("sudo systemctl restart airiana.service controller.service")
+						os.system("sudo systemctl restart airiana.service controller.service &")
 				if "restart" in data[0]:
-					if os.path.lexists("/dev/ttyAMA0"):
-                                                os.system("./restart airiana-core.py &")
-                                        else:
-						os.system("sudo systemctl restart airiana.service controller.service")
+						self.request.send("HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://"+str(ip)+"/util.html\" /></head></html> \n\r")
+                                                os.system("./restart airiana-core.py controller &")
 			 	     	
 				if "coffee" in data[0]:
 					self.request.send("HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://"+str(ip)+"/coffee.txt\" /></head></html> \n\r")
 					return 0
 				os.chdir("/home/pi/airiana/public/")
-				self.request.send("HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://"+str(ip)+"/util.html\" /></head></html> \n\r")
 
 SocketServer.TCPServer.allow_reuse_address = True
 
