@@ -4,7 +4,6 @@ import os
 ## make backup of datafile if large##
 logfile = open("./RAM/data.log","r")
 loglines = logfile.readlines()
-print len(loglines)
 buffer = []
 buffer_len = -1
 while buffer_len <> len(buffer) :
@@ -14,7 +13,7 @@ while buffer_len <> len(buffer) :
 		if float(line[0]) < (tm.time()-(60*24*60)):
 			os.system("echo -n \""+each +"\">> ./data.log")
 			buffer.append (loglines.pop(loglines.index(each)))
-			print "removed:",tm.ctime(float(line[0]))
+			#print "removed:",tm.ctime(float(line[0]))
 
 os.system("rm -f ./RAM/data.log")
 targetfile = open("./RAM/data.log","w+")

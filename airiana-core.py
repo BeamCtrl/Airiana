@@ -6,7 +6,7 @@ import time,struct,sys
 import statistics
 import signal
 #from mail import *
-vers = "7.4d"
+vers = "7.4e"
 Running =True
 # Register cleanup
 def exit_callback(self, arg):
@@ -14,15 +14,11 @@ def exit_callback(self, arg):
 		sys.stdout.flush()
 		Running = False
 		time.sleep(3)
-		listme= []
-                for each in os.popen("ls -mr data.log.*").read().split(","):  listme.append(int(each.split(".")[-1]))
-                listme.sort()
-                last_file = listme[-1]
-                os.system("cp ./RAM/data.log ./data.log."+str(last_file+1))
-                os.system("rm ./RAM/data.log")
+                os.system("cp ./RAM/data.log ./data.save")
                 if threading.enumerate()[-1].name=="Timer": threading.enumerate()[-1].cancel()
                 cmd_socket.close()
 		sys.exit()
+
 signal.signal(signal.SIGTERM, exit_callback)
 signal.signal(signal.SIGINT , exit_callback)
 
@@ -33,14 +29,12 @@ os.chdir("/home/pi/airiana/")
 os.system("./http &> /dev/null") ## START WEB SERVICE
 #os.system("./forcast.py &> /dev/null") ## Get forcast
 listme=[]
-
-if  not os.path.lexists("./data.log.1"): os.system("touch data.log.1")
-for each in os.popen("ls -mr data.log.*").read().split(","):  listme.append(int(each.split(".")[-1]))
-listme.sort()
-last_file = listme[-1]
-if not os.path.lexists("./RAM/data.log"):
-	os.system("cp data.log."+str(last_file)+ " ./RAM/data.log")
-	os.system("rm data.log."+str(last_file))
+## cpy saved data to RAM ##
+if  not os.path.lexists("./data.save"): 
+	os.system("touch data.save")
+else:
+	os.system("cp data.save ./RAM/data.log")
+#################################
 if "debug" in sys.argv and not os.path.lexists("./sensors"): os.system("touch sensors")
 
 starttime=time.time()
@@ -1248,6 +1242,8 @@ if __name__  ==  "__main__":
 			else : os.system("nice ./grapher.py  & >> /dev/null")
 		# send alive packet to headmaster
 		if device.iter % int(3600/device.avg_frame_time)==0:
+			os.system("./backup.py &")
+			os.system("cp ./RAM/data.log ./data.save")
 			if "ping" in sys.argv:
 				report_alive()
 		#restart HTTP SERVER get filterstatus, reset IP on buttons page, update weather forcast
