@@ -1203,7 +1203,7 @@ if __name__  ==  "__main__":
 			device.check_flags()
 			if device.system_name == "VTR300":
 				device.calc_exhaust()
-		# update moisture and rotor/rpm
+		# update moisture
 		if device.iter%5==0:
 			if monitoring:
 				device.monitor()
@@ -1213,10 +1213,10 @@ if __name__  ==  "__main__":
 				device.moisture_calcs()
 			elif "humidity" in sys.argv and device.system_name in device.has_RH_sensor:
 				device.get_RH() ## Read sensor humidity
-			device.update_fan_rpm()
-			device.get_rotor_state()
 		#update fans
 		if device.iter%7==0:
+			device.update_fan_rpm()
+			device.get_rotor_state()
 			device.update_fanspeed()
 			device.update_airflow()
 		#debug specific sensors and temp probe status
