@@ -3,7 +3,8 @@
 import os, time
 import mail
 mailer = mail.Smtp()
-
+if  not os.path.lexists("RAM/status.html"):
+	os.system("touch RAM/status.html" )
 def init():
 	from users import users
 	global users

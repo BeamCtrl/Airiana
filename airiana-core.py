@@ -35,8 +35,12 @@ if  not os.path.lexists("./data.save"):
 else:
 	os.system("cp data.save ./RAM/data.log")
 #################################
-if "debug" in sys.argv and not os.path.lexists("./sensors"): os.system("touch sensors")
-
+if  not os.path.lexists("./RAM/forecast.txt"): 
+	os.system("touch ./RAM/forecast.txt")
+#################################
+if "debug" in sys.argv and not os.path.lexists("./sensors"):
+	os.system("touch sensors")
+#################################
 starttime=time.time()
 #Setup deamon env
 if "daemon" in sys.argv:
@@ -731,7 +735,7 @@ class Systemair(object):
 
 					self.inhibit=time.time()
 					self.shower_initial=self.inhibit
-			if self.extract_dt < 0 and self.shower==True:
+			if numpy.average(self.extract_dt_list)*60 < 0 and self.shower==True:
 				if "debug" in sys.argv:
 					self.msg="shower wait state, "+str(round(self.extract_ave,2))+"C "+str(round(self.initial_temp+0.3,2))+"C\n"
 				if self.extract_ave<=(self.initial_temp+0.3) or self.shower_initial -time.time() < -30*60:
@@ -1218,7 +1222,6 @@ if __name__  ==  "__main__":
 			device.update_fan_rpm()
 			device.get_rotor_state()
 			device.update_fanspeed()
-			device.update_airflow()
 		#debug specific sensors and temp probe status
 		if device.iter%11==0:
 			if "debug" in sys.argv:
@@ -1226,6 +1229,7 @@ if __name__  ==  "__main__":
 				device.get_temp_status()
 		#refresh static humidity
 		if device.iter%79==0:
+			device.update_airflow()
 			device.msg = ""
 			if "humidity" in sys.argv and (device.system_name not in device.has_RH_sensor or not device.RH_valid):
 				device.get_local()
