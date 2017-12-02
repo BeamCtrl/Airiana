@@ -413,7 +413,7 @@ class Systemair(object):
 		self.div =0
 		self.set_system_name()
 		self.RH_valid = True
-
+		self.hum_list = []
 	#get and set the Unit System name, from system types dict
 	def set_system_name(self):
 		req.modbusregister(500,0)
@@ -426,7 +426,9 @@ class Systemair(object):
 		req.modbusregister(380,0)
 		if self.RH_valid:
 			self.new_humidity = int(req.response)
-
+			self.hum_list.insert(0,self.new_humidity)
+			if len(self.hum_list)>300:
+				self.hum_list.pop(-1)
 	def get_filter_status(self):
 		req.modbusregister(600,0)
 		self.filter_limit = int(req.response)*31
@@ -458,10 +460,6 @@ class Systemair(object):
 		req.modbusregisters(213,5)# Tempsensors 1 -5
 		self.time.insert(0,time.time())
 		if len(self.time) > self.averagelimit: self.time.pop(-1)
-		# NEGATYIVE VAL sign bit twos complement
-		if req.response[4]>6000:
-			req.response[4] -= 0xFFFF
-		req.response[4]  -= (req.response[1]-req.response[4])*self.inlet_coef #inlet compensation exchanger OFF/ON
 
 
 		if req.response[2]>6000:
@@ -469,16 +467,26 @@ class Systemair(object):
 
 		self.temps = req.response[:]
 		self.rawdata.insert(0,self.temps)
+		# NEGATYIVE VAL sign bit twos complement
+		if req.response[4]>6000:
+			req.response[4] -= 0xFFFF
+		req.response[4]  -= (req.response[1]-req.response[4])*self.inlet_coef #inlet compensation exchanger OFF/ON
+
+		# NEGATYIVE VAL sign bit twos complement
+		if req.response[4]>6000:
+			req.response[4] -= 0xFFFF
+		req.response[4]  -= (req.response[1]-req.response[4])*self.inlet_coef #inlet compensation exchanger OFF/ON
+
 		if len(self.rawdata)>self.averagelimit:self.rawdata.pop(-1)
 		#req.response[1] #EXTRACTreq.BBresponse[2] #EXHAUST req.response[0] #Supply pre elec heater
 		#req.response[3] #Supply post electric heater req.response[4] Inlet
 		if self.system_name=="VR400":
 			if self.rotor_active == "No" and self.coef <> 0.10-(float(self.fanspeed)/400):
 				if self.coef-( 0.10-(float(self.fanspeed)/400))>0:self.coef -= 0.0005#0.04
-                        	else: self.coef += 0.0005
+                        	else: self.coef += 0.0001
 			if self.rotor_active == "Yes" and self.coef <> 0.10-(float(self.fanspeed)/400):
 				if self.coef-(0.10-(float(self.fanspeed)/400))>0:self.coef -= 0.00015 #0.04
-				else: self.coef += 0.0005
+				else: self.coef += 0.0001
 			if self.sf <> 0:
 				self.tcomp= ((req.response[1]-req.response[4])*self.coef)#float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
 				req.response[1] += self.tcomp
@@ -722,7 +730,11 @@ class Systemair(object):
 			self.avg_frame_time=(time.time()-starttime)/self.iter
 	# decect if shower is on
 	def shower_detect(self):
-		try: # SHOWER CONTROLLER
+		if self.RH_valid : # Shower humidity sens control
+			if self.hum_list[0]-self.hum_list[-1]> 5:
+				self.shower = True
+		else:	
+			# SHOWER derivative CONTROLER
 			lim = 0.05
 			if self.ef >50: lim = 0.07
 			if self.extract_dt > lim and self.inhibit ==0 and numpy.average(self.extract_dt_list)*60>1.60:
@@ -732,21 +744,18 @@ class Systemair(object):
 					self.initial_temp = self.extract_ave
 					self.initial_fanspeed= self.fanspeed
 					self.set_fanspeed(3)
-
+	
 					self.inhibit=time.time()
 					self.shower_initial=self.inhibit
-			if numpy.average(self.extract_dt_list)*60 < 0 and self.shower==True:
-				if "debug" in sys.argv:
-					self.msg="shower wait state, "+str(round(self.extract_ave,2))+"C "+str(round(self.initial_temp+0.3,2))+"C\n"
-				if self.extract_ave<=(self.initial_temp+0.3) or self.shower_initial -time.time() < -30*60:
-					self.shower=False
-					self.msg ="shower mode off, returning to "+str(self.speeds[self.initial_fanspeed]+"\n")
-					self.set_fanspeed(self.initial_fanspeed)
 
-		except:
-			print self.msg
-			print traceback.print_exc()
-			print "shower detect system error\n"
+		if numpy.average(self.extract_dt_list)*60 < 0 and self.shower==True:
+			if "debug" in sys.argv:
+				self.msg="shower wait state, "+str(round(self.extract_ave,2))+"C "+str(round(self.initial_temp+0.3,2))+"C\n"
+			if self.extract_ave<=(self.initial_temp+0.3) or self.shower_initial -time.time() < -30*60:
+				self.shower=False
+				self.msg ="shower mode off, returning to "+str(self.speeds[self.initial_fanspeed]+"\n")
+				self.set_fanspeed(self.initial_fanspeed)
+
 	# PRINT OUTPUT
 	def print_xchanger(self):
 		global monitoring,vers
