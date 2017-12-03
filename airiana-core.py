@@ -224,8 +224,8 @@ class Request(object):
 		self.error_time = self.iter
 		rate = float(self.connect_errors+self.checksum_errors+self.write_errors) / delta
 		if rate >= 0.9:
-			bus.read(1000)
-			time.wait(1)
+			os.read(bus,1000)
+			time.sleep(1)
 		os.system ("echo "+str(rate)+" "+ str(self.wait_time)+" > RAM/error_rate")
 		self.connect_errors = 0
 		self.checksum_errors = 0
@@ -467,10 +467,6 @@ class Systemair(object):
 
 		self.temps = req.response[:]
 		self.rawdata.insert(0,self.temps)
-		# NEGATYIVE VAL sign bit twos complement
-		if req.response[4]>6000:
-			req.response[4] -= 0xFFFF
-		req.response[4]  -= (req.response[1]-req.response[4])*self.inlet_coef #inlet compensation exchanger OFF/ON
 
 		# NEGATYIVE VAL sign bit twos complement
 		if req.response[4]>6000:
@@ -482,16 +478,16 @@ class Systemair(object):
 		#req.response[3] #Supply post electric heater req.response[4] Inlet
 		if self.system_name=="VR400":
 			if self.rotor_active == "No" and self.coef <> 0.10-(float(self.fanspeed)/400):
-				if self.coef-( 0.10-(float(self.fanspeed)/400))>0:self.coef -= 0.0005#0.04
+				if self.coef-( 0.10-(float(self.fanspeed)/400))>0:self.coef -= 0.0001
                         	else: self.coef += 0.0001
 			if self.rotor_active == "Yes" and self.coef <> 0.10-(float(self.fanspeed)/400):
-				if self.coef-(0.10-(float(self.fanspeed)/400))>0:self.coef -= 0.00015 #0.04
+				if self.coef-(0.10-(float(self.fanspeed)/400))>0:self.coef -= 0.0001
 				else: self.coef += 0.0001
 			if self.sf <> 0:
-				self.tcomp= ((req.response[1]-req.response[4])*self.coef)#float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
+				self.tcomp= ((req.response[1]-req.response[4])*self.coef) #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
 				req.response[1] += self.tcomp
-			if self.rotor_active =="No"  and self.inlet_coef <0.14:self.inlet_coef+= 0.00014 #OFF
-			if self.rotor_active =="Yes" and self.inlet_coef >0.07:self.inlet_coef-= 0.00014 # ON
+			if self.rotor_active =="No"  and self.inlet_coef <0.14:self.inlet_coef+= 0.0001 #OFF
+			if self.rotor_active =="Yes" and self.inlet_coef >0.07:self.inlet_coef-= 0.0001 # ON
 
 		#DO CALC FOR REQ[2] exhaust temp expectancy for VR300 machines as they have no exhust temp sensor:
 		#########
@@ -731,8 +727,10 @@ class Systemair(object):
 	# decect if shower is on
 	def shower_detect(self):
 		if self.RH_valid : # Shower humidity sens control
-			if self.hum_list[0]-self.hum_list[-1]> 5:
-				self.shower = True
+			try:
+				if self.hum_list[0]-self.hum_list[-1]> -5:
+					self.shower = True
+			except IndexError: pass
 		else:	
 			# SHOWER derivative CONTROLER
 			lim = 0.05
@@ -1229,10 +1227,10 @@ if __name__  ==  "__main__":
 		#update fans
 		if device.iter%7==0:
 			device.update_fan_rpm()
-			device.get_rotor_state()
-			device.update_fanspeed()
 		#debug specific sensors and temp probe status
 		if device.iter%11==0:
+			device.get_rotor_state()
+			device.update_fanspeed()
 			if "debug" in sys.argv:
 				update_sensors()
 				device.get_temp_status()
