@@ -3,8 +3,8 @@
 import os, time
 import mail
 mailer = mail.Smtp()
-if  not os.path.lexists("RAM/status.html"):
-	os.system("touch RAM/status.html" )
+if  not os.path.lexists("/home/pi/airiana/RAM/status.html"):
+	os.system("touch /home/pi/airiana/RAM/status.html" )
 def init():
 	from users import users
 	global users
@@ -20,7 +20,7 @@ def init():
 		mail_sent[each] = False
 init()
 os.chdir("/home/pi/airiana")
-os.system("./alive_logger.py")
+os.system("./alive_logger.py &")
 files = os.listdir("./public/local_links/")
 
 #for each in users.keys():
@@ -58,8 +58,8 @@ while True:
  				html += "<tr><td><a href=\"/local_links/"+each+"\">"+each+"</a></td><td>"+time.ctime(mod)+"</td><td>"+flag+" </td></tr>\n" 
 
 		html +="<br></table></html>"
-		file = open("./RAM/status.html","w+")
-		file.write(html)		
+		file = open("/home/pi/airiana/RAM/status.html","w+")
+		file.write(html)
 		file.close()
 		time.sleep(60)
     except KeyboardInterrupt: break 

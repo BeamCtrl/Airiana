@@ -11,8 +11,11 @@ if "controller" in sys.argv:
 	os.system("systemctl status controller.service |tail -c 2000")
 
 if "status.py" in sys.argv:
-	os.system("sudo pkill -15 status.py")
-	os.system("sudo ./status.py & > /dev/null")
+	os.system("systemctl restart status.service&")
+	os.system("systemctl status status.service |tail -c 2000")
+
+	#os.system("sudo pkill -15 status.py")
+	#os.system("sudo ./status.py & > /dev/null")
 
 if "envlogger.py" in sys.argv:
 	os.system("sudo pkill --signal 15 envlogger.py")
