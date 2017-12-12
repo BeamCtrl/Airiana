@@ -471,7 +471,6 @@ class Systemair(object):
 		# NEGATYIVE VAL sign bit twos complement
 		if req.response[4]>6000:
 			req.response[4] -= 0xFFFF
-		req.response[4]  -= (req.response[1]-req.response[4])*self.inlet_coef #inlet compensation exchanger OFF/ON
 
 		if len(self.rawdata)>self.averagelimit:self.rawdata.pop(-1)
 		#req.response[1] #EXTRACTreq.BBresponse[2] #EXHAUST req.response[0] #Supply pre elec heater
@@ -480,14 +479,22 @@ class Systemair(object):
 			if self.rotor_active == "No" and self.coef <> 0.09:
 				if self.coef-0.09>0:self.coef -= 0.0001
                         	else: self.coef += 0.0001
+				self.coef=round(self.coef,5)
 			if self.rotor_active == "Yes" and self.coef <> 0.09:
 				if self.coef-0.09>0:self.coef -= 0.0001
 				else: self.coef += 0.0001
+				self.coef=round(self.coef,5)
 			if self.sf <> 0:
 				self.tcomp= ((req.response[1]-req.response[4])*self.coef)-self.fanspeed #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
-				req.response[1] += self.tcomp
+			else:
+				self.tcomp = 0
 			if self.rotor_active =="No"  and self.inlet_coef <0.14:self.inlet_coef+= 0.0001 #OFF
 			if self.rotor_active =="Yes" and self.inlet_coef >0.07:self.inlet_coef-= 0.0001 # ON
+		
+		#update [4] with inlet coef
+		req.response[4]  -= (req.response[1]-req.response[4])*self.inlet_coef #inlet compensation exchanger OFF/ON
+		#update [1] with tcomp, after calc of [4]
+		req.response[1] += self.tcomp
 
 		#DO CALC FOR REQ[2] exhaust temp expectancy for VR300 machines as they have no exhust temp sensor:
 		#########
@@ -498,6 +505,7 @@ class Systemair(object):
 		#if self.rotor_active =="No" :
 		#	req.response[2]  -= (req.response[1]-req.response[4])*0.01  #exhaust compensation exch off
 		#else : 	req.response[2]  -= (req.response[1]-req.response[4])*0.06  #exhaust compensation exch ON
+		
 		self.extract.insert(0, float(req.response[1])/10)
 		self.exhaust.insert(0, float(req.response[2])/10)
 		self.supply.insert (0, float(req.response[3])/10)
@@ -1191,10 +1199,10 @@ if __name__  ==  "__main__":
 	    print "Setting up coeficients;"
 	    sys.stdout.flush()
 	    if device.rotor_active == "No":
-		device.coef = 0.08
+		device.coef = 0.09
 		device.inlet_coef=0.07
 	    else:
-		device.coef= 0.08
+		device.coef= 0.09
 		device.inlet_coef = 0.07
 	    print "Read initial temperatures;"
 	    device.update_temps()
