@@ -75,6 +75,9 @@ os.system("ln -s ../RAM/out out.txt")
 os.system("ln -s ../RAM/history.png history.png")
 os.system("ln -s ../RAM/status.html status.html")
 os.system("echo airiana > /etc/hostname")
+os.system("chown pi:pi ../RAM/")
+os.system("chown pi:pi ../RAM/*")
+
 print "Installation completed, reboot in 15 sec"
 os.system("sleep 15")
 os.system("reboot")

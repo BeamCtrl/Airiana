@@ -477,14 +477,14 @@ class Systemair(object):
 		#req.response[1] #EXTRACTreq.BBresponse[2] #EXHAUST req.response[0] #Supply pre elec heater
 		#req.response[3] #Supply post electric heater req.response[4] Inlet
 		if self.system_name=="VR400":
-			if self.rotor_active == "No" and self.coef <> 0.10-(float(self.fanspeed)/400):
-				if self.coef-( 0.10-(float(self.fanspeed)/400))>0:self.coef -= 0.0001
+			if self.rotor_active == "No" and self.coef <> 0.09:
+				if self.coef-0.09>0:self.coef -= 0.0001
                         	else: self.coef += 0.0001
-			if self.rotor_active == "Yes" and self.coef <> 0.10-(float(self.fanspeed)/400):
-				if self.coef-(0.10-(float(self.fanspeed)/400))>0:self.coef -= 0.0001
+			if self.rotor_active == "Yes" and self.coef <> 0.09:
+				if self.coef-0.09>0:self.coef -= 0.0001
 				else: self.coef += 0.0001
 			if self.sf <> 0:
-				self.tcomp= ((req.response[1]-req.response[4])*self.coef) #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
+				self.tcomp= ((req.response[1]-req.response[4])*self.coef)-self.fanspeed #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
 				req.response[1] += self.tcomp
 			if self.rotor_active =="No"  and self.inlet_coef <0.14:self.inlet_coef+= 0.0001 #OFF
 			if self.rotor_active =="Yes" and self.inlet_coef >0.07:self.inlet_coef-= 0.0001 # ON
@@ -726,16 +726,23 @@ class Systemair(object):
 			self.avg_frame_time=(time.time()-starttime)/self.iter
 	# decect if shower is on
 	def shower_detect(self):
-		if self.RH_valid : # Shower humidity sens control
+		if self.RH_valid == 0: # Shower humidity sens control
 			try:
 				if self.hum_list[0]-self.hum_list[-1]> -5:
 					self.shower = True
+                                        self.initial_temp = self.extract_ave
+                                        self.initial_fanspeed= self.fanspeed
+                                        self.set_fanspeed(3)
+        
+                                        self.shower_initial=self.inhibit
+                                        self.inhibit=time.time()
+
 			except IndexError: pass
-		else:	
+		else:
 			# SHOWER derivative CONTROLER
 			lim = 0.05
 			if self.ef >50: lim = 0.07
-			if self.extract_dt > lim and self.inhibit ==0 and numpy.average(self.extract_dt_list)*60>1.60:
+			if self.extract_dt > lim and self.inhibit == 0 and numpy.average(self.extract_dt_list)*60>1.60:
 				self.msg = "shower mode engaged\n"
 				if self.shower==False:
 					self.shower = True
@@ -1184,10 +1191,10 @@ if __name__  ==  "__main__":
 	    print "Setting up coeficients;"
 	    sys.stdout.flush()
 	    if device.rotor_active == "No":
-		device.coef = 0.10+(float(device.fanspeed)/400)
+		device.coef = 0.08
 		device.inlet_coef=0.07
 	    else:
-		device.coef= 0.10+(float(device.fanspeed)/400)
+		device.coef= 0.08
 		device.inlet_coef = 0.07
 	    print "Read initial temperatures;"
 	    device.update_temps()
