@@ -1267,7 +1267,7 @@ if __name__  ==  "__main__":
 			if "debug" in sys.argv:os.system("nice ./grapher.py debug & >>/dev/null")
 			else : os.system("nice ./grapher.py  & >> /dev/null")
 		# send alive packet to headmaster
-		if device.iter % int(3600/device.avg_frame_time)==0:
+		if device.iter % int(3600/0.2)==0:
 			os.system("./backup.py &")
 			os.system("cp ./RAM/data.log ./data.save")
 			if "ping" in sys.argv:
