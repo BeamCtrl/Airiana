@@ -4,10 +4,11 @@ import xml.parsers.expat
 import os, time, sys,datetime
 #print dir(os.stat("forecast.xml"))
 #print os.stat("forecast.xml").st_ctime -time.time()
+loc = os.popen("cat location").read()
 try:
 	if os.stat("/home/pi/airiana/RAM/forecast.xml").st_ctime -time.time() < -3600 or os.stat("/home/pi/airiana/RAM/forecast.xml").st_size ==0:
 		#print "Downloading updated forcast" 
-		os.system("wget -q -O /home/pi/airiana/RAM/forecast.xml http://www.yr.no/sted/Sverige/V%C3%A4stmanland/V%C3%A4ster%C3%A5s-Barkar%C3%B6~2664448/forecast.xml")
+		os.system("wget -q -O /home/pi/airiana/RAM/forecast.xml "+loc)
 except Exception as err:
 		print "Error getting Forcast from YR.no" #os.system("sudo wget  -q -O forecast.xml http://www.yr.no/sted/Sverige/V%C3%A4stmanland/V%C3%A4ster%C3%A5s-Barkar%C3%B6~2664448/forecast.xml")
 		print err

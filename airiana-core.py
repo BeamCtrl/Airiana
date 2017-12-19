@@ -181,6 +181,7 @@ class Request(object):
 	def __init__(self):
 		self.connect_errors= 0
 		self.checksum_errors = 0
+		self.multi_errors = 0
 		self.write_errors = 0
 		self.buff= ""
 		self.counter = 0
@@ -193,12 +194,10 @@ class Request(object):
 		self.iter += 1
 		try:
 			self.response= "no data"
-			#self.buff = ""
-			#time.sleep(self.wait_time)
-			#self.buff += os.read(bus,20) # purge content on bus
+			try:
+				pass#os.write(bus,"\0x01")
+			except: pass
 			self.response = client.read_registers(start,count)
-			#self.buff += os.read(bus,1000) # re purge
-			#self.response = client.read_registers(start,count)
 			if signed:
 				for each in self.response:
 					if each & 0x8000: each -= 0xFFFF
@@ -208,13 +207,14 @@ class Request(object):
 			#print error.message.find("\x01\x83\x02\xc0\xf1")
 			if  error.message.find("\x01\x83\x02\xc0\xf1")<>-1:
 				print "multi, address out of range;"
-				exit()
+				#exit()
 			self.checksum_errors +=1
 			self.modbusregisters(start,count)
 		except IOError as error:
 			self.connect_errors += 1
-			if self.connect_errors > 100: self.error_review()
-			#os.write(ferr,"read many: "+str(error)+"\n")
+			if self.connect_errors > 100 or self.multi_errors >100:
+				self.error_review()
+				os.write(ferr,"read many: "+str(error)+"\n")
 			#if self.connect_errors > 200: exit_callback(self,None)
 			self.modbusregisters(start,count)
 		client.precalculate_read_size=False
@@ -222,7 +222,7 @@ class Request(object):
 	def error_review (self):
 		delta = self.iter - self.error_time
 		self.error_time = self.iter
-		rate = float(self.connect_errors+self.checksum_errors+self.write_errors) / delta
+		rate = float(self.connect_errors+self.checksum_errors+self.write_errors+self.multi_errors) / delta
 		if rate >= 0.9:
 			os.read(bus,1000)
 			time.sleep(1)
@@ -230,6 +230,7 @@ class Request(object):
 		self.connect_errors = 0
 		self.checksum_errors = 0
 		self.write_errors = 0
+		self.multi_errors = 0
 		#self.prev_rate = rate
 
 	def modbusregister (self,address,decimals):
@@ -238,17 +239,11 @@ class Request(object):
 
 		try:
 			self.response = "no data"
-			#self.buff = ""
-			#if "debug" in sysargv: print bus.availible()
 			self.buff += os.read(bus,20) # bus purge
                         self.response = client.read_register(address,decimals)
-			#time.sleep(wait_time)
-			#self.response = client.read_register(address,decimals)
 		except IOError as error:
 	 		self.connect_errors += 1
-			#time.sleep(self.wait_time)
 			if self.connect_errors > 100: self.error_review()
-	#os.write(ferr,"read: "+str(error)+"\n")
 			self.buff += os.read(bus,20) # bus purge
 			#print "single, no response, retry:",self.connect_errors,address,";"
 			self.modbusregister(address,decimals)
@@ -371,6 +366,7 @@ class Systemair(object):
 		self.extract_dt = 0.0
 		self.update_airdata_instance()
 		self.shower =False
+		self.dyn_coef = 0
 		self.msg = ""
 		self.inside =0
 		self.inside_humid=0
@@ -484,8 +480,15 @@ class Systemair(object):
 				if self.coef-0.09>0:self.coef -= 0.0001
 				else: self.coef += 0.0001
 				self.coef=round(self.coef,5)
+
+			"""if self.inhibit and self.extract_dt>0.1 and not self.shower:
+					self.dyn_coef +=0.1
+			if self.inhibit and self.extract_dt<-0.1 and not self.shower:
+					self.dyn_coef -=0.1
+			if abs(self.dyn_coef) > 10:
+				self.dyn_coef = self.dyn_coef/2"""
 			if self.sf <> 0:
-				self.tcomp= ((req.response[1]-req.response[4])*self.coef)-self.fanspeed #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
+				self.tcomp= ((req.response[1]-req.response[4])*self.coef)-self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
 			else:
 				self.tcomp = 0
 			if self.rotor_active =="No"  and self.inlet_coef <0.14:self.inlet_coef+= 0.0001 #OFF
@@ -775,7 +778,7 @@ class Systemair(object):
 		tmp =  self.system_name+" "+time.ctime()+" status: "+str(int(time.time()-starttime))+'('+str(self.iter)+")"+str(round((time.time()-starttime)/self.iter,2))+" Vers. "+vers+" ***\n"
 		if "debug" in sys.argv:
 			 try:
-				tmp += "Errors -- Connect: "+str( req.connect_errors )+" Checksum: "+str(req.checksum_errors)+ " Write: "+str(req.write_errors)+" drain: "+str(len(req.buff)) +"\n"
+				tmp += "Errors -- Connect: "+str( req.connect_errors )+" Checksum: "+str(req.checksum_errors)+ " Write: "+str(req.write_errors)+" drain: "+str(len(req.buff))+" Multi: "+str(req.multi_errors) +"\n"
 				tmp += "temp sensor state: "+str(bin(device.temp_state))+"\n"
 				if len(req.buff) > 50: req.buff = ""
 				tmp += str(sys.argv)+"\n"
@@ -785,7 +788,7 @@ class Systemair(object):
 			tmp += "\nExtract: "+str(round(self.extract_ave,2))+"C\tExhaust: "+str(round(self.exhaust_ave,2))+"C\td_out: "+str(round(self.extract_ave,2)-round(self.exhaust_ave,2))+"C\n"
 			tmp += "Extract dT/dt: "+str(round(self.extract_dt,3))+"degC/min dT/dt: "+str(round(numpy.average(self.extract_dt_list)*60,3))+"degC/hr\n\n"
 			if "debug" in sys.argv:
-				tmp += "Tcomp:" + str(self.tcomp) + " at T1:"+str(self.temps[1])+" coef:"+str(round(self.coef,4))+" inlet coef:"+str(self.inlet_coef)+"\n"
+				tmp += "Tcomp:" + str(self.tcomp) + " at T1:"+str(self.temps[1])+" coef:"+str(round(self.coef,4))+" inlet coef:"+str(self.inlet_coef)+" dyn:"+str(self.dyn_coef)+"\n"
 				tmp +="Extract:"+str(self.temps[1])+ "\tInlet:"+str(self.temps[4])+"\tExhaust:"+str(self.temps[2])+"\tSupply,pre:"+str(self.temps[0])+"\tSupply,post:"+str(self.temps[3])+"\n"
 		except:pass
 		tmp += "Exchanger Setting: "+str(self.exchanger_mode)+" State: "+self.rotor_states[self.rotor_state]+", Rotor Active: "+self.rotor_active+"\n"
@@ -1277,6 +1280,7 @@ if __name__  ==  "__main__":
 			device.get_filter_status()
 			os.system("./http")
 			os.system("./public/ip-replace.sh")  # reset ip-addresses on buttons.html
+			os.system("./public/ip-util.sh")  # reset ip-addresses on buttons.html
 			device.get_forcast()
 		## PRINT TO DISPLAY ##
 		device.print_xchanger()

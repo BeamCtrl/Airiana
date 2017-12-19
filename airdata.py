@@ -22,7 +22,7 @@ class Energy(object):
 		#print"Ambient air pressure used:",self.press,"hPa"
 		self.T=273.15 #K  Zero Celcius in Kelvin
 		self.R=287.058 #   GAS CONSTANT for dry air for pressures in Pa 
-		self.density= lambda t: (self.press*100)/(self.R*(self.T+t))
+		self.density= lambda t: float(self.press*100)/(self.R*(self.T+t))
 		self.specific_heat = 1.005  #J/g*K
 		self.humid = .50
 		self.mass_const = 0.62198
@@ -40,6 +40,9 @@ class Energy(object):
 			energy = mass * self.specific_heat*d_T
 			d_W -=  energy
 			d_temp += d_T
+		#math.log(self.T+extract_temp)
+		#dt = (self.R*energy)/(self.press*100*self.specific_heat*math.log(self.T+extract_temp))
+		#print dt
 		return d_temp
 		
 	#CALCULATE THE ENERGY REQUIRED TO SENSIBLY RAISE OR LOWER TEMPERATURE FOR A GIVVEN VOLUME
@@ -115,9 +118,9 @@ if  "__main__" in __name__:
 	print air.energy_flow(34,18.29,21.73)
 	print air.energy_flow(34,21.58,17.73)
 
-
-
-
+	print air.temp_diff(air.energy_flow(34,21.58,17.73)-0.2,21.58,34)
+	print "ref.",21.58-17.73
+	
 
 
 

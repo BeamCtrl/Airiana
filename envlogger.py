@@ -95,7 +95,6 @@ while True:
 		#for i in range(int(min(time)),int(max(time)),int((max(time)-min(time))/num+1)):
 		for each in  gca().get_xticks():
 			labels[pos]=tm.strftime("%H:%M - %d/%m",tm.localtime(float(each)))
-		
 			pos+=1
 	except:pos+=1
 	print labels
@@ -103,6 +102,6 @@ while True:
 	setp(s1.get_xticklabels(), rotation=45)
 	draw()
 
-	savefig("./RAM/"+str(log)+".png")	
+	savefig("./RAM/"+str(log)+".png")
 	tm.sleep((60*60*12)+rndm.randint(0,30))
 	sys.stdout.flush()
