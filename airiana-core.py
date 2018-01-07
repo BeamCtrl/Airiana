@@ -6,7 +6,7 @@ import time,struct,sys
 import statistics
 import signal
 #from mail import *
-vers = "7.4e"
+vers = "7.4f"
 Running =True
 # Register cleanup
 def exit_callback(self, arg):
@@ -408,7 +408,7 @@ class Systemair(object):
 		self.new_humidity=40
 		self.div =0
 		self.set_system_name()
-		self.RH_valid = True
+		self.RH_valid = 0
 		self.hum_list = []
 	#get and set the Unit System name, from system types dict
 	def set_system_name(self):
@@ -472,15 +472,16 @@ class Systemair(object):
 		#req.response[1] #EXTRACTreq.BBresponse[2] #EXHAUST req.response[0] #Supply pre elec heater
 		#req.response[3] #Supply post electric heater req.response[4] Inlet
 		if self.system_name=="VR400":
-			if self.rotor_active == "No" and self.coef <> 0.09:
-				if self.coef-0.09>0:self.coef -= 0.0001
+			if self.rotor_active == "No" and self.coef <> 0.10:
+				if self.coef-0.10>0:self.coef -= 0.0001
                         	else: self.coef += 0.0001
 				self.coef=round(self.coef,5)
-			if self.rotor_active == "Yes" and self.coef <> 0.09:
-				if self.coef-0.09>0:self.coef -= 0.0001
+			if self.rotor_active == "Yes" and self.coef <> 0.10:
+				if self.coef-0.10>0:self.coef -= 0.0001
 				else: self.coef += 0.0001
 				self.coef=round(self.coef,5)
-
+			
+			self.dyn_coef = self.fanspeed * 1.5
 			"""if self.inhibit and self.extract_dt>0.1 and not self.shower:
 					self.dyn_coef +=0.1
 			if self.inhibit and self.extract_dt<-0.1 and not self.shower:
@@ -737,22 +738,21 @@ class Systemair(object):
 			self.avg_frame_time=(time.time()-starttime)/self.iter
 	# decect if shower is on
 	def shower_detect(self):
-		if self.RH_valid == 0: # Shower humidity sens control
+		if self.RH_valid: # Shower humidity sens control
 			try:
 				if self.hum_list[0]-self.hum_list[-1]> -5:
 					self.shower = True
                                         self.initial_temp = self.extract_ave
                                         self.initial_fanspeed= self.fanspeed
                                         self.set_fanspeed(3)
-        
-                                        self.shower_initial=self.inhibit
                                         self.inhibit=time.time()
+                                        self.shower_initial=self.inhibit
 
 			except IndexError: pass
 		else:
 			# SHOWER derivative CONTROLER
-			lim = 0.05
-			if self.ef >50: lim = 0.07
+			lim = 0.08
+			if self.ef >50: lim = 0.10
 			if self.extract_dt > lim and self.inhibit == 0 and numpy.average(self.extract_dt_list)*60>1.60:
 				self.msg = "shower mode engaged\n"
 				if self.shower==False:
@@ -800,6 +800,7 @@ class Systemair(object):
 		if "humidity" in sys.argv :
 			if "debug" in sys.argv:
 				tmp += "Static: "+str(round(self.local_humidity+self.humidity_comp,2))+"%\n"
+				tmp+= "Valid RH"+str(self.RH_valid)+"\n"
 			tmp += "Calculated humidity:\t " +str(round(self.extract_ave,1))+"C "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave),2))+"C\n" 
 		if "debug" in sys.argv:
 			try:
