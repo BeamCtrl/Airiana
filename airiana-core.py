@@ -738,7 +738,7 @@ class Systemair(object):
 			self.avg_frame_time=(time.time()-starttime)/self.iter
 	# decect if shower is on
 	def shower_detect(self):
-		if self.RH_valid: # Shower humidity sensor control
+		if self.RH_valid == 1: # Shower humidity sensor control
 			try:
 				if self.hum_list[0]-self.hum_list[-1]> -8:
 					self.shower = True
