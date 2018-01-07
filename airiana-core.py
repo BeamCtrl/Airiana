@@ -740,7 +740,7 @@ class Systemair(object):
 	def shower_detect(self):
 		if self.RH_valid: # Shower humidity sens control
 			try:
-				if self.hum_list[0]-self.hum_list[-1]> -5:
+				if self.hum_list[0]-self.hum_list[-1]> -8:
 					self.shower = True
                                         self.initial_temp = self.extract_ave
                                         self.initial_fanspeed= self.fanspeed
@@ -1279,9 +1279,9 @@ if __name__  ==  "__main__":
 		#restart HTTP SERVER get filterstatus, reset IP on buttons page, update weather forcast
 		if device.iter %(int(3600*2 /device.avg_frame_time))==0:
 			device.get_filter_status()
-			os.system("./http")
-			os.system("./public/ip-replace.sh")  # reset ip-addresses on buttons.html
-			os.system("./public/ip-util.sh")  # reset ip-addresses on buttons.html
+			os.system("./http &")
+			os.system("./public/ip-replace.sh &")  # reset ip-addresses on buttons.html
+			os.system("./public/ip-util.sh &")  # reset ip-addresses on buttons.html
 			device.get_forcast()
 		## PRINT TO DISPLAY ##
 		device.print_xchanger()
