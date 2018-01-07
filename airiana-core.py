@@ -738,7 +738,7 @@ class Systemair(object):
 			self.avg_frame_time=(time.time()-starttime)/self.iter
 	# decect if shower is on
 	def shower_detect(self):
-		if self.RH_valid: # Shower humidity sens control
+		if self.RH_valid: # Shower humidity sensor control
 			try:
 				if self.hum_list[0]-self.hum_list[-1]> -8:
 					self.shower = True
@@ -747,6 +747,7 @@ class Systemair(object):
                                         self.set_fanspeed(3)
                                         self.inhibit=time.time()
                                         self.shower_initial=self.inhibit
+					self.msg = "shower mode engaged\n"
 
 			except IndexError: pass
 		else:
@@ -800,7 +801,7 @@ class Systemair(object):
 		if "humidity" in sys.argv :
 			if "debug" in sys.argv:
 				tmp += "Static: "+str(round(self.local_humidity+self.humidity_comp,2))+"%\n"
-				tmp+= "Valid RH"+str(self.RH_valid)+"\n"
+				tmp+= "Valid RH "+str(self.RH_valid)+"\n"
 			tmp += "Calculated humidity:\t " +str(round(self.extract_ave,1))+"C "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave),2))+"C\n" 
 		if "debug" in sys.argv:
 			try:
