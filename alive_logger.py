@@ -23,16 +23,16 @@ while True:
 
 		if incomming_msg.find("ether") > 0:
 			print "ether"
-			ip = incomming_msg[61:]
+			ip = incomming_msg[61:77]
 			mac =incomming_msg[14:31]
 		else:
 			print "hwadddr"
 			mac =incomming_msg[38:55]
-			ip = incomming_msg[58:]
+			ip = incomming_msg[58:74]
 		print time.ctime(), "MAC:", mac, "From:",addr
 		print "active IP:",ip
 		for_file= html.replace("[IP]",ip)
-		#for_file += incomming_msg
+		for_file += "\n"+incomming_msg
 		filename = "./public/local_links/"+mac+".html"
 		#print "filename:",filename
 		#print for_file

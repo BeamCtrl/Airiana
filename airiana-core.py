@@ -97,7 +97,9 @@ def report_alive():
 			if each.find("HWaddr") <> -1 or each.find("ether")<>-1:
 				message = each
 				message += os.popen("hostname -I").read()
-				#message += (time.time()-starttime)/device.itr
+				try:
+					message += "                                      \nstatus:"+str(device.status_field)+"\n"
+				except: pass
 				#print message
 
 		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
@@ -410,6 +412,7 @@ class Systemair(object):
 		self.set_system_name()
 		self.RH_valid = 0
 		self.hum_list = []
+		self.status_field = [-1,self.iter,self.rotor_state,self.system_name]
 	#get and set the Unit System name, from system types dict
 	def set_system_name(self):
 		req.modbusregister(500,0)
@@ -748,7 +751,7 @@ class Systemair(object):
                                         self.inhibit=time.time()
                                         self.shower_initial=self.inhibit
 					self.msg = "shower mode engaged\n"
-
+					self.status_field[0] += 1
 			except IndexError: pass
 		else:
 			# SHOWER derivative CONTROLER
@@ -764,6 +767,7 @@ class Systemair(object):
 	
 					self.inhibit=time.time()
 					self.shower_initial=self.inhibit
+					self.status_field[0] += 1
 
 		if numpy.average(self.extract_dt_list)*60 < 0 and self.shower==True:
 			if "debug" in sys.argv:
@@ -1284,6 +1288,7 @@ if __name__  ==  "__main__":
 			os.system("./public/ip-replace.sh &")  # reset ip-addresses on buttons.html
 			os.system("./public/ip-util.sh &")  # reset ip-addresses on buttons.html
 			device.get_forcast()
+			if device.status_field[0]>0:device.status_field[0] -= 1 # remove one shower token from bucket every 2 hrs.
 		## PRINT TO DISPLAY ##
 		device.print_xchanger()
 		device.iter+=1
@@ -1415,3 +1420,4 @@ if __name__  ==  "__main__":
 
 	except KeyboardInterrupt:
 		exit_callback(2,None)
+
