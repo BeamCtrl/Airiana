@@ -1241,7 +1241,7 @@ if __name__  ==  "__main__":
 
 			if "humidity" in sys.argv and (device.system_name not in device.has_RH_sensor or not device.RH_valid):
 				device.moisture_calcs()
-			elif "humidity" in sys.argv and device.system_name in device.has_RH_sensor:
+			if "humidity" in sys.argv and device.system_name in device.has_RH_sensor:
 				device.get_RH() ## Read sensor humidity
 		#update fans
 		if device.iter%7==0:
