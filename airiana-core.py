@@ -805,7 +805,7 @@ class Systemair(object):
 		if "humidity" in sys.argv :
 			if "debug" in sys.argv:
 				tmp += "Static: "+str(round(self.local_humidity+self.humidity_comp,2))+"%\n"
-				tmp+= "Valid RH "+str(self.RH_valid)+"\n"
+				tmp+= "Valid RH "+str(self.RH_valid)+" "+str(self.hum_list[0]-hum_list[-1])+"d%\n"
 			tmp += "Calculated humidity:\t " +str(round(self.extract_ave,1))+"C "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave),2))+"C\n" 
 		if "debug" in sys.argv:
 			try:
