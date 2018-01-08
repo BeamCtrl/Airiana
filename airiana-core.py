@@ -809,7 +809,7 @@ class Systemair(object):
 					tmp+= "Valid RH "+str(self.RH_valid)+" "+str(self.hum_list[0]-self.hum_list[-1])+"d%\n"
 				except:
 					tmp+= "RH calcerror\n"
-					tmp+= traceback.print_exc()
+					traceback.print_exc()
 			tmp += "Calculated humidity:\t " +str(round(self.extract_ave,1))+"C "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave),2))+"C\n" 
 		if "debug" in sys.argv:
 			try:
