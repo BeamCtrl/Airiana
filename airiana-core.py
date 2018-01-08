@@ -806,7 +806,7 @@ class Systemair(object):
 			if "debug" in sys.argv:
 				tmp += "Static: "+str(round(self.local_humidity+self.humidity_comp,2))+"%\n"
 				try:
-					tmp+= "Valid RH "+str(self.RH_valid)+" "+str(self.hum_list[0]-hum_list[-1])+"d%\n"
+					tmp+= "Valid RH "+str(self.RH_valid)+" "+str(self.hum_list[0]-self.hum_list[-1])+"d%\n"
 				except:
 					tmp+= "RH calcerror\n"
 					tmp+= traceback.print_exc()
