@@ -8,10 +8,10 @@ if "airiana-core.py" in sys.argv:
 if "controller" in sys.argv:
 	os.system("sudo systemctl restart controller.service")
 	#os.system("sleep 5")
-	os.system("systemctl status controller.service |tail -c 2000")
+	os.system("sudo systemctl status controller.service |tail -c 2000")
 
 if "status.py" in sys.argv:
-	os.system("systemctl restart status.service&")
+	os.system("sudo systemctl restart status.service&")
 	os.system("systemctl status status.service |tail -c 2000")
 
 	#os.system("sudo pkill -15 status.py")

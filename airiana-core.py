@@ -412,7 +412,7 @@ class Systemair(object):
 		self.set_system_name()
 		self.RH_valid = 0
 		self.hum_list = []
-		self.status_field = [-1,self.iter,self.rotor_state,self.system_name]
+		self.status_field = [-1,0,0,self.system_name,vers]
 	#get and set the Unit System name, from system types dict
 	def set_system_name(self):
 		req.modbusregister(500,0)
@@ -688,11 +688,12 @@ class Systemair(object):
 
 	def get_rotor_state(self):
 		req.modbusregister(206,0)
-	        device.exchanger_mode= req.response
+	        self.exchanger_mode= req.response
 		req.modbusregisters(350,2)
-                device.rotor_state = req.response[0]
-                if req.response[1]:device.rotor_active = "Yes"
-                else: device.rotor_active = "No"
+                self.rotor_state = req.response[0]
+                if req.response[1]:self.rotor_active = "Yes"
+                else: self.rotor_active = "No"
+		self.status_field[1] = self.exchanger_mode
 
 	def moisture_calcs(self):## calculate moisure/humidities
 
@@ -848,6 +849,7 @@ class Systemair(object):
 
 		#CLEAR SCREEN AND REPRINT
 		clear_screen()
+		self.status_field[2] = round((time.time()-starttime)/self.iter,2)
 		if self.iter %60==0 and "debug" in sys.argv :
 			try:
 				ave, dev = statistics.stddev(self.cond_data)

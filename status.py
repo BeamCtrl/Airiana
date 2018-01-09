@@ -37,6 +37,11 @@ while True:
 		for each in files:
 			try:
 				mod = os.stat(str("./public/local_links/"+each)).st_mtime
+				content = os.popen("cat ./public/local_links/"+each).read()
+				stat_field = content.split("status:")[-1]
+				print stat_field
+				if content.find("status")!=-1 :exec  ("lis ="+stat_field)
+				else: lis =[]
 				#print status[str(each.split(".")[0])], each
 				if (time.time()-mod)/3600>status[str(each.split(".")[0])]:
 					status[str(each.split(".")[0])] = round((time.time()-mod)/3600,2)
@@ -53,7 +58,7 @@ while True:
 						mail_sent[each.split(".")[0]] = True
 						mailer.setup ("daniel.halling@outlook.com","airiana@abiding.se","Airiana user: "+str(users[str(each.split(".")[0])])+" has changed status to inactive.")
 						mailer.send()
-				html += "<tr><td><a href=\"/local_links/"+each+"\">"+users[str(each.split(".")[0])]+"</a></td><td>"+time.ctime(mod)+"</td><td>"+flag+" "+str(round(status[str(each.split(".")[0])],2))+" </td></tr>\n" 
+				html += "<tr><td><a href=\"/local_links/"+each+"\">"+users[str(each.split(".")[0])]+"</a></td><td>"+time.ctime(mod)+"</td><td>"+flag+" "+str(round(status[str(each.split(".")[0])],2))+" "+str(lis)+" </td></tr>\n" 
 			except KeyError:
  				html += "<tr><td><a href=\"/local_links/"+each+"\">"+each+"</a></td><td>"+time.ctime(mod)+"</td><td>"+flag+" </td></tr>\n" 
 
