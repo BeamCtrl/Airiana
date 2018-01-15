@@ -742,7 +742,7 @@ class Systemair(object):
 			self.avg_frame_time=(time.time()-starttime)/self.iter
 	# decect if shower is on
 	def shower_detect(self):
-		if self.RH_valid == 1: # Shower humidity sensor control
+		if self.RH_valid == 1 and not self.shower: # Shower humidity sensor control
 			try:
 				if self.hum_list[0]-self.hum_list[-1] > 6:
 					self.shower = True
@@ -790,8 +790,8 @@ class Systemair(object):
 				tmp += str(sys.argv)+"\n"
 			 except: pass
 		try:
-			tmp += "Inlet: "+str(round(self.inlet_ave,2))+"C\t\tSupply: "+str(round(self.supply_ave,2))+"C\td_in : "+str(round(self.supply_ave,2)-round(self.inlet_ave,2))+"C"
-			tmp += "\nExtract: "+str(round(self.extract_ave,2))+"C\tExhaust: "+str(round(self.exhaust_ave,2))+"C\td_out: "+str(round(self.extract_ave,2)-round(self.exhaust_ave,2))+"C\n"
+			tmp += "Inlet: "+str("%.2f" % self.inlet_ave)+"C\t\tSupply: "+str("%.2f" % self.supply_ave)+"C\td_in : "+str(round(self.supply_ave,2)-round(self.inlet_ave,2))+"C"
+			tmp += "\nExtract: "+str("%.2f" % self.extract_ave)+"C\tExhaust: "+str("%.2f" % self.exhaust_ave)+"C\td_out: "+str(round(self.extract_ave,2)-round(self.exhaust_ave,2))+"C\n"
 			tmp += "Extract dT/dt: "+str(round(self.extract_dt,3))+"degC/min dT/dt: "+str(round(numpy.average(self.extract_dt_list)*60,3))+"degC/hr\n\n"
 			if "debug" in sys.argv:
 				tmp += "Tcomp:" + str(self.tcomp) + " at T1:"+str(self.temps[1])+" coef:"+str(round(self.coef,4))+" inlet coef:"+str(self.inlet_coef)+" dyn:"+str(self.dyn_coef)+"\n"
@@ -806,11 +806,12 @@ class Systemair(object):
 		if "humidity" in sys.argv :
 			if "debug" in sys.argv:
 				tmp += "Static: "+str(round(self.local_humidity+self.humidity_comp,2))+"%\n"
-				try:
-					tmp+= "Valid RH "+str(self.RH_valid)+" "+str(self.hum_list[0]-self.hum_list[-1])+"d%\n"
-				except:
-					tmp+= "RH calcerror\n"
-					traceback.print_exc()
+				if self.RH_valid:
+					try:
+						tmp+= "Valid RH "+str(self.RH_valid)+" "+str(self.hum_list[0]-self.hum_list[-1])+"d%\n"
+					except:
+						tmp+= "RH calcerror\n"
+						traceback.print_exc()
 			tmp += "Calculated humidity:\t " +str(round(self.extract_ave,1))+"C "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave),2))+"C\n" 
 		if "debug" in sys.argv:
 			try:
@@ -1167,7 +1168,6 @@ class Systemair(object):
 
 ## Init base class ##
 if __name__  ==  "__main__":
-	report_alive()
 	print "Reporting system start;"
 	#print os.read(bus,10000)
 
@@ -1186,7 +1186,6 @@ if __name__  ==  "__main__":
 	try:
 	    #FIRST PASS ONLY #
             clear_screen()
-	    if "ping" in sys.argv:report_alive()
 	    print "First PASS;\n updating fanspeeds;"
 	    device.update_airflow()
 	    sys.stdout.flush()
@@ -1229,6 +1228,7 @@ if __name__  ==  "__main__":
 	    starttime=time.time()
 	    print "system started:",time.ctime(starttime),";"
 	    sys.stdout.flush()
+	    if "ping" in sys.argv:report_alive()
 	    time.sleep(2)
 	    starttime=time.time()
 	    while Running:##### mainloop do each pass ###########
