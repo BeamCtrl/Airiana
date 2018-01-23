@@ -216,7 +216,7 @@ class Request(object):
 			self.connect_errors += 1
 			if self.connect_errors > 100 or self.multi_errors >100:
 				self.error_review()
-				os.write(ferr,"read many: "+str(error)+"\n")
+				#os.write(ferr,"read many: "+str(error)+"\n")
 			#if self.connect_errors > 200: exit_callback(self,None)
 			self.modbusregisters(start,count)
 		client.precalculate_read_size=False
