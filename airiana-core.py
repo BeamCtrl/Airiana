@@ -744,7 +744,7 @@ class Systemair(object):
 	def shower_detect(self):
 		if self.RH_valid == 1 and not self.shower: # Shower humidity sensor control
 			try:
-				if self.hum_list[0]-self.hum_list[-1] > 6:
+				if self.hum_list[0]-self.hum_list[-1] > 8:
 					self.shower = True
                                         self.initial_temp = self.extract_ave
                                         self.initial_fanspeed= self.fanspeed
