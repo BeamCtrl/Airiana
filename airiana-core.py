@@ -848,8 +848,6 @@ class Systemair(object):
 		#tmp += "lower limit:22.0C, when cooling 21.0C, fans up2 22.01C, fans up3 22.5 or +0.5C/hr\nExchanger limits ON:21C OFF:22C\nWeather Data from YR.no\n"
 		if not monitoring: tmp += "\nSystem Automation off\n"
 
-		#CLEAR SCREEN AND REPRINT
-		clear_screen()
 		self.status_field[2] = round((time.time()-starttime)/self.iter,2)
 		if self.iter %60==0 and "debug" in sys.argv :
 			try:
@@ -860,6 +858,8 @@ class Systemair(object):
 		tmp +=  self.msg+"\n"
 		tmp = tmp.replace("\n",";\n")
 		tmp = tmp.replace("\t","'\t")
+		#CLEAR SCREEN AND REPRINT
+		clear_screen()
 		print tmp
 
 	#Read all data registers
