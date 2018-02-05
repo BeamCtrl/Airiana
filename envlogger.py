@@ -94,7 +94,7 @@ while True:
 	try:
 		#for i in range(int(min(time)),int(max(time)),int((max(time)-min(time))/num+1)):
 		for each in  gca().get_xticks():
-			labels[pos]=tm.strftime("%H:%M - %d/%m",tm.localtime(float(each)))
+			labels[pos]=tm.strftime("%H:%M - %d/%m - %Y",tm.localtime(float(each)))
 			pos+=1
 	except:pos+=1
 	print labels
