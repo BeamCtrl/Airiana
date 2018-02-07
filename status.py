@@ -40,7 +40,7 @@ while True:
 				content = os.popen("cat ./public/local_links/"+each).read()
 				stat_field = content.split("status:")[-1]
 				print stat_field
-				if content.find("status")!=-1 :exec  ("lis ="+stat_field)
+				if content.find("status")!=-1 :exec  ("lis ="+stat_field.split("\n")[0])
 				else: lis =[]
 				#print status[str(each.split(".")[0])], each
 				if (time.time()-mod)/3600>status[str(each.split(".")[0])]:

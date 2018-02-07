@@ -98,9 +98,10 @@ def report_alive():
 				message = each
 				message += os.popen("hostname -I").read()
 				try:
-					message += "                                      \nstatus:"+str(device.status_field)+"\n"
+					device.status_field.append(os.popen("git log --pretty=format:'%h' -n 1").read())
+					message += "\nstatus:"+str(device.status_field)+"\n"
 				except: pass
-				#print message
+				if "debug" in sys.argv: device.msg +=  message + "\n"
 
 		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 		sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
