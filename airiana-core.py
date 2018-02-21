@@ -413,6 +413,16 @@ class Systemair(object):
 		self.RH_valid = 0
 		self.hum_list = []
 		self.status_field = [-1,0,0,self.system_name,vers,os.popen("git log --pretty=format:'%h' -n 1").read()]
+		self.heater = 0
+
+	#get heater status
+	def get_heater(self):
+		req.modbusregister(200,0)
+                self.heater = int(req.response)
+	#set heater status
+	def set_heater(self,heater):
+		req.write_register(200,heater)
+	
 	#get and set the Unit System name, from system types dict
 	def set_system_name(self):
 		req.modbusregister(500,0)
@@ -428,6 +438,7 @@ class Systemair(object):
 			self.hum_list.insert(0,self.new_humidity)
 			if len(self.hum_list)>300:
 				self.hum_list.pop(-1)
+	#get the nr of days  used and alarm lvl for filters
 	def get_filter_status(self):
 		req.modbusregister(600,0)
 		self.filter_limit = int(req.response)*31
@@ -435,7 +446,7 @@ class Systemair(object):
 		self.filter = req.response
 		self.filter_remaining = round(100*(1 - (float(self.filter)/self.filter_limit)),1)
 		if self.filter_remaining <0: self.filter_remaining = 0
-
+	#get status byte for temp probes
 	def get_temp_status(self):
 		req.modbusregister(218,0)
 		self.temp_state= req.response
@@ -1195,6 +1206,9 @@ if __name__  ==  "__main__":
 	    print "Reading Filter Status;"
 	    device.get_filter_status()
 	    sys.stdout.flush()
+	    print "Reading internal heater state;"
+	    device.get_heater()
+	    sys.stdout.flush()
 	    print "Retrieving weather forecast;"
 	    device.get_forcast()
 	    sys.stdout.flush()
@@ -1267,6 +1281,7 @@ if __name__  ==  "__main__":
 		#refresh static humidity
 		if device.iter%79==0:
 			device.update_airflow()
+			device.get_heater()
 			device.msg = ""
 			if "humidity" in sys.argv and (device.system_name not in device.has_RH_sensor or not device.RH_valid):
 				device.get_local()
@@ -1412,8 +1427,8 @@ if __name__  ==  "__main__":
 				if data == 99:
 					device.set_fanspeed(3)
 					device.msg += "fanspeed to High\n"
-				
-
+				if  data == 11:
+					device.set_heater(!device.heater)
 		except TypeError:pass
 		except ValueError:pass
 		#except:
