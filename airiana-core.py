@@ -138,7 +138,7 @@ def update():
 	ver = os.popen("cat ./RAM/VERS").read()
 	if "debug" in sys.argv:
 		print vers, "->", ver
-	if vers == ver:
+	if vers == ver:pass
 	else: 
 		os.system("./update")	
 	
