@@ -134,13 +134,14 @@ def update_sensors():
 		traceback.print_exc()
 #Auto updater
 def update():
-	os.system("wget -O ./RAM/VERS http://lappy.asuscomm.com:443/current_version")
+	os.system("wget -q -O ./RAM/VERS http://lappy.asuscomm.com:443/current_version")
 	ver = os.popen("cat ./RAM/VERS").read()
+	ver = ver.split(" ")
+	
 	if "debug" in sys.argv:
 		print vers, "->", ver
-	if vers == ver:pass
-	else: 
-		os.system("./update")	
+	if vers <> ver[0] and ver[1]=="Valid":
+		os.system("./update&")	
 	
 #WRITE TO DATA.LOG
 def logger ():
@@ -1305,12 +1306,13 @@ if __name__  ==  "__main__":
 			device.update_airdata_instance()
 			if "debug" in sys.argv:os.system("nice ./grapher.py debug & >>/dev/null")
 			else : os.system("nice ./grapher.py  & >> /dev/null")
-		# send alive packet to headmaster
+		# send alive packet to headmaster and check for updates
 		if device.iter % int(3600/0.2)==0:
 			os.system("./backup.py &")
 			os.system("cp ./RAM/data.log ./data.save")
 			if "ping" in sys.argv:
 				report_alive()
+			update()
 		#restart HTTP SERVER get filterstatus, reset IP on buttons page, update weather forcast
 		if device.iter %(int(3600*2 /device.avg_frame_time))==0:
 			device.get_filter_status()
