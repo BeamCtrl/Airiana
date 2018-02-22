@@ -796,7 +796,7 @@ class Systemair(object):
 		if "debug" in sys.argv:
 			 try:
 				tmp += "Errors -- Connect: "+str( req.connect_errors )+" Checksum: "+str(req.checksum_errors)+ " Write: "+str(req.write_errors)+" drain: "+str(len(req.buff))+" Multi: "+str(req.multi_errors) +"\n"
-				tmp += "temp sensor state: "+str(bin(device.temp_state))+"\n"
+				tmp += "temp sensor state: "+str(bin(self.temp_state))+" Heater:"+str(self.heater)+"\n"
 				if len(req.buff) > 50: req.buff = ""
 				tmp += str(sys.argv)+"\n"
 			 except: pass
@@ -1338,7 +1338,7 @@ if __name__  ==  "__main__":
 					sender = sock[1]
 				except: pass 
 				try:	
-					device.msg += "Network command recieved: Processing...\n"
+					device.msg += "Network command recieved: Processing... "+str(data)+"\n"
 					log = "echo \"" + str(time.ctime()) +":" +str(sender) +":" +str(data) +"\" >> netlog.log &"
 					os.system(log)
 					#device.msg += log+"\n"+str(data)+" "+str(type(data))+" "+str(len(data))+"\n"
@@ -1427,8 +1427,11 @@ if __name__  ==  "__main__":
 				if data == 99:
 					device.set_fanspeed(3)
 					device.msg += "fanspeed to High\n"
-				if  data == 11:
-					device.set_heater(!device.heater)
+				if data == 11:
+					if device.heater ==0:
+						set = 2
+					else: set = 0
+					device.set_heater(set)
 		except TypeError:pass
 		except ValueError:pass
 		#except:
