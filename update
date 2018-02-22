@@ -9,5 +9,5 @@ git fetch origin
 git reset --hard origin/master
 cp ../data.log ./
 cp ../location ./
-cp ../data.save./
+cp ../data.save ./
 sudo systemctl start airiana.service controller.service

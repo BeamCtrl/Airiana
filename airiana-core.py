@@ -132,7 +132,16 @@ def update_sensors():
 	except IndexError:
 		device.msg += "\nnew sensor data error"
 		traceback.print_exc()
-
+#Auto updater
+def update():
+	os.system("wget -O ./RAM/VERS http://lappy.asuscomm.com:443/current_version")
+	ver = os.popen("cat ./RAM/VERS").read()
+	if "debug" in sys.argv:
+		print vers, "->", ver
+	if vers == ver:
+	else: 
+		os.system("./update")	
+	
 #WRITE TO DATA.LOG
 def logger ():
 	try:
