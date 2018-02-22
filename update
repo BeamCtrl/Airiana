@@ -4,7 +4,9 @@ sudo systemctl stop airiana.service controller.service
 cp data.log ../
 cp location ../
 cp data.save ../
-git pull origin
+#git pull origin
+git fetch origin
+git reset --hard origin/master
 cp ../data.log ./
 cp ../location ./
 cp ../data.save./
