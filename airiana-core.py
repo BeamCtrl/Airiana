@@ -140,7 +140,8 @@ def update():
 	
 	if "debug" in sys.argv:
 		print vers, "->", ver
-	if vers <> ver[0] and ver[1]=="Valid":
+	if vers not in ver[0] and "Valid" in ver[1]:
+		print "Updating Airiana system software to",ver[0]
 		os.system("./update&")	
 	
 #WRITE TO DATA.LOG
