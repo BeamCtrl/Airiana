@@ -66,5 +66,5 @@ while True:
 		file = open("/home/pi/airiana/RAM/status.html","w+")
 		file.write(html)
 		file.close()
-		time.sleep(60)
+		time.sleep(10)
     except KeyboardInterrupt: break 

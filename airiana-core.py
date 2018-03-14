@@ -776,7 +776,7 @@ class Systemair(object):
 					self.msg = "shower mode engaged\n"
 					self.status_field[0] += 1
 			except IndexError: pass
-		elif not self.shower:
+		elif not self.shower and not self.RH_valid:
 			# SHOWER derivative CONTROLER
 			lim = 0.08
 			if self.ef >50: lim = 0.10
