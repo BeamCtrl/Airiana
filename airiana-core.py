@@ -6,7 +6,7 @@ import time,struct,sys
 import statistics
 import signal
 #from mail import *
-vers = "7.5"
+vers = "7.6"
 Running =True
 # Register cleanup
 def exit_callback(self, arg):
