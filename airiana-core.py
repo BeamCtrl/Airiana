@@ -1232,10 +1232,12 @@ if __name__  ==  "__main__":
 	
 	device = Systemair()
 
-	if device.system_name =="VR400" and client.read_register(12543,0):
-		savecair=True
-		device.system_name="VTR300"
-		conversion_table ={}
+	try:
+		if device.system_name =="VR400" and client.read_register(12543,0):
+			savecair=True
+			device.system_name="VTR300"
+			conversion_table ={}
+	except:pass
 ################
 ###################################################
 ############################ RUN MAIN loop ########################
