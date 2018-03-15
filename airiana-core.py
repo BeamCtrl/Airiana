@@ -253,7 +253,7 @@ class Request(object):
 		try:
 			self.response = "no data"
 			self.buff += os.read(bus,20) # bus purge
-                        self.response = client.read_register(address,decimals)
+                        self.response = client.read_register(address,decimals,signed=True)
 		except IOError as error:
 	 		self.connect_errors += 1
 			if self.connect_errors > 100: self.error_review()
@@ -346,8 +346,8 @@ class Systemair(object):
 		self.diff_ave=[0]
 		self.totalenergy = 0.0
 		self.averagelimit = 1800#min122
-		self.sf = 34
-		self.ef = 34
+		self.sf = 18
+		self.ef = 23
 		self.ef_rpm = 1500
 		self.sf_rpm = 1500
 		self.inlet = []
@@ -356,6 +356,7 @@ class Systemair(object):
 		self.supply_ave=0
 		self.extract = []
 		self.extract_ave=0
+		self.electric_power = 1
 		self.house_heat_limit = 8
 		self.humidity_target =0
 		self.exhaust = []
@@ -374,6 +375,7 @@ class Systemair(object):
 		self.extract_humidity=0.40 # relative humidity
 		self.extract_humidity_comp=0.00 # relative humidity re compensated
 		self.condensate_compensation =0
+		self.filter_remaining = 0
 		self.cond_eff = 1
 		self.dur=1.0
 		self.extract_dt = 0.0
@@ -428,8 +430,11 @@ class Systemair(object):
 
 	#get heater status
 	def get_heater(self):
-		req.modbusregister(200,0)
-                self.heater = int(req.response)
+		if not savecair:
+			req.modbusregister(200,0)
+	                self.heater = int(req.response)
+		else: self.heater = 0
+		
 	#set heater status
 	def set_heater(self,heater):
 		req.write_register(200,heater)
@@ -441,6 +446,7 @@ class Systemair(object):
 
 	#Get relative humidity from internal sensor, valid units in self.has_RH_sensor tuple
 	def get_RH (self):
+	    if not savecair:
 		req.modbusregister(382,0)
 		self.RH_valid = int(req.response)
 		req.modbusregister(380,0)
@@ -449,8 +455,18 @@ class Systemair(object):
 			self.hum_list.insert(0,self.new_humidity)
 			if len(self.hum_list)>300:
 				self.hum_list.pop(-1)
+	    else:
+		req.modbusregister(12135,0)
+		if req.response <> 0:
+			self.new_humidity = int(req.response)
+			self.hum_list.insert(0,self.new_humidity)
+			if len(self.hum_list)>300:
+				self.hum_list.pop(-1)
+
+		
 	#get the nr of days  used and alarm lvl for filters
 	def get_filter_status(self):
+	    if not savecair:
 		req.modbusregister(600,0)
 		self.filter_limit = int(req.response)*31
 		req.modbusregister(601,0)
@@ -459,6 +475,7 @@ class Systemair(object):
 		if self.filter_remaining <0: self.filter_remaining = 0
 	#get status byte for temp probes
 	def get_temp_status(self):
+	    if not savecair:
 		req.modbusregister(218,0)
 		self.temp_state= req.response
 
@@ -473,11 +490,13 @@ class Systemair(object):
 
 
 	def get_fanspeed(self):
+	    if not savecair:
 		req.modbusregister(100,0)
 		self.fanspeed =int(req.response)
 		return self.fanspeed
 
 	def update_temps(self):
+	    if not savecair:
 		req.modbusregisters(213,5)# Tempsensors 1 -5
 		self.time.insert(0,time.time())
 		if len(self.time) > self.averagelimit: self.time.pop(-1)
@@ -539,7 +558,6 @@ class Systemair(object):
 		self.exhaust.insert(0, float(req.response[2])/10)
 		self.supply.insert (0, float(req.response[3])/10)
 		self.inlet.insert  (0, float(req.response[4])/10)
-
       		#limit array size
 		for each in [self.inlet,self.supply,self.extract,self.exhaust]:
 			if len(each)>self.averagelimit: each.pop(-1)
@@ -548,6 +566,18 @@ class Systemair(object):
 		except ZeroDivisionError:self.eff = 100
 		self.eff_ave.insert(0,self.eff)
 		if len(self.eff_ave) >self.averagelimit: self.eff_ave.pop(-1)
+	    else:
+		self.time.insert(0,time.time())
+		req.modbusregister(12543,0)
+		self.extract.insert(0,float(req.response)/10)
+		req.modbusregister(12102,0)
+		self.supply.insert(0,float(req.response)/10)
+		req.modbusregister(12101,0)
+		self.inlet.insert(0,float(req.response)/10)
+		if len(self.extract)>self.averagelimit: self.extract.pop(-1)
+		if len(self.exhaust)>self.averagelimit: self.exhaust.pop(-1)
+		if len(self.supply)>self.averagelimit: self.supply.pop(-1)
+		if len(self.time)>self.averagelimit: self.time.pop(-1)
 
 	def flow_calcs(self):
 		extr_vol = self.ef
@@ -588,6 +618,7 @@ class Systemair(object):
 		#		+str(extract_T)+"\t"+str(exhaust_T)+"\n"
 
 	def set_fanspeed(self,target):
+	    if not savecair:
 		self.inhibit = time.time()
 		actual = self.fanspeed
 		#print actual,"->",target
@@ -622,6 +653,7 @@ class Systemair(object):
 
 
 	def update_fan_rpm(self):
+	    if not savecair:
 		req.modbusregisters(110,2)
 		self.sf_rpm,self.ef_rpm=req.response[0],req.response[1]
 		try:
@@ -630,10 +662,12 @@ class Systemair(object):
 		if "Yes" in self.rotor_active :self.electric_power +=10 # rotor motor 10Watts
 		self.electric_power+=5#controller power
 	def update_fanspeed(self):
+	    if not savecair:
 		req.modbusregister(100,0)
 		self.fanspeed = req.response
 
 	def update_airflow(self):
+	    if not savecair:
 		req.modbusregisters(101,6)
 		sf=[req.response[0],req.response[2],req.response[4]]
 		ef=[req.response[1],req.response[3],req.response[5]]
@@ -709,6 +743,7 @@ class Systemair(object):
 		self.exhaust_ave=exhaust
 
 	def get_rotor_state(self):
+	    if not savecair:
 		req.modbusregister(206,0)
 	        self.exchanger_mode= req.response
 		req.modbusregisters(350,2)
@@ -926,6 +961,7 @@ class Systemair(object):
 
 	#change exchanger mode to to, if no to flip 0 or 5
 	def cycle_exchanger(self,to):
+	  if not savecair:
 	    def set_val(val):
 		try:
 			#self.msg += "\nwriting mode "+str(val)+"\n"
@@ -1106,7 +1142,7 @@ class Systemair(object):
 			self.set_fanspeed(2)
 			self.msg  +="Dynamic fanspeed 2\n"
 
-	    # SHOWER MODE TIMEOUT #
+	    # SHOWER MODEwTIMEOUT #
 	    if self.shower == True and self.shower_initial -time.time() < -30*60:
 		self.shower = False
 
@@ -1192,9 +1228,13 @@ class Systemair(object):
 if __name__  ==  "__main__":
 	print "Reporting system start;"
 	#print os.read(bus,10000)
-
-	device = Systemair()
 	
+	device = Systemair()
+
+	if device.system_name =="VR400" and client.read_register(12543,0):
+		savecair=True
+		device.system_name="VTR300"
+		conversion_table ={}
 ################
 ###################################################
 ############################ RUN MAIN loop ########################
@@ -1327,7 +1367,7 @@ if __name__  ==  "__main__":
 		device.iter+=1
 		########### Selection menu if not daemon######
 		if "daemon" not in sys.argv:
-			timeout = 1
+			timeout = 0.01
 			print """
 	CTRL-C to exit,
 1: Toggle auto Monitoring	 6: Retrive all Modbus Registers

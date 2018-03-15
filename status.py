@@ -56,7 +56,7 @@ while True:
 					flag = "<font color=\"red\"> Inactive </font>"
 					if not mail_sent[each.split(".")[0]]:
 						mail_sent[each.split(".")[0]] = True
-						mailer.setup ("daniel.halling@outlook.com","airiana@abiding.se","Airiana user: "+str(users[str(each.split(".")[0])])+" has changed status to inactive.")
+						mailer.setup ("daniel.halling@outlook.com","airiana@outlook.com","Airiana user: "+str(users[str(each.split(".")[0])])+" has changed status to inactive.")
 						mailer.send()
 				html += "<tr><td><a href=\"/local_links/"+each+"\">"+users[str(each.split(".")[0])]+"</a></td><td>"+time.ctime(mod)+"</td><td>"+flag+" "+str(round(status[str(each.split(".")[0])],2))+" "+str(lis)+" </td></tr>\n" 
 			except KeyError:
