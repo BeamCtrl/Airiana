@@ -8,6 +8,7 @@ import signal
 #from mail import *
 vers = "7.6"
 Running =True
+savecair=False
 # Register cleanup
 def exit_callback(self, arg):
 		print "Gracefull shutdown\nexiting on signal",self
