@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import os, sys
 os.chdir("/home/pi/airiana/")
-os.system("wget -q -O ./RAM/VERS http://lappy.asuscomm.com:443/current_version")
+os.system("sudo wget -q -O ./RAM/VERS http://lappy.asuscomm.com:443/current_version")
 ver = os.popen("cat ./RAM/VERS").read()
 ver = ver.split(" ")
 tmp = os.popen("head airiana-core.py").readlines()
