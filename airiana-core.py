@@ -1287,7 +1287,7 @@ class Systemair(object):
 		for each in range(1400,1408,2):
 			req.modbusregister(each,0)
 			#raw_input(str(percent)+"% "+str(each)+"-"+str(int(req.response*(1+(float(percent)/100)))))
-			req.write_register(each+1,int(req.response+percent)))
+			req.write_register(each+1,int(req.response+percent))
 	#get and set the local low/static humidity
 	def get_local(self):
 		try:
