@@ -48,7 +48,7 @@ if "daemon" in sys.argv:
 	fout = os.open("./RAM/out",os.O_WRONLY|os.O_CREAT)
 	os.dup2(fout,sys.stdout.fileno())
 	print "Output redirected to file;"
-	os.system("rm -f ./RAM/err")
+	#os.system("rm -f ./RAM/err")
 	ferr = os.open("./RAM/err",os.O_WRONLY|os.O_CREAT)
 	os.dup2(ferr,sys.stderr.fileno())
 
@@ -428,7 +428,7 @@ class Systemair(object):
 		self.hum_list = []
 		self.status_field = [-1,0,0,self.system_name,vers,os.popen("git log --pretty=format:'%h' -n 1").read()]
 		self.heater = 0
-
+		self.exchanger_speed = 0
 	#get heater status
 	def get_heater(self):
 		if not savecair:
@@ -477,8 +477,10 @@ class Systemair(object):
 	    else:
 		req.modbusregister(7000,0)
 		self.filter_limit = int(req.response)*31
-		lowend = client.read_register(7004)
-		highend= client.read_register(7005)<<16
+		req.modbusregister(7004,0)
+		lowend = req.response
+		req.modbusregister(7005,0)
+		highend= req.response<<16
 		self.filter = self.filter_limit- (lowend+highend) / (3600*24)
 		self.filter_remaining = round(100*(1 - (float(self.filter)/self.filter_limit)),1)
 		if self.filter_remaining <0: self.filter_remaining = 0
@@ -592,9 +594,10 @@ class Systemair(object):
 		## SUPPLY
 		self.supply.insert(0,float(supply))
 		### INLET
-		if self.rotor_active =="No"  and self.inlet_coef <0.14:self.inlet_coef+= 0.0001 #OFF
-		if self.rotor_active =="Yes" and self.inlet_coef >0.04:self.inlet_coef-= 0.0001 # ON
-		tweak  = (extract-inlet)*self.inlet_coef #inlet compensation exchanger OFF/ON
+		#if self.rotor_active =="No"  and self.inlet_coef <0.03:self.inlet_coef+= 0.0001 #OFF
+		#if self.rotor_active =="Yes" and self.inlet_coef >0.00:self.inlet_coef-= 0.0001 # ON
+		inlet_comp = ((float(3200)/self.sf_rpm)-1)*0.01
+		tweak  = (extract-inlet)*inlet_comp #inlet compensation exchanger OFF/ON
 		self.inlet.insert(0,float(inlet-tweak))
 
 
@@ -699,7 +702,7 @@ class Systemair(object):
 		req.modbusregisters(12400,2)
 		self.sf_rpm ,self.ef_rpm = req.response[0],req.response[1]
 		try:
-			self.electric_power= (self.ef_rpm/(100/(float(float(self.ef_rpm)/720)**1.89))+self.sf_rpm/(100/(float(float(self.sf_rpm)/720)**1.89)))
+			self.electric_power= (self.ef_rpm/(100/(float(float(self.ef_rpm)/1381)**1.89))+self.sf_rpm/(100/(float(float(self.sf_rpm)/1381)**1.89)))
 		except ZeroDivisionError:self.electric_power=0
 
 	def update_fanspeed(self):
@@ -786,7 +789,7 @@ class Systemair(object):
 			if len(self.cond_data)> self.averagelimit+5000:self.cond_data.pop(0)
 	# For units whithout exhaust temp sensor calc expected exhaust temp based on transfered energy in supply
 	def calc_exhaust(self):
-		exhaust = self.extract_ave- self.airdata_inst.temp_diff(self.supply_power,self.extract_ave,self.ef)*0.93
+		exhaust = self.extract_ave- self.airdata_inst.temp_diff(self.supply_power,self.extract_ave,self.ef)*0.94
 		self.exhaust_ave=exhaust
 
 	def get_rotor_state(self):
@@ -805,6 +808,8 @@ class Systemair(object):
                 else:
 			self.rotor_active = "No"
 		self.rotor_state = 0
+		self.exchanger_speed = req.response
+
 	def moisture_calcs(self):## calculate moisure/humidities
 
 		self.cond_eff=.60 #  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
@@ -885,12 +890,16 @@ class Systemair(object):
 					self.shower_initial=self.inhibit
 					self.status_field[0] += 1
 
-		if numpy.average(self.extract_dt_list)*60 < 0 and self.shower==True:
+		if numpy.average(self.extract_dt_list)*60 < 0		\
+			and self.shower==True 				\
+			and self.shower_initial - time.time()<-60:
 			if "debug" in sys.argv:
 				self.msg="Shower wait state, "+str(round(self.extract_ave,2))+"C "+str(round(self.initial_temp+0.3,2))+"C\n"
 			if self.extract_ave<=(self.initial_temp+0.3) or self.shower_initial -time.time() < -30*60:
 				self.shower=False
-				self.msg ="Shower mode off, returning to "+str(self.speeds[self.initial_fanspeed]+"\n")
+				try:
+					self.msg ="Shower mode off, returning to "+str(self.speeds[self.initial_fanspeed]+"\n")
+				except KeyError: pass
 				if savecair:
 					req.write_register(1161,2)
 				else:
@@ -899,7 +908,10 @@ class Systemair(object):
 	# PRINT OUTPUT
 	def print_xchanger(self):
 		global monitoring,vers
-		tmp =  self.system_name+" "+time.ctime()+" status: "+str(int(time.time()-starttime))+'('+str(self.iter)+")"+str(round((time.time()-starttime)/self.iter,2))+" Vers. "+vers+" ***\n"
+		tmp =  self.system_name
+		if savecair:
+			tmp += " SavecAir"
+		tmp += " "+time.ctime()+" status: "+str(int(time.time()-starttime))+'('+str(self.iter)+")"+str(round((time.time()-starttime)/self.iter,2))+" Vers. "+vers+" ***\n"
 		if "debug" in sys.argv:
 			 try:
 				tmp += "Errors -- Connect: "+str( req.connect_errors )+" Checksum: "+str(req.checksum_errors)+ " Write: "+str(req.write_errors)+" drain: "+str(len(req.buff))+" Multi: "+str(req.multi_errors) +"\n"
@@ -918,7 +930,10 @@ class Systemair(object):
 				else:
 					tmp +="Extract:"+str(self.rawdata[0][2])+ "\tInlet:"+str(self.rawdata[0][0])+"\tSupply,post:"+str(self.rawdata[0][1])+"\n"
 		except:pass
-		tmp += "Exchanger Setting: "+str(self.exchanger_mode)+" State: "+self.rotor_states[self.rotor_state]+", Rotor Active: "+self.rotor_active+"\n"
+		if not savecair:
+			tmp += "Exchanger Setting: "+str(self.exchanger_mode)+" State: "+self.rotor_states[self.rotor_state]+", Rotor Active: "+self.rotor_active+"\n"
+		else:
+			tmp += "Exchanger Rotor speed: "+str(self.exchanger_speed)+"%\n"
 		if self.rotor_active=="Yes" or "debug" in sys.argv:
 			tmp += "HeatExchange supply "+str(round(self.supply_power,1))+"W \n"
 			tmp += "HeatExchange extract "+str(round(self.extract_power+self.condensate_compensation,1))+"W\n"
@@ -933,7 +948,7 @@ class Systemair(object):
 					except:
 						tmp+= "RH calcerror\n"
 						traceback.print_exc()
-			tmp += "Calculated humidity:\t " +str(round(self.extract_ave,1))+"C "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave),2))+"C\n" 
+				tmp += "Calculated humidity:\t " +str(round(self.rawdata[0][2],1))+"C "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,self.rawdata[0][2]),2))+"C\n" 
 		if "debug" in sys.argv:
 			try:
 				tmp += "Outdoor Sensor:\t "+str(self.sensor_temp)+"C "+str(self.sensor_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.sensor_humid,self.sensor_temp),2))+"C\n"
@@ -1009,6 +1024,7 @@ class Systemair(object):
 
 	#print previously read modbus registers
 	def print_registers(self):
+	    if not savecair:
 		try:
 			print "\n",
 			for each in range(1,84):
@@ -1075,10 +1091,11 @@ class Systemair(object):
 
 	#Monitor Logical crits for state changes on exchanger, pressure, rpms, forcast
 	def monitor(self):
-	  if not savecair:
+	  if "VTR300" not in self.system_name :
 	    #### FAN RPM MONITORING
 	    if self.sf_rpm <1550 and self.fanspeed == 2 : self.inhibit = time.time()
 	    if self.sf_rpm <1000 and self.fanspeed == 1 : self.inhibit = time.time()
+	  else:
 	    #### EXCHANGER CONTROL
 	    self.house_heat_limit = 7  # daily low limit on cooling
 	    if self.forcast[0]< 10: self.target = 23
@@ -1208,12 +1225,15 @@ class Systemair(object):
 			self.msg  +="Dynamic fanspeed 2\n"
 
 	    # SHOWER MODEwTIMEOUT #
-	    if self.shower == True and self.shower_initial -time.time() < -30*60:
+	    if self.shower == True and self.shower_initial -time.time() < -45*60:
 		self.shower = False
 
 	    #Dynamic pressure control
 	    if self.new_humidity > 20.0: #Low humidity limit, restriction to not set margin lower than 20%RH
-		self.indoor_dewpoint = self.airdata_inst.dew_point(self.new_humidity+10,self.extract_ave)
+		if savecair or self.RH_valid:
+			self.indoor_dewpoint = self.airdata_inst.dew_point(self.new_humidity+5,self.extract_ave)
+		else:
+			self.indoor_dewpoint = self.airdata_inst.dew_point(self.new_humidity+10,self.extract_ave)
 	    else:
 		self.indoor_dewpoint = 5.0
 	    if self.inlet_ave > self.indoor_dewpoint+0.2   and self.sf <> self.ef and not self.press_inhibit and not self.forcast[1] == -1 :
@@ -1261,7 +1281,16 @@ class Systemair(object):
 		req.write_register(106,int(high_flow)) # reset high extract
 		#raw_input(" diff set done")
 		if "debug" in sys.argv: self.msg += "change completed\n"
+	    else:
+		self.press_inhibit = time.time()
 
+		for each in range(1400,1408,2):
+			req.modbusregister(each,0)
+			#raw_input(str(percent)+"% "+str(each)+"-"+str(int(req.response*(1+(float(percent)/100)))))
+			if percent <> 0:
+				req.write_register(each+1,int(req.response*(1+(float(percent)/100))))
+			else:
+				req.write_register(each+1,req.response)
 	#get and set the local low/static humidity
 	def get_local(self):
 		try:
@@ -1302,8 +1331,8 @@ if __name__  ==  "__main__":
 			savecair=True
 			device.system_name="VTR300"
 			conversion_table ={}
-
-			device.averagelimit=400
+			device.status_field[3]="VTR300/savecair"
+			device.averagelimit=1400
 	except:pass
 ################
 ###################################################
@@ -1559,7 +1588,7 @@ if __name__  ==  "__main__":
 				if data == 12:
 					device.shower = not device.shower
 					if device.shower:
-						device.initial_temp=device.extract_ave -0.4
+						device.initial_temp=device.extract_ave + 1
 						device.initial_fanspeed = 1
 						device.shower_initial = time.time()
 		except TypeError:pass
