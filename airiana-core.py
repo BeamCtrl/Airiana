@@ -1451,7 +1451,6 @@ if __name__  ==  "__main__":
 			os.system("cp ./RAM/data.log ./data.save")
 			if "ping" in sys.argv:
 				report_alive()
-			update()
 		#restart HTTP SERVER get filterstatus, reset IP on buttons page, update weather forcast
 		if device.iter %(int(3600*2 /device.avg_frame_time))==0:
 			device.get_filter_status()
