@@ -507,12 +507,12 @@ class Systemair(object):
 
 		self.temps = req.response[:]
 		self.rawdata.insert(0,self.temps)
+		if len(self.rawdata)>self.averagelimit:self.rawdata.pop(-1)
 
 		# NEGATYIVE VAL sign bit twos complement
 		if req.response[4]>6000:
 			req.response[4] -= 0xFFFF
 
-		if len(self.rawdata)>self.averagelimit:self.rawdata.pop(-1)
 		#req.response[1] #EXTRACTreq.BBresponse[2] #EXHAUST req.response[0] #Supply pre elec heater
 		#req.response[3] #Supply post electric heater req.response[4] Inlet
 		if self.system_name=="VR400":
@@ -672,7 +672,7 @@ class Systemair(object):
     		except IOError as error:
     			#print "no response", "fanspeed:", self.speeds[self.fanspeed]
 			self.set_fanspeed(target)
-		except: print "unhandled exception", sys.exc_info[0]
+		except: print "unhandled exception", sys.exc_info
 		self.update_airflow()
 
 
@@ -821,7 +821,7 @@ class Systemair(object):
 		#			"W kinetic_comp:"+str(round(self.kinetic_compensation,3))+\
 		#			"C target:"+str(round((( low_pw+d_pw ) / max_pw ) * 100,2))+ "%\n"
 
-		self.new_humidity += (((( low_pw+d_pw ) / max_pw ) * 100 )-self.new_humidity) *0.0001
+		if not self.RH_valid: self.new_humidity += (((( low_pw+d_pw ) / max_pw ) * 100 )-self.new_humidity) *0.0001
 		if self.iter %30 == 0 and "debug" in sys.argv:
 			self.msg += "Humidity target: "+str((( low_pw+d_pw ) / max_pw ) * 100 )+"\n"	
 			self.humidity_target =(( low_pw+d_pw ) / max_pw ) * 100 	
@@ -936,7 +936,7 @@ class Systemair(object):
 					except:
 						tmp+= "RH calcerror\n"
 						traceback.print_exc()
-				tmp += "Calculated humidity:\t " +str(round(self.rawdata[0][2],1))+"C "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,self.rawdata[0][2]),2))+"C\n" 
+				tmp += "Humidity:\t " +str(round(self.extract_ave,1))+"C "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave),2))+"C\n" 
 		if "debug" in sys.argv:
 			try:
 				tmp += "Outdoor Sensor:\t "+str(self.sensor_temp)+"C "+str(self.sensor_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.sensor_humid,self.sensor_temp),2))+"C\n"
@@ -1399,7 +1399,7 @@ if __name__  ==  "__main__":
 				device.monitor()
 				device.shower_detect()
 
-			if "humidity" in sys.argv and (device.system_name not in device.has_RH_sensor or not device.RH_valid):
+			if "humidity" in sys.argv and (device.system_name not in device.has_RH_sensor or not device.RH_valid) or "debug" in sys.argv:
 				device.moisture_calcs()
 			if "humidity" in sys.argv and device.system_name in device.has_RH_sensor:
 				device.get_RH() ## Read sensor humidity
@@ -1421,13 +1421,13 @@ if __name__  ==  "__main__":
 			device.get_heater()
 			device.msg = ""
 			#if "humidity" in sys.argv and (device.system_name not in device.has_RH_sensor or not device.RH_valid):
-			device.get_local()
 		#calc local humidity and exec logger
 		if device.iter%int(float(120)/device.avg_frame_time)==0:
 			logger()
 		#send local tempt to temperatur.nu
 		if device.iter%251==0 and "temperatur.nu" in sys.argv:
-                        os.system("wget -q -O temperatur.nu  http://www.temperatur.nu/rapportera.php?hash=42bc157ea497be87b86e8269d8dc2d42\\&t="+str(round(device.inlet_ave,1))+" &")
+        		device.get_local()
+	                os.system("wget -q -O temperatur.nu  http://www.temperatur.nu/rapportera.php?hash=42bc157ea497be87b86e8269d8dc2d42\\&t="+str(round(device.inlet_ave,1))+" &")
 		#generarte graphs and refresh airdata instance.
 		if device.iter%563==0:
 			device.update_airdata_instance()
