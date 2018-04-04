@@ -7,9 +7,9 @@ cp data.save ../
 #git pull origin
 git fetch origin
 git reset --hard origin/master
-cp ../data.log ./
-cp ../location ./
-cp ../data.save ./
+sudo cp ../data.log ./
+sudo cp ../location ./
+sudo cp ../data.save ./
 rm  -f ../data.log
 rm  -f ../data.save
 rm  -f ../location
