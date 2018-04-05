@@ -777,7 +777,7 @@ class Systemair(object):
 			if len(self.cond_data)> self.averagelimit+5000:self.cond_data.pop(0)
 	# For units whithout exhaust temp sensor calc expected exhaust temp based on transfered energy in supply
 	def calc_exhaust(self):
-		exhaust = self.extract_ave- self.airdata_inst.temp_diff(self.supply_power,self.extract_ave,self.ef)*0.94
+		exhaust = self.extract_ave- self.airdata_inst.temp_diff(self.supply_power,self.extract_ave,self.ef)*1.
 		self.exhaust_ave=exhaust
 
 	def get_rotor_state(self):
@@ -1248,7 +1248,7 @@ class Systemair(object):
 		self.forcast=[-1,-1]
 	#set the fan pressure diff
 	def set_differential(self, percent):
-	    if not savecair:
+	    if not savecair and not self.shower:
 		if "debug" in sys.argv: self.msg += "start pressure change " +str( percent)+"\n"
 		if percent>20:percent = 20
 		if percent<-20:percent =-20
@@ -1269,7 +1269,7 @@ class Systemair(object):
 		req.write_register(106,int(high_flow)) # reset high extract
 		#raw_input(" diff set done")
 		if "debug" in sys.argv: self.msg += "change completed\n"
-	    else:
+	    elif savecair and not self.shower:
 		self.press_inhibit = time.time()
 
 		for each in range(1400,1408,2):

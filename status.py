@@ -39,7 +39,7 @@ while True:
 				mod = os.stat(str("./public/local_links/"+each)).st_mtime
 				content = os.popen("cat ./public/local_links/"+each).read()
 				stat_field = content.split("status:")[-1]
-				print stat_field
+				#print stat_field
 				if content.find("status")!=-1 :exec  ("lis ="+stat_field.split("\n")[0])
 				else: lis =[]
 				#print status[str(each.split(".")[0])], each
