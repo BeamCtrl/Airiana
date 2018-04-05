@@ -6,7 +6,7 @@ import time,struct,sys
 import statistics
 import signal
 #from mail import *
-vers = "7.8"
+vers = "7.8b"
 Running =True
 savecair=False
 # Register cleanup
