@@ -928,6 +928,9 @@ class Systemair(object):
 			try:
 				tmp += "Outdoor Sensor:\t "+str(self.sensor_temp)+"C "+str(self.sensor_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.sensor_humid,self.sensor_temp),2))+"C\n"
 				tmp += "Indoor Sensor:\t "+str(self.inside)+"C "+str(self.inside_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.inside_humid,self.inside),2))+"C\n"
+				tmp += "Fanspeed level: "+str(self.fanspeed)+"\n"
+				tmp += "Long dt: "+str(self.extract_dt_long)+"\n"
+
 			except: pass
 		if "humidity" in sys.argv:
 			tmp+= "Pressure limit: "+str(round(self.indoor_dewpoint,2))+"C\n"
@@ -942,7 +945,6 @@ class Systemair(object):
 		tmp += "Loss Total: "+str(round(self.totalenergy/1000,3))+"kWh Average:"+str(round((self.totalenergy)/(((time.time()-starttime)/3600)),1))+"W\n"
 		tmp += "Cooling Total: "+str(round(self.cooling/1000,3))+"kWh\n"
 		tmp += "Heat Gain Total: "+ str(round(self.gain/1000,3))+"kWh\n"
-		tmp += "Fanspeed level: "+str(self.fanspeed)+"\n"
 		tmp += "Supply:"+str(self.sf)+" l/s,"+str(self.sf_rpm)+"rpm\tExtract:"+str(self.ef)+" l/s,"+str(self.ef_rpm)+"rpm\n"
 		if self.rotor_active == "Yes" or "debug" in sys.argv:
 			tmp += "Temperature Efficiency: "+str(round(numpy.average(self.eff_ave),2))+"%\n"
@@ -1088,7 +1090,7 @@ class Systemair(object):
 
 	#Monitor Logical crits for state changes on exchanger, pressure, rpms, forcast
 	def monitor(self):
-	  if "VTR300" not in self.system_name :
+	  if "VTR400" in self.system_name :
 	    #### FAN RPM MONITORING
 	    if self.sf_rpm <1550 and self.fanspeed == 2 : self.inhibit = time.time()
 	    if self.sf_rpm <1000 and self.fanspeed == 1 : self.inhibit = time.time()
@@ -1165,16 +1167,16 @@ class Systemair(object):
 
 	    if self.fanspeed == 1 				\
 		and ((self.extract_ave > self.target 		\
-		and self.extract_ave < self.target + 0.5 	\
+		and self.extract_ave < self.target + 0.6 	\
 		and self.extract_ave - self.supply_ave>0.1 	\
-		and numpy.average(self.extract_dt_list) >= 0.2)	\
+		and self.extract_dt_long >= 0.2)		\
 		or  (self.RH_valid				\
 			and self.new_humidity-self.local_humidity >7))\
 		and not self.shower 				\
 		and not self.inhibit 				\
 		and not self.cool_mode:
 		 	self.set_fanspeed(2)
-		 	self.msg += "Dynamic fanspeed 2.\n"
+		 	self.msg += "Dynamic fanspeed 2\n"
 
 	    if self.fanspeed == 2 				\
 		and self.extract_ave < self.target + 0.5 	\
@@ -1187,14 +1189,14 @@ class Systemair(object):
 		 	self.set_fanspeed(1)
 		 	self.msg += "Dynamic fanspeed 1, Air quality Good\n"
 		
-	    if self.fanspeed <> 3 													\
-		and self.extract_ave-0.1 > self.supply_ave 										\
+	    if self.fanspeed <> 3 							\
+		and self.extract_ave-0.1 > self.supply_ave 				\
 		and (self.extract_ave >= self.target+1 or (self.extract_dt_long >=0.7)	\
-		and self.inlet_ave > 5 or self.extract_ave > self.target+2 )								\
-		and self.exchanger_mode <> 5 												\
-		and not self.extract_dt_long < -0.2 											\
-		and not self.inhibit 													\
-		and not self.cool_mode 													\
+		and self.inlet_ave > 5 or self.extract_ave > self.target+1.5 )		\
+		and self.exchanger_mode <> 5 						\
+		and not self.extract_dt_long < -0.2 					\
+		and not self.inhibit 							\
+		and not self.cool_mode 							\
 		and not self.shower:
 			self.set_fanspeed(3)
 			self.msg += "Dynamic fanspeed 3\n"
