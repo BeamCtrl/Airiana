@@ -795,8 +795,8 @@ class Systemair(object):
 		else: d_pw = 0
 		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
 
-		self.div = self.prev_static_temp-self.kinetic_compensation 
-		low_pw = self.airdata_inst.sat_vapor_press(self.div)
+		div = self.prev_static_temp #-self.kinetic_compensation # to test new ref 
+		low_pw = self.airdata_inst.sat_vapor_press(div)
 
 
 		#if "debug" in sys.argv:self.msg += str(round( max_pw,2))+ \
@@ -823,7 +823,7 @@ class Systemair(object):
 			self.extract_dt_list.append(self.extract_dt)
 			if len(self.extract_dt_list)>500: self.extract_dt_list.pop(0)
 		#LONG
-		if self.iter %1500 == 0:
+		if self.iter %round(3600/self.avg_frame_time,-2) == 0:
 			if self.dt_hold == 0: self.dt_hold = self.extract_ave
 			self.extract_dt_long= float((self.extract_ave-self.dt_hold))/((time.time()-self.extract_dt_long_time)/3600)
 			self.extract_dt_long_time=time.time()
@@ -1167,7 +1167,7 @@ class Systemair(object):
 
 	    if self.fanspeed == 1 				\
 		and ((self.extract_ave > self.target 		\
-		and self.extract_ave < self.target + 0.6 	\
+		and self.extract_ave > self.target + 0.6 	\
 		and self.extract_ave - self.supply_ave>0.1 	\
 		and self.extract_dt_long >= 0.2)		\
 		or  (self.RH_valid				\
@@ -1177,12 +1177,11 @@ class Systemair(object):
 		and not self.cool_mode:
 		 	self.set_fanspeed(2)
 		 	self.msg += "Dynamic fanspeed 2\n"
-
+          
 	    if self.fanspeed == 2 				\
 		and self.extract_ave < self.target + 0.5 	\
-		and self.extract_ave - self.supply_ave>0.1 	\
-		and (self.RH_valid				\
-			and self.new_humidity-self.local_humidity <7) 	\
+		and self.extract_ave - self.supply_ave > 0.1 	\
+		and self.new_humidity-self.local_humidity <7 	\
 		and not self.shower 				\
 		and not self.inhibit 				\
 		and not self.cool_mode:
@@ -1203,11 +1202,12 @@ class Systemair(object):
 
 	    if self.fanspeed <> 1 				\
 		and ((self.extract_ave < self.target		\
+		and self.new_humidity-self.local_humidity<7	\
 		and not self.inhibit				\
 		and not self.cool_mode	 			\
 		and not self.shower)				\
 		or (self.extract_ave < self.target + 0.5 	\
-		and numpy.average(self.extract_dt_list) < -0.5 	\
+		and self.extract_dt_long < -0.5		 	\
 		and not self.inhibit				\
 		and not self.cool_mode				\
 		and not self.shower)) :
@@ -1225,11 +1225,12 @@ class Systemair(object):
 	    if (self.fanspeed== 3			\
  		and self.extract_ave < self.target + 1 	\
 		and self.extract_ave > self.target	\
+		and not self.extract_dt_long > 0.7
 		and not self.shower			\
 		and not self.inhibit			\
 		and not self.cool_mode)		 	\
 		or  (self.supply_ave < 12		\
-		and numpy.average(self.extract_dt_list)<-.5 \
+		and self.extract_dt_long < -0.5 	\
 		and not self.cool_mode 			\
 		and not self.inhibit 			\
 		and not self.shower):
@@ -1309,8 +1310,9 @@ class Systemair(object):
 			temp = float(tmp[1])
 			self.local_humidity = float(tmp[0])
 			comp = float(os.popen("./forcast.py tomorrows-low").read().split(" ")[0])
-			comp = float(comp - temp)/1000
-			self.kinetic_compensation -= comp * self.avg_frame_time
+			comp = float(comp - temp)/5000
+			#self.kinetic_compensation -= comp * self.avg_frame_time
+			self.prev_static_temp -= comp * self.avg_frame_time
 			weather = int(os.popen("./forcast.py now").read().split(" ")[-2])
 			if weather == 9 or weather == 10 or weather == 15:
 				self.kinetic_compensation = 0
@@ -1457,12 +1459,12 @@ if __name__  ==  "__main__":
 			#if "humidity" in sys.argv and (device.system_name not in device.has_RH_sensor or not device.RH_valid):
 		#calc local humidity and exec logger
 		if device.iter%int(float(120)/device.avg_frame_time)==0:
+        		device.msg = ""
 			logger()
 		#send local tempt to temperatur.nu
 		if device.iter%251==0 and "temperatur.nu" in sys.argv:
 			if "debug" in sys.argv:
 				os.system("echo \"251\" >./RAM/exec_tree")
-        		device.msg = ""
 			device.get_local()
 	                os.system("wget -q -O temperatur.nu  http://www.temperatur.nu/rapportera.php?hash=42bc157ea497be87b86e8269d8dc2d42\\&t="+str(round(device.inlet_ave,1))+" &")
 		#generarte graphs and refresh airdata instance.
