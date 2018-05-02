@@ -1181,12 +1181,23 @@ class Systemair(object):
 	    if self.fanspeed == 2 				\
 		and self.extract_ave < self.target + 0.5 	\
 		and self.extract_ave - self.supply_ave > 0.1 	\
-		and self.new_humidity-self.local_humidity <7 	\
+		and (self.RH_valid				\
+			and self.new_humidity-self.local_humidity <7) 	\
 		and not self.shower 				\
 		and not self.inhibit 				\
 		and not self.cool_mode:
 		 	self.set_fanspeed(1)
 		 	self.msg += "Dynamic fanspeed 1, Air quality Good\n"
+	    #dynamic2 without Rhsensor
+	    if self.fanspeed == 2 				\
+		and self.extract_ave < self.target + 0.5 	\
+		and self.extract_ave - self.supply_ave > 0.1 	\
+		and not self.RH_valid
+		and not self.shower 				\
+		and not self.inhibit 				\
+		and not self.cool_mode:
+		 	self.set_fanspeed(1)
+		 	self.msg += "Dynamic fanspeed 1\n"
 		
 	    if self.fanspeed <> 3 							\
 		and self.extract_ave-0.1 > self.supply_ave 				\
