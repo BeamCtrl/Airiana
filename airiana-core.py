@@ -1192,7 +1192,7 @@ class Systemair(object):
 	    if self.fanspeed == 2 				\
 		and self.extract_ave < self.target + 0.5 	\
 		and self.extract_ave - self.supply_ave > 0.1 	\
-		and not self.RH_valid
+		and not self.RH_valid				\
 		and not self.shower 				\
 		and not self.inhibit 				\
 		and not self.cool_mode:
