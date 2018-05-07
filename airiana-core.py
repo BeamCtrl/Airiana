@@ -4,7 +4,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 ############################
-vers = "8.0"
+vers = "8.1"
 Running =True
 savecair=False
 # Register cleanup
@@ -415,6 +415,26 @@ class Systemair(object):
 		self.status_field = [-1,0,0,self.system_name,vers,os.popen("git log --pretty=format:'%h' -n 1").read()]
 		self.heater = 0
 		self.exchanger_speed = 0
+
+	def system_setup (self):
+		if savecair:
+			#setup airflow levels
+			req.write_register(1400,16)
+		 	req.write_register(1401,16)
+		 	req.write_register(1402,20)
+		 	req.write_register(1403,20)
+		 	req.write_register(1404,50)
+		 	req.write_register(1405,50)
+		 	req.write_register(1406,85)
+		 	req.write_register(1407,85)
+		 	req.write_register(1408,100)
+		 	req.write_register(1409,100)
+
+		else:
+			if "VTR300" in self.system_name:
+				pass
+			if "VR400" in self.system_name: 
+				pass
 	#get heater status
 	def get_heater(self):
 		if not savecair:
@@ -1140,7 +1160,7 @@ class Systemair(object):
 			and self.cool_mode == False 				\
 			and self.extract_ave+0.1 > self.supply_ave 		\
 			and self.extract_ave>20.7:
-				self.msg += "predictive Cooling enaged\n"
+				self.msg += "Predictive Cooling enaged\n"
 				if self.exchanger_mode <>0:	self.cycle_exchanger(0)
 				self.set_fanspeed(3)
 				self.cool_mode = True
@@ -1149,18 +1169,22 @@ class Systemair(object):
 	    if self.cool_mode and not self.inhibit and not self.shower:
 		if (self.extract_ave <20.7 ) and self.fanspeed <> 1 :
 			self.set_fanspeed(1)
-			self.msg += "cooling complete\n"
+			self.msg += "Cooling complete\n"
 
 		if self.fanspeed == 3 and self.supply_ave < 12:
 			self.set_fanspeed(2)
-			self.msg = "cooling reduced\n"
+			self.msg += "Cooling reduced\n"
+
+		if self.fanspeed == 2 and self.supply_ave > 14:
+			self.set_fanspeed(3)
+			self.msg += "Cooling returned to High.\n"
 
 		if self.fanspeed ==1 and self.extract_ave > 20.8 and self.extract_ave > self.supply_ave:
 			self.set_fanspeed(3)
 
 		if self.supply_ave>self.extract_ave+0.1 and self.fanspeed<>1:
 			self.set_fanspeed(1)
-			self.msg += "no cooling posible due to temperature conditions\n"
+			self.msg += "No cooling posible due to temperature conditions\n"
 
 		if (self.forcast[0] <= 16 or self.forcast[1]>=4) and time.localtime().tm_hour >12: self.cool_mode=False
 	    #DYNAMIC FANSPEED CONTROL
@@ -1177,7 +1201,7 @@ class Systemair(object):
 		and not self.cool_mode:
 		 	self.set_fanspeed(2)
 		 	self.msg += "Dynamic fanspeed 2\n"
-          
+
 	    if self.fanspeed == 2 				\
 		and self.extract_ave < self.target + 0.5 	\
 		and self.extract_ave - self.supply_ave > 0.1 	\
@@ -1321,7 +1345,7 @@ class Systemair(object):
 			temp = float(tmp[1])
 			self.local_humidity = float(tmp[0])
 			comp = float(os.popen("./forcast.py tomorrows-low").read().split(" ")[0])
-			comp = float(comp - temp)/5000
+			comp = float(comp - temp)/10
 			#self.kinetic_compensation -= comp * self.avg_frame_time
 			self.prev_static_temp -= comp * self.avg_frame_time
 			weather = int(os.popen("./forcast.py now").read().split(" ")[-2])
@@ -1329,7 +1353,7 @@ class Systemair(object):
 				self.kinetic_compensation = 0
 
 			if "debug" in sys.argv:
-				self.msg += "Comp set to: " +str(round(comp,4))+" Static offset:"+str(round(self.kinetic_compensation,2))+"\n"
+				self.msg += "Comp set to: " +str(round(comp,4))+" Prev static temp::"+str(round(self.prev_static_temp,2))+"\n"
 			if temp <> self.prev_static_temp:
 				self.prev_static_temp = temp
 				self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/3
@@ -1371,6 +1395,7 @@ if __name__  ==  "__main__":
 	    #FIRST PASS ONLY #
             clear_screen()
 	    print "First PASS;\n updating fanspeeds;"
+	    device.system_setup()
 	    device.update_airflow()
 	    sys.stdout.flush()
 	    print "Updating fans rpms;"
