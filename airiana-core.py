@@ -412,7 +412,7 @@ class Systemair(object):
 		self.set_system_name()
 		self.RH_valid = 0
 		self.hum_list = []
-		self.status_field = [-1,0,0,self.system_name,vers,os.popen("git log --pretty=format:'%h' -n 1").read()]
+		self.status_field = [-1,0,0,self.system_name,vers,os.popen("git log --pretty=format:'%h' -n 1").read(),0]
 		self.heater = 0
 		self.exchanger_speed = 0
 
@@ -601,8 +601,8 @@ class Systemair(object):
 		if len(self.rawdata)>self.averagelimit:
 			self.rawdata.pop(-1)
 		try:
-			self.dyn_coef = float(3200)/self.ef_rpm *0.1
-			self.tcomp= ((extract-inlet)*0.00)+self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
+			self.dyn_coef = float(3200)/self.ef_rpm *0.01
+			self.tcomp= (extract-inlet)*self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
 		except ZeroDivisionError : pass 
 		self.extract.insert(0,float(extract+self.tcomp))
 		## SUPPLY
@@ -815,7 +815,7 @@ class Systemair(object):
 		else: d_pw = 0
 		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
 
-		div = self.prev_static_temp #-self.kinetic_compensation # to test new ref 
+		div = self.prev_static_temp -self.kinetic_compensation # to test new ref 
 		low_pw = self.airdata_inst.sat_vapor_press(div)
 
 
@@ -983,6 +983,7 @@ class Systemair(object):
 		if not monitoring: tmp += "\nSystem Automation off\n"
 
 		self.status_field[2] = round((time.time()-starttime)/self.iter,2)
+		self.status_field[6] = round((time.time()-starttime)/3600,0)
 		#if self.iter %60==0 and "debug" in sys.argv :
 		#	try:
 		#		ave, dev = statistics.stddev(self.cond_data)
@@ -1161,6 +1162,9 @@ class Systemair(object):
 			and self.extract_ave+0.1 > self.supply_ave 		\
 			and self.extract_ave>20.7:
 				self.msg += "Predictive Cooling enaged\n"
+				if savecair:
+					req.write_register(1407,100)
+					req.write_register(1406,100)
 				if self.exchanger_mode <>0:	self.cycle_exchanger(0)
 				self.set_fanspeed(3)
 				self.cool_mode = True
@@ -1186,7 +1190,12 @@ class Systemair(object):
 			self.set_fanspeed(1)
 			self.msg += "No cooling posible due to temperature conditions\n"
 
-		if (self.forcast[0] <= 16 or self.forcast[1]>=4) and time.localtime().tm_hour >12: self.cool_mode=False
+		if (self.forcast[0] <= 16 or self.forcast[1]>=4) and time.localtime().tm_hour >12:
+			self.cool_mode=False
+			if savecair:
+				req.write_register(1407,85)
+				req.write_register(1406,85)
+
 	    #DYNAMIC FANSPEED CONTROL
 
 	    if self.fanspeed == 1 				\
@@ -1345,24 +1354,25 @@ class Systemair(object):
 			temp = float(tmp[1])
 			self.local_humidity = float(tmp[0])
 			comp = float(os.popen("./forcast.py tomorrows-low").read().split(" ")[0])
-			comp = float(comp - temp)/10
+			comp = float(comp - (temp-self.kinetic_compensation))/500
+			self.kinetic_compensation -= comp * self.avg_frame_time
 			#self.kinetic_compensation -= comp * self.avg_frame_time
-			self.prev_static_temp -= comp * self.avg_frame_time
 			weather = int(os.popen("./forcast.py now").read().split(" ")[-2])
-			if weather == 9 or weather == 10 or weather == 15:
-				self.kinetic_compensation = 0
+			#if weather == 9 or weather == 10 or weather == 15:
+			#	self.kinetic_compensation = 0
 
 			if "debug" in sys.argv:
-				self.msg += "Comp set to: " +str(round(comp,4))+" Prev static temp::"+str(round(self.prev_static_temp,2))+"\n"
+				self.msg += "Comp set to: " +str(round(comp,4))+" Prev static temp::"+str(round(self.prev_static_temp,5))+"\n"
 			if temp <> self.prev_static_temp:
 				self.prev_static_temp = temp
-				self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/3
+				self.kinetic_compensation = 0
+				#self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/3
 				temp = weather
-				if temp >=3:
-					self.kinetic_compensation += 0.5
-				elif temp == 15 or temp == 9 or temp == 10:
-					self.kinetic_compensation = 0
-				self.humidity_comp = 0
+				#if temp >=3:
+				#	self.kinetic_compensation += 0.5
+				#elif temp == 15 or temp == 9 or temp == 10:
+				#	self.kinetic_compensation = 0
+				#self.humidity_comp = 0
 			#if self.kinetic_compensation <0: self.kinetic_compensation = 0
 		except: print "dayliy low calc error"
 
