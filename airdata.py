@@ -32,7 +32,12 @@ class Energy(object):
 		return (self.density(temp)) #kg/m3
 	def temp_diff(self,energy, extract_temp,extract_flow):
 		d_W = energy
-		d_T = 0.01
+		if energy <0:
+			d_W = -energy
+			d_T= 0.01
+		else:
+			d_W = energy
+			d_T = 0.01
 		d_temp = 0.0
 		while d_W >0:
 			density = self.density(extract_temp-d_temp)
@@ -40,6 +45,7 @@ class Energy(object):
 			energy = mass * self.specific_heat*d_T
 			d_W -=  energy
 			d_temp += d_T
+			#print d_temp
 		#math.log(self.T+extract_temp)
 		#dt = (self.R*energy)/(self.press*100*self.specific_heat*math.log(self.T+extract_temp))
 		#print dt
@@ -115,12 +121,12 @@ if  "__main__" in __name__:
 	#for each in range(-60,121):
 	#	print air.density(each),"kg/m3",each, "C", air.sat_vapor_press(each),"Pa"
 	#print air.dew_point(30,22.0)		
-	print air.energy_flow(34,18.29,21.73)
-	print air.energy_flow(34,21.58,17.73)
+	#print air.energy_flow(34,18.29,21.73)
+	#print air.energy_flow(34,21.58,17.73)
 
-	print air.temp_diff(air.energy_flow(34,21.58,17.73)-0.2,21.58,34)
-	print "ref.",21.58-17.73
-	
+	#print air.temp_diff(air.energy_flow(34,21.58,17.73)-0.2,21.58,34)
+	#print "ref.",21.58-17.73
+	print air.temp_diff (-10,24,20)
 
 
 

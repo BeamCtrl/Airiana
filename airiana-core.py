@@ -783,7 +783,10 @@ class Systemair(object):
 	def calc_exhaust(self):
 		try:
 			if self.supply_power and self.ef:
-				exhaust = self.extract_ave- self.airdata_inst.temp_diff(self.supply_power,self.extract_ave,self.ef)*1.
+				if self.supply_ave > self.inlet_ave:
+					exhaust = self.extract_ave- self.airdata_inst.temp_diff(self.supply_power,self.extract_ave,self.ef)
+				else:
+					exhaust = self.extract_ave+ self.airdata_inst.temp_diff(-1*self.supply_power,self.extract_ave,self.ef)
 				self.exhaust_ave=exhaust
 		except: pass
 	def get_rotor_state(self):
@@ -928,7 +931,7 @@ class Systemair(object):
 		if not savecair:
 			tmp += "Exchanger Setting: "+str(self.exchanger_mode)+" State: "+self.rotor_states[self.rotor_state]+", Rotor Active: "+self.rotor_active+"\n"
 		else:
-			tmp += "Exchanger Rotor speed: "+str(self.exchanger_speed)+"% set target:"+str(self.target)+"C\n"
+			tmp += "Exchanger Rotor speed: "+str(self.exchanger_speed)+"% set target:"+str(self.target)+"C exchanger setting: "+str(self.exchanger_mode)+"\n"
 		if self.rotor_active=="Yes" or "debug" in sys.argv:
 			tmp += "HeatExchange supply "+str(round(self.supply_power,1))+"W \n"
 			tmp += "HeatExchange extract "+str(round(self.extract_power+self.condensate_compensation,1))+"W\n"
@@ -1170,23 +1173,31 @@ class Systemair(object):
 				self.cool_mode = True
 	    except: os.write(ferr, "Forcast cooling error")
 
+	    if self.cool_mode and self.fanspeed == 1 and self.exchanger_speed < 90 and savecair:
+		self.cycle_exchanger(0)
+		self.cycle_exchanger(5)
+		self.modetoken = 0
+	    elif self.exchanger_mode ==5 and self.supply_ave > self.inlet_ave:
+		self.cycle_exchanger(0)
+
+		self.modetoken = 0
 	    if self.cool_mode and not self.inhibit and not self.shower:
 		if (self.extract_ave <20.7 ) and self.fanspeed <> 1 :
 			self.set_fanspeed(1)
 			self.msg += "Cooling complete\n"
 
-		if self.fanspeed == 3 and self.supply_ave < 12:
+		if self.fanspeed == 3 and self.supply_ave < 10:
 			self.set_fanspeed(2)
 			self.msg += "Cooling reduced\n"
 
-		if self.fanspeed == 2 and self.supply_ave > 14:
+		if self.fanspeed == 2 and self.supply_ave > 12:
 			self.set_fanspeed(3)
 			self.msg += "Cooling returned to High.\n"
 
-		if self.fanspeed ==1 and self.extract_ave > 20.8 and self.extract_ave > self.supply_ave:
+		if self.fanspeed ==1 and self.extract_ave > 20.8 and self.inlet_ave < self.supply_ave:
 			self.set_fanspeed(3)
 
-		if self.supply_ave>self.extract_ave+0.1 and self.fanspeed<>1:
+		if self.supply_ave<self.inlet_ave and self.fanspeed<>1:
 			self.set_fanspeed(1)
 			self.msg += "No cooling posible due to temperature conditions\n"
 
@@ -1586,6 +1597,7 @@ if __name__  ==  "__main__":
 					monitoring = not monitoring # Toggle monitoring on / off
 					device.inhibit = 0
 					device.press_inhibit = 0
+					device.modetoken = 0
 				if data == 2:
 					device.set_fanspeed(device.fanspeed+1)
 					if "daemon" not in sys.argv:
