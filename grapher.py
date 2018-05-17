@@ -9,12 +9,15 @@ ioff()
 
 if len(sys.argv) >=2  :
 	try:
-		day= int(sys.argv[1])
+		day= int(sys.argv[1])*3600*24
 		print "day set to" ,day
 	except: day= 3600*24
 else:
 	day = 3600*24
-fil = os.popen("tail -n "+str(day/5)+" ./RAM/data.log")
+if day> 3600*24:
+	fil = os.popen("tail -n "+str(day/5)+" ./data.log")
+else:
+	fil = os.popen("tail -n "+str(day/5)+" ./RAM/data.log")
 data = fil.readlines()
 #print data[-1], tm.time()
 sen_hum = []
