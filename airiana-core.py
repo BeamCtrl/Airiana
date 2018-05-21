@@ -1168,7 +1168,8 @@ class Systemair(object):
 				if savecair:
 					req.write_register(1407,100)
 					req.write_register(1406,100)
-				if self.exchanger_mode <>0:	self.cycle_exchanger(0)
+				if self.exchanger_mode <>0:
+					self.cycle_exchanger(0)
 				self.set_fanspeed(3)
 				self.cool_mode = True
 	    except: os.write(ferr, "Forcast cooling error")
@@ -1197,7 +1198,7 @@ class Systemair(object):
 		if self.fanspeed ==1 and self.extract_ave > 20.8 and self.inlet_ave < self.supply_ave:
 			self.set_fanspeed(3)
 
-		if self.supply_ave<self.inlet_ave and self.fanspeed<>1:
+		if self.supply_ave>self.extract_ave and self.fanspeed<>1:
 			self.set_fanspeed(1)
 			self.msg += "No cooling posible due to temperature conditions\n"
 
@@ -1377,14 +1378,13 @@ class Systemair(object):
 			if temp <> self.prev_static_temp:
 				self.prev_static_temp = temp
 				self.kinetic_compensation = 0
-				#self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/3
+				self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/3
 				temp = weather
-				#if temp >=3:
-				#	self.kinetic_compensation += 0.5
-				#elif temp == 15 or temp == 9 or temp == 10:
-				#	self.kinetic_compensation = 0
-				#self.humidity_comp = 0
-			#if self.kinetic_compensation <0: self.kinetic_compensation = 0
+				if temp >=3:
+					self.kinetic_compensation += 0.5
+				elif temp == 15 or temp == 9 or temp == 10:
+					self.kinetic_compensation = 0
+				self.humidity_comp = 0
 		except: print "dayliy low calc error"
 
 ## Init base class ##

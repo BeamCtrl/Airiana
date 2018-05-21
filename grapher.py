@@ -16,9 +16,14 @@ else:
 	day = 3600*24
 if day> 3600*24:
 	fil = os.popen("tail -n "+str(day/5)+" ./data.log")
+	data = fil.readlines()
+	fil = os.popen("tail -n "+str(day/5)+" ./RAM/data.log")
+	data +=  fil.readlines()
+
 else:
 	fil = os.popen("tail -n "+str(day/5)+" ./RAM/data.log")
-data = fil.readlines()
+	data = fil.readlines()
+
 #print data[-1], tm.time()
 sen_hum = []
 sen_temp = []
