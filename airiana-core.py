@@ -4,7 +4,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 ############################
-vers = "8.1"
+vers = "8.1a"
 Running =True
 savecair=False
 # Register cleanup
@@ -1391,6 +1391,7 @@ class Systemair(object):
 if __name__  ==  "__main__":
 	print "Reporting system start;"
 	#print os.read(bus,10000)
+	report_alive()
 	
 	device = Systemair()
 
