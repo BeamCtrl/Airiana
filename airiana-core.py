@@ -4,7 +4,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 ############################
-vers = "8.1"
+vers = "8.2"
 Running =True
 savecair=False
 # Register cleanup
@@ -1571,13 +1571,13 @@ if __name__  ==  "__main__":
 					data = sock[0]
 					data = int(str(data))
 					sender = sock[1]
-				except: pass 
-				try:	
+				except: pass
+				try:
 					device.msg += "Network command recieved: Processing... "+str(data)+"\n"
 					log = "echo \"" + str(time.ctime()) +":" +str(sender) +":" +str(data) +"\" >> netlog.log &"
 					os.system(log)
 					#device.msg += log+"\n"+str(data)+" "+str(type(data))+" "+str(len(data))+"\n"
-				except:	
+				except:
 					device.msg += "net log error\n"
 					traceback.print_exc()
 
@@ -1586,12 +1586,12 @@ if __name__  ==  "__main__":
 				try:
 					data = sys.stdin.readline()
 					data = int(str(data))
-				except: 
+				except:
 					device.msg += "stdin error\n"
 					traceback.print_exc()
 
 			if data <> -1:
-				if data == 1:	
+				if data == 1:
 					monitoring = not monitoring # Toggle monitoring on / off
 					device.inhibit = 0
 					device.press_inhibit = 0
