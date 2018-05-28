@@ -88,5 +88,4 @@ if "tomorrows-low" in sys.argv:
 	tomorrow = tomorrow.timetuple()
 	for each in forcasts:
 		if each.valid_from.tm_mday==tomorrow.tm_mday and each.period == "1":
-			print each.temp, each.weather_type
-		
+			print each.temp, each.weather_type,each.wind_speed

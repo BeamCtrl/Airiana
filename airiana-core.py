@@ -4,7 +4,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 ############################
-vers = "8.1a"
+vers = "8.1"
 Running =True
 savecair=False
 # Register cleanup
@@ -342,7 +342,7 @@ class Systemair(object):
 		self.supply = []
 		self.supply_ave=0
 		self.extract = []
-		self.extract_ave=0
+		self.extract_ave=0.0
 		self.electric_power = 1
 		self.house_heat_limit = 8
 		self.humidity_target =0
@@ -407,7 +407,7 @@ class Systemair(object):
 		self.indoor_dewpoint = 0
 		self.target = 22
 		self.energy_diff=0
-		self.new_humidity=40
+		self.new_humidity=40.0
 		self.div =0
 		self.set_system_name()
 		self.RH_valid = 0
@@ -458,7 +458,7 @@ class Systemair(object):
 		self.RH_valid = int(req.response)
 		req.modbusregister(380,0)
 		if self.RH_valid:
-			self.new_humidity = int(req.response)
+			self.new_humidity = float(req.response)
 			self.hum_list.insert(0,self.new_humidity)
 			if len(self.hum_list)>300:
 				self.hum_list.pop(-1)
@@ -466,7 +466,7 @@ class Systemair(object):
 		req.modbusregister(12135,0)
 		if req.response <> 0:
 			self.RH_valid = 1
-			self.new_humidity = int(req.response)
+			self.new_humidity = float(req.response)
 			self.hum_list.insert(0,self.new_humidity)
 			if len(self.hum_list)>self.averagelimit:
 				self.hum_list.pop(-1)
@@ -807,8 +807,7 @@ class Systemair(object):
 		self.rotor_state = 0
 		self.exchanger_speed = req.response
 
-	def moisture_calcs(self):## calculate moisure/humidities
-
+	def moisture_calcs(self,data="None"):## calculate moisure/humidities
 		self.cond_eff=.60 #  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
 		######### SAT MOIST UPDATE ############
 		if self.energy_diff > 0 and self.rotor_active=="Yes":
@@ -816,25 +815,22 @@ class Systemair(object):
 				d_pw = (self.airdata_inst.energy_to_pwdiff(self.energy_diff,self.extract_ave)/self.cond_eff)/(float(self.ef)/1000)
 			except: d_pw=0
 		else: d_pw = 0
-		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
 
+		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
 		div = self.prev_static_temp -self.kinetic_compensation # to test new ref 
 		low_pw = self.airdata_inst.sat_vapor_press(div)
 
-
-		#if "debug" in sys.argv:self.msg += str(round( max_pw,2))+ \
-		#			"Pa "+str(round( low_pw,2))+"Pa "+\
-		#			str( round(d_pw,2))+"Pa "+\
-		#			str(round(d_pw/max_pw*100,2))+"% "+\
-		#			str(round( self.energy_diff,2))+\
-		#			"W kinetic_comp:"+str(round(self.kinetic_compensation,3))+\
-		#			"C target:"+str(round((( low_pw+d_pw ) / max_pw ) * 100,2))+ "%\n"
-
-		if not self.RH_valid: self.new_humidity += (((( low_pw+d_pw ) / max_pw ) * 100 )-self.new_humidity) *0.0001
-		if self.iter %30 == 0 and "debug" in sys.argv:
-			#self.msg += "Humidity target: "+str((( low_pw+d_pw ) / max_pw ) * 100 )+"\n"	
+		#create humidity if no sensor data avail
+		if not self.RH_valid:
+			self.new_humidity += (((( low_pw+d_pw ) / max_pw ) * 100 )-self.new_humidity) *0.0001
+			
+		#if self.iter %30 == 0 and "debug" in sys.argv:
 			self.humidity_target =(( low_pw+d_pw ) / max_pw ) * 100 	
-		return (( low_pw+d_pw ) / max_pw ) * 100 
+		#query for a ref humidity at temp
+		if data is not "None":
+			max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
+			low_pw = self.airdata_inst.sat_vapor_press(data)
+		return (( low_pw) / max_pw ) * 100 
 		#####END
 
 	#calc long and short derivatives
@@ -1360,21 +1356,22 @@ class Systemair(object):
 			req.write_register(each+1,int(req.response+percent))
 	#get and set the local low/static humidity
 	def get_local(self):
-		try:
+		
 			out = os.popen("./humid.py "+str(self.extract_ave)).readline()
 			tmp = out.split(" ")
 			temp = float(tmp[1])
 			self.local_humidity = float(tmp[0])
-			comp = float(os.popen("./forcast.py tomorrows-low").read().split(" ")[0])
-			comp = float(comp - (temp-self.kinetic_compensation))/500
+			wthr = os.popen("./forcast.py tomorrows-low").read().split(" ")
+			comp = float(wthr[0])-(float(wthr[2])/3)
+			comp = (comp - (temp-self.kinetic_compensation))/500
 			self.kinetic_compensation -= comp * self.avg_frame_time
-			#self.kinetic_compensation -= comp * self.avg_frame_time
+
 			weather = int(os.popen("./forcast.py now").read().split(" ")[-2])
 			#if weather == 9 or weather == 10 or weather == 15:
 			#	self.kinetic_compensation = 0
 
 			if "debug" in sys.argv:
-				self.msg += "Comp set to: " +str(round(comp,4))+" Prev static temp::"+str(round(self.prev_static_temp,5))+"\n"
+				self.msg += "Comp set to: " +str(round(comp,4))+" Prev static temp:"+str(self.moisture_calcs(round(self.prev_static_temp,5)))+"\n"
 			if temp <> self.prev_static_temp:
 				self.prev_static_temp = temp
 				self.kinetic_compensation = 0
@@ -1385,7 +1382,7 @@ class Systemair(object):
 				elif temp == 15 or temp == 9 or temp == 10:
 					self.kinetic_compensation = 0
 				self.humidity_comp = 0
-		except: print "dayliy low calc error"
+			#except: print "dayliy low calc error",comp,wthr,traceback.print_exc()
 
 ## Init base class ##
 if __name__  ==  "__main__":
@@ -1659,6 +1656,10 @@ if __name__  ==  "__main__":
 				if data == 0:
 					device.cycle_exchanger(None)
 
+				if data == 96:
+					clear_screen()
+					device.msg += "Fanspeed to Off\n"
+					device.set_fanspeed(0)
 				if data == 97:
 					clear_screen()
 					device.msg += "Fanspeed to Low\n"
