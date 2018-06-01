@@ -153,7 +153,7 @@ def logger ():
 		+":"				\
 		+str(round(device.supply_ave,2))		\
 		+":"				\
-		+str(round(device.humidity_target,2))	\
+		+str(round(device.local_humidity,2))	\
 		+":"				\
 		+str(device.inside)		\
 		+":"				\
@@ -914,8 +914,8 @@ class Systemair(object):
 				tmp += str(sys.argv)+"\n"
 			 except: pass
 		try:
-			tmp += "Inlet: "+str("%.2f" % self.inlet_ave)+"C\t\tSupply: "+str("%.2f" % self.supply_ave)+"C\td_in : "+str(round(self.supply_ave,2)-round(self.inlet_ave,2))+"C"
-			tmp += "\nExtract: "+str("%.2f" % self.extract_ave)+"C\tExhaust: "+str("%.2f" % self.exhaust_ave)+"C\td_out: "+str(round(self.extract_ave,2)-round(self.exhaust_ave,2))+"C\n"
+			tmp += "Inlet: <b>"+str("%.2f" % self.inlet_ave)+"C</b>\t\tSupply: "+str("%.2f" % self.supply_ave)+"C\td_in : "+str(round(self.supply_ave,2)-round(self.inlet_ave,2))+"C"
+			tmp += "\nExtract: <b>"+str("%.2f" % self.extract_ave)+"C</b>\tExhaust: "+str("%.2f" % self.exhaust_ave)+"C\td_out: "+str(round(self.extract_ave,2)-round(self.exhaust_ave,2))+"C\n"
 			tmp += "Extract dT/dt: "+str(round(self.extract_dt,3))+"degC/min dT/dt: "+str(round(numpy.average(self.extract_dt_list)*60,3))+"degC/hr\n\n"
 			if "debug" in sys.argv:
 				tmp += "Tcomp:" + str(self.tcomp) + " at T1:"+str(self.rawdata[0][0])+" coef:"+str(round(self.coef,4))+" inlet coef:"+str(self.inlet_coef)+" dyn:"+str(self.dyn_coef)+"\n"
@@ -1354,24 +1354,44 @@ class Systemair(object):
 			req.modbusregister(each,0)
 			#raw_input(str(percent)+"% "+str(each)+"-"+str(int(req.response*(1+(float(percent)/100)))))
 			req.write_register(each+1,int(req.response+percent))
+	    if not savecair and not self.shower and self.systemname=="VTR300":
+		if "debug" in sys.argv: self.msg += "start pressure change " +str( percent)+"\n"
+                if percent>20:percent = 20
+                if percent<-20:percent =-20
+		
+		req.modbusregister(101,0) #LOW supply flow
+                target = int(req.response + req.response * (float(percent)/100))
+                req.write_register(102,target) #LOW extract flow
+
+                req.modbusregister(103,0) #nominal supply flow
+                target = int(req.response + req.response * (float(percent)/100))
+                req.write_register(104,target) # nominal extract flow
+
+		req.modbusregister(106,0) #nominal supply flow
+                target = int(req.response - req.response * abs(float(percent)/100))
+                req.write_register(105,target) # nominal extract flow
+
+                if req.response == target:
+                        self.press_inhibit = time.time()
+                if "debug" in sys.argv: self.msg += "change completed\n"
 	#get and set the local low/static humidity
 	def get_local(self):
 		
 			out = os.popen("./humid.py "+str(self.extract_ave)).readline()
 			tmp = out.split(" ")
 			temp = float(tmp[1])
-			self.local_humidity = float(tmp[0])
 			wthr = os.popen("./forcast.py tomorrows-low").read().split(" ")
 			comp = float(wthr[0])-(float(wthr[2])/3)
 			comp = (comp - (temp-self.kinetic_compensation))/500
 			self.kinetic_compensation -= comp * self.avg_frame_time
+			self.local_humidity = self.moisture_calcs(self.prev_static_temp-self.kinetic_compensation)
 
 			weather = int(os.popen("./forcast.py now").read().split(" ")[-2])
 			#if weather == 9 or weather == 10 or weather == 15:
 			#	self.kinetic_compensation = 0
 
 			if "debug" in sys.argv:
-				self.msg += "Comp set to: " +str(round(comp,4))+" Prev static temp:"+str(self.moisture_calcs(round(self.prev_static_temp,5)))+"\n"
+				self.msg += "Comp set to: " +str(round(comp,4))+" Calc RH%:"+str(self.local_humidity)+"%\n"
 			if temp <> self.prev_static_temp:
 				self.prev_static_temp = temp
 				self.kinetic_compensation = 0

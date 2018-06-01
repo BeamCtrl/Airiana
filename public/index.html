@@ -1,9 +1,84 @@
 <!DOCTYPE html>
-<META HTTP-EQUIV="refresh" CONTENT="900">
-<meta charset="UTF-8">
-<title>Airiana Controller</title>
+<html>
+<head>
+<style>
+body {
+    font-family: "Lato", sans-serif;
+}
+
+.sidenav {
+    height: 100%;
+    width: 250px;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #FFF;
+    overflow-x: hidden;
+    padding-top: 50px;
+}
+
+.sidenav a {
+    padding: 6px 8px 6px 16px;
+    text-decoration: none;
+    font-size: 25px;
+    color: #212121;
+    display: block;
+}
+.sidenav b {
+    padding: 6px 8px 6px 16px;
+    text-decoration: none;
+    font-size: 25px;
+    color: #212121;
+    display: block;
+}
+.sidenav c {
+    padding: 6px 8px 6px 16px;
+    text-decoration: none;
+    font-size: 5px;
+    color: #000000;
+    display: block;
+}
+
+.sidenav a:hover {
+    padding: 6px 8px 6px 25px;
+    color: #101010;
+    text-decoration: underline;
+}
+
+.main {
+    margin-left: 250px; /* Same as the width of the sidenav */
+    font-size: 28px; /* Increased text to enable scrolling */
+    padding: 0px 10px;
+}
+
+@media screen and (max-height: 4450px) {
+    .sidenav {padding-top: 15px;}
+    .sidenav a {font-size: 18px;}
+}
+</style>
+</head>
+<body>
+
+<div class="sidenav">
 <frameset cols="18%,82%">
 <frame src="buttons.html" frameborder="0">
-<frame src="ajax.html" frameborder="0">
-</frameset>
-</html>
+</frameset>  
+  <b>Airiana Controller<br></b>
+<br>
+  <a href="http://192.168.1.61:8000/command?0" method="post">Winter/Summer Mode</a>
+<br>
+  <a href="http://192.168.1.61:8000/command?1" method="post">Auto On/Off</a>
+<br>
+  <a href="http://192.168.1.61:8000/command?97" method="post">Fanspeed Low</a>
+  <a href="http://192.168.1.61:8000/command?98" method="post">Fanspeed Norm</a>
+  <a href="http://192.168.1.61:8000/command?99" method="post">Fanspeed High</a>
+<br>
+<c font-size="5px">*No access allowed outside of local domain.</c>
+</div>
+
+<div class="main">
+<iframe src="ajax.html" frameborder="0" height=3500 width=100% scrolling="no">
+</body>
+</html> 
+
