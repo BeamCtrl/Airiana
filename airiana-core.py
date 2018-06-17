@@ -478,7 +478,9 @@ class Systemair(object):
 		self.filter_limit = int(req.response)*31
 		req.modbusregister(601,0)
 		self.filter = req.response
-		self.filter_remaining = round(100*(1 - (float(self.filter)/self.filter_limit)),1)
+		try:
+			self.filter_remaining = round(100*(1 - (float(self.filter)/self.filter_limit)),1)
+		except: pass
 		if self.filter_remaining <0: self.filter_remaining = 0
 	    else:
 		req.modbusregister(7000,0)
@@ -1170,10 +1172,14 @@ class Systemair(object):
 				self.cool_mode = True
 	    except: os.write(ferr, "Forcast cooling error")
 
-	    if self.cool_mode and self.fanspeed == 1 and self.exchanger_speed < 90 and savecair:
-		self.cycle_exchanger(0)
-		self.cycle_exchanger(5)
-		self.modetoken = 0
+	    if self.cool_mode \
+		and self.fanspeed == 1 \
+		and self.exchanger_speed < 90 \
+		and savecair \
+		and self.supply_ave<self.inlet_ave:
+			self.cycle_exchanger(0)
+			self.cycle_exchanger(5)
+			self.modetoken = 0
 	    elif self.exchanger_mode ==5 and self.supply_ave > self.inlet_ave:
 		self.cycle_exchanger(0)
 
@@ -1354,7 +1360,7 @@ class Systemair(object):
 			req.modbusregister(each,0)
 			#raw_input(str(percent)+"% "+str(each)+"-"+str(int(req.response*(1+(float(percent)/100)))))
 			req.write_register(each+1,int(req.response+percent))
-	    if not savecair and not self.shower and self.systemname=="VTR300":
+	    if not savecair and not self.shower and self.system_name=="VTR300":
 		if "debug" in sys.argv: self.msg += "start pressure change " +str( percent)+"\n"
                 if percent>20:percent = 20
                 if percent<-20:percent =-20
@@ -1381,7 +1387,7 @@ class Systemair(object):
 			tmp = out.split(" ")
 			temp = float(tmp[1])
 			wthr = os.popen("./forcast.py tomorrows-low").read().split(" ")
-			comp = float(wthr[0])-(float(wthr[2])/3)
+			comp = float(wthr[0])-(float(wthr[2])/2)
 			comp = (comp - (temp-self.kinetic_compensation))/500
 			self.kinetic_compensation -= comp * self.avg_frame_time
 			self.local_humidity = self.moisture_calcs(self.prev_static_temp-self.kinetic_compensation)
@@ -1395,7 +1401,7 @@ class Systemair(object):
 			if temp <> self.prev_static_temp:
 				self.prev_static_temp = temp
 				self.kinetic_compensation = 0
-				self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/3
+				self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/2
 				temp = weather
 				if temp >=3:
 					self.kinetic_compensation += 0.5
