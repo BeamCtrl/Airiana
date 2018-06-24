@@ -7,7 +7,7 @@ dir= "./public/"
 os.chdir(dir)
 
 Handler = SimpleHTTPServer.SimpleHTTPRequestHandler
-Handler.server_version = "Airina Web Server interface/2.3e"
+Handler.server_version = "Airiana Web Server interface/2.3e"
 
 class myServer(SocketServer.TCPServer):
 	def server_bind(self):
