@@ -23,5 +23,7 @@ def get_humidity():
 		print top/bottom*100, inlet_min
 
 #input indoor temp, output: relative humidity as expressed by indoortemp/last 24hrs min temp
-get_humidity()
+try:
+	get_humidity()
+except: print -1, -1
 ##############

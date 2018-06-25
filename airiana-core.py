@@ -417,6 +417,9 @@ class Systemair(object):
 		self.exchanger_speed = 0
 
 	def system_setup (self):
+		self.get_heater()
+		if self.heater <> 0:
+			self.set_heater(0)
 		if savecair:
 			#setup airflow levels
 			req.write_register(1400,16)
@@ -1229,7 +1232,7 @@ class Systemair(object):
 		and self.extract_ave < self.target + 0.5 	\
 		and self.extract_ave - self.supply_ave > 0.1 	\
 		and (self.RH_valid				\
-			and self.new_humidity-self.local_humidity <7) 	\
+			and self.new_humidity-self.local_humidity <6) 	\
 		and not self.shower 				\
 		and not self.inhibit 				\
 		and not self.cool_mode:
@@ -1387,12 +1390,15 @@ class Systemair(object):
 			tmp = out.split(" ")
 			temp = float(tmp[1])
 			wthr = os.popen("./forcast.py tomorrows-low").read().split(" ")
+			weather = int(os.popen("./forcast.py now").read().split(" ")[-2])
 			comp = float(wthr[0])-(float(wthr[2])/2)
 			comp = (comp - (temp-self.kinetic_compensation))/500
-			self.kinetic_compensation -= comp * self.avg_frame_time
+			if temp == 15 or temp == 9 or temp == 10:
+				seld.kinetic_compensation = 0
+			else:
+				self.kinetic_compensation -= comp * self.avg_frame_time
 			self.local_humidity = self.moisture_calcs(self.prev_static_temp-self.kinetic_compensation)
 
-			weather = int(os.popen("./forcast.py now").read().split(" ")[-2])
 			#if weather == 9 or weather == 10 or weather == 15:
 			#	self.kinetic_compensation = 0
 
