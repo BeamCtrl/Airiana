@@ -2,6 +2,7 @@
 import numpy as np
 import os, traceback, sys
 import time as tm
+os.chdir("/home/pi/airiana/")
 if len(sys.argv)==1:
 	fil = os.popen("cat ./RAM/data.log")
 else: 
@@ -48,7 +49,7 @@ try:
 		outside.append(float(tmp[9]))
 		cond_comp.append(float(tmp[10]))
 		inside_hum.append(int(tmp[11]))
-		diff.append (round(calc_hum[-1]-inside_hum[-1] ,3)) 
+		diff.append (round(calc_hum[-1]-supply_humid[-1] ,3)) 
 	    except IndexError:inside_hum.append(0)
 	    except ValueError: pass#print tmp[0]
 	    except: traceback.print_exc() 	
@@ -66,12 +67,12 @@ for each in calc_hum:
 		except:pass
 #for each in diff: print each
 import statistics as stat
-print tm.ctime()
+print "\n",tm.ctime()
 print "Start: " + tm.ctime(float(-red_time[0]+tm.time()))
 print "max",max(diff),"%  min",min(diff),"%"
 ave, stddev = stat.stddev(diff)
 tmp = "stddev: "+"+-"+ str(round(stddev,2))+ "% ave:"+str(round(ave,2))+"%\n"
 #tmp = "stddev: "+u"\u00B1"+ str(round(stddev,2))+ "% ave:"+str(round(ave,2))+"%"
-tmp +=  "Last: "+ str(calc_hum[-1]-inside_hum[-1])+'%'
+tmp +=  "Last: "+ str(calc_hum[-1]-supply_humid[-1])+'%'
 print tmp
-print "End: " + tm.ctime(float(-red_time[-1]+tm.time()))
+print "End: " + tm.ctime(float(-red_time[-1]+tm.time()))+"\n"
