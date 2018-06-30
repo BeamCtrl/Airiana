@@ -9,7 +9,7 @@ ioff()
 
 if len(sys.argv) >=2  :
 	try:
-		day= int(sys.argv[1])*3600*24
+		day= int(float(sys.argv[1])*3600*24)
 		print "day set to" ,day
 	except: day= 3600*24
 else:
@@ -40,8 +40,13 @@ inside_hum=[]
 #data.pop(0)
 #print "Processing line: ",
 try:
-	#i=0
+	i=0
 	for each in data:
+	   i+= 1
+	   c=day/(24*60*60)
+	   if c>=1 and i%(3*c)>0:
+		pass
+	   else:
 	    try: 
 	     #i+=1
 	     #print i,
