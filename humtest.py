@@ -67,8 +67,8 @@ for each in calc_hum:
 		except:pass
 #for each in diff: print each
 import statistics as stat
-print "\n",tm.ctime()
-print "Start: " + tm.ctime(float(-red_time[0]+tm.time()))
+#print "\n",tm.ctime()
+print "\nStart: " + tm.ctime(float(-red_time[0]+tm.time()))
 print "max",max(diff),"%  min",min(diff),"%"
 ave, stddev = stat.stddev(diff)
 tmp = "stddev: "+"+-"+ str(round(stddev,2))+ "% ave:"+str(round(ave,2))+"%\n"

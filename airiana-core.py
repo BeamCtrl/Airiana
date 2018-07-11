@@ -46,7 +46,8 @@ if "daemon" in sys.argv:
 	fout = os.open("./RAM/out",os.O_WRONLY|os.O_CREAT)
 	os.dup2(fout,sys.stdout.fileno())
 	print "Output redirected to file;"
-	#os.system("rm -f ./RAM/err")
+	if not "debug" is sys.argv :
+		os.system("rm -f ./RAM/err")
 	ferr = os.open("./RAM/err",os.O_WRONLY|os.O_CREAT)
 	os.dup2(ferr,sys.stderr.fileno())
 
