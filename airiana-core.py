@@ -1178,7 +1178,7 @@ class Systemair(object):
 
 	    if self.cool_mode \
 		and self.fanspeed == 1 \
-		and self.exchanger_speed < 90 \
+		and self.exchanger_speed < 95 \
 		and savecair \
 		and self.supply_ave<self.inlet_ave:
 			self.cycle_exchanger(0)
@@ -1386,7 +1386,7 @@ class Systemair(object):
                 if "debug" in sys.argv: self.msg += "change completed\n"
 	#get and set the local low/static humidity
 	def get_local(self):
-		
+		except:	
 			out = os.popen("./humid.py "+str(self.extract_ave)).readline()
 			tmp = out.split(" ")
 			temp = float(tmp[1])
@@ -1415,7 +1415,7 @@ class Systemair(object):
 				elif temp == 15 or temp == 9 or temp == 10:
 					self.kinetic_compensation = 0
 				self.humidity_comp = 0
-			#except: print "dayliy low calc error",comp,wthr,traceback.print_exc()
+		except: print "dayliy low calc error"#,comp,wthr,traceback.print_exc()
 
 ## Init base class ##
 if __name__  ==  "__main__":
@@ -1714,6 +1714,10 @@ if __name__  ==  "__main__":
 						device.initial_temp=device.extract_ave + 1
 						device.initial_fanspeed = 1
 						device.shower_initial = time.time()
+				if data == 13:
+					device.cool_mode= not device.cool_mode
+
+
 		except TypeError:pass
 		except ValueError:pass
 		#except:
