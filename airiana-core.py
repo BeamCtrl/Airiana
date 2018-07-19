@@ -1386,7 +1386,7 @@ class Systemair(object):
                 if "debug" in sys.argv: self.msg += "change completed\n"
 	#get and set the local low/static humidity
 	def get_local(self):
-		except:	
+		try:	
 			out = os.popen("./humid.py "+str(self.extract_ave)).readline()
 			tmp = out.split(" ")
 			temp = float(tmp[1])
