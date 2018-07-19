@@ -1394,8 +1394,8 @@ class Systemair(object):
 			weather = int(os.popen("./forcast.py now").read().split(" ")[-2])
 			comp = float(wthr[0])-(float(wthr[2])/2)
 			comp = (comp - (temp-self.kinetic_compensation))/500
-			if temp == 15 or temp == 9 or temp == 10:
-				seld.kinetic_compensation = -2
+			if weather == 15 or weather == 9 or weather == 10:
+				self.kinetic_compensation = -2
 			else:
 				self.kinetic_compensation -= comp * self.avg_frame_time
 			self.local_humidity = self.moisture_calcs(self.prev_static_temp-self.kinetic_compensation)
