@@ -829,10 +829,8 @@ class Systemair(object):
 
 		#create humidity if no sensor data avail
 		if not self.RH_valid:
-			self.new_humidity += (((( low_pw+d_pw ) / max_pw ) * 100 )-self.new_humidity) *0.0001
-			
-		#if self.iter %30 == 0 and "debug" in sys.argv:
-			self.humidity_target =(( low_pw+d_pw ) / max_pw ) * 100 	
+			self.new_humidity += (((( low_pw+d_pw ) / max_pw ) * 100 )-self.local_humidity) *0.0001
+
 		#query for a ref humidity at temp
 		if data is not "None":
 			max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
@@ -1396,13 +1394,10 @@ class Systemair(object):
 			comp = float(wthr[0])-(float(wthr[2])/2)
 			comp = (comp - (temp-self.kinetic_compensation))/500
 			if weather == 15 or weather == 9 or weather == 10:
-				self.kinetic_compensation = -2
+				self.kinetic_compensation = 0
 			else:
 				self.kinetic_compensation -= comp * self.avg_frame_time
 			self.local_humidity = self.moisture_calcs(self.prev_static_temp-self.kinetic_compensation)
-
-			#if weather == 9 or weather == 10 or weather == 15:
-			#	self.kinetic_compensation = 0
 
 			if "debug" in sys.argv:
 				self.msg += "Comp set to: " +str(round(comp,4))+" Calc RH%:"+str(self.local_humidity)+"%\n"
