@@ -50,6 +50,7 @@ if "daemon" in sys.argv:
 		os.system("rm -f ./RAM/err")
 	ferr = os.open("./RAM/err",os.O_WRONLY|os.O_CREAT)
 	os.dup2(ferr,sys.stderr.fileno())
+	os.lseek(ferr,0, os.SEEK_END)
 
 # Setup serial, RS 485 to machine
 if os.path.lexists("/dev/serial0"):
@@ -1174,7 +1175,7 @@ class Systemair(object):
 					self.cycle_exchanger(0)
 				self.set_fanspeed(3)
 				self.cool_mode = True
-	    except: os.write(ferr, "Forcast cooling error")
+	    except: os.write(ferr, "Forcast cooling error\n")
 
 	    if self.cool_mode \
 		and self.fanspeed == 1 \
@@ -1249,7 +1250,7 @@ class Systemair(object):
 		and not self.cool_mode:
 		 	self.set_fanspeed(1)
 		 	self.msg += "Dynamic fanspeed 1\n"
-		
+
 	    if self.fanspeed <> 3 							\
 		and self.extract_ave-0.1 > self.supply_ave 				\
 		and (self.extract_ave >= self.target+1 or (self.extract_dt_long >=0.7)	\
