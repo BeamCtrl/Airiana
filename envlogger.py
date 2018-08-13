@@ -18,7 +18,7 @@ if len(sys.argv)>1:log=sys.argv[1]
 else: log="151"
 #print "logging sensor" , log
 import random as rndm
-tm.sleep(rndm.randint(90,300))
+#tm.sleep(rndm.randint(90,300))
 def update_sensors():
 	global device
 	try: 
@@ -79,6 +79,10 @@ while True:
 	fig.subplots_adjust(bottom=0.2, top=0.95,
                     hspace=0.7, wspace=0.7)
 	#print max(time),min(time)
+	ax = gca()
+	#low, high = ax.get_ylim()
+	low, high = -20,100
+	ax.yaxis.set_ticks(np.arange(int(low),int(high+1),5))
 	gca().set_autoscalex_on(False)
 	gca().set_xlim(min(time),max(time))
 	hum_line=plot(time,humid,"-")[0]
