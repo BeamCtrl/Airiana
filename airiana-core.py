@@ -1044,6 +1044,7 @@ class Systemair(object):
 
 	#change exchanger mode to to, if no to flip 0 or 5
 	def cycle_exchanger(self,to):
+	  os.write(ferr, "cycle exchanger to:"+str(to)+" "+str(time.ctime()) +"\n")
 	  if not savecair:
 	    def set_val(val):
 		try:
@@ -1173,7 +1174,7 @@ class Systemair(object):
 					self.cycle_exchanger(0)
 				self.set_fanspeed(3)
 				self.cool_mode = True
-	    except: os.write(ferr, "Forcast cooling error\n")
+	    except: os.write(ferr, "Forcast cooling error "+str(time.ctime()) +"\n")
 
 	    if self.cool_mode \
 		and self.fanspeed == 1 \
@@ -1191,14 +1192,17 @@ class Systemair(object):
 		if (self.extract_ave <20.7 ) and self.fanspeed <> 1 :
 			self.set_fanspeed(1)
 			self.msg += "Cooling complete\n"
+		        os.write(ferr, "Cooling complete "+str(time.ctime()) +"\n")
 
 		if self.fanspeed == 3 and self.supply_ave < 10:
 			self.set_fanspeed(2)
 			self.msg += "Cooling reduced\n"
+		        os.write(ferr, "Cooling reduced "+str(time.ctime()) +"\n")
 
 		if self.fanspeed == 2 and self.supply_ave > 12:
 			self.set_fanspeed(3)
 			self.msg += "Cooling returned to High.\n"
+		        os.write(ferr, "Cooling returned "+str(time.ctime()) +"\n")
 
 		if self.fanspeed ==1 and self.extract_ave > 20.8 and self.inlet_ave < self.supply_ave:
 			self.set_fanspeed(3)
@@ -1227,6 +1231,7 @@ class Systemair(object):
 		and not self.cool_mode:
 		 	self.set_fanspeed(2)
 		 	self.msg += "Dynamic fanspeed 2\n"
+		        os.write(ferr, "Dynamic fanspeed 2 with RH "+str(time.ctime()) +"\n")
 
 	    if self.fanspeed == 2 				\
 		and self.extract_ave < self.target + 0.5 	\
@@ -1238,6 +1243,7 @@ class Systemair(object):
 		and not self.cool_mode:
 		 	self.set_fanspeed(1)
 		 	self.msg += "Dynamic fanspeed 1, Air quality Good\n"
+		        os.write(ferr, "Dynamic fanspeed 1 with RH "+str(time.ctime()) +"\n")
 	    #dynamic2 without Rhsensor
 	    if self.fanspeed == 2 				\
 		and self.extract_ave < self.target + 0.5 	\
@@ -1248,6 +1254,7 @@ class Systemair(object):
 		and not self.cool_mode:
 		 	self.set_fanspeed(1)
 		 	self.msg += "Dynamic fanspeed 1\n"
+		        os.write(ferr, "Dynamic fanspeed 1 without RH "+str(time.ctime()) +"\n")
 
 	    if self.fanspeed <> 3 							\
 		and self.extract_ave-0.1 > self.supply_ave 				\
@@ -1260,8 +1267,9 @@ class Systemair(object):
 		and not self.shower:
 			self.set_fanspeed(3)
 			self.msg += "Dynamic fanspeed 3\n"
+		        os.write(ferr, "Dynamic fanspeed 3 "+str(time.ctime()) +"\n")
 
-	    if self.fanspeed <> 1 				\
+	    if self.fanspeed <> 1 and self.RH_valid		\
 		and ((self.extract_ave < self.target		\
 		and self.new_humidity-self.local_humidity<7	\
 		and not self.inhibit				\
@@ -1274,6 +1282,7 @@ class Systemair(object):
 		and not self.shower)) :
 			self.set_fanspeed(1)
 			self.msg += "Dynamic fanspeed 1\n"
+		        os.write(ferr, "Dynamic fanspeed 1 "+str(time.ctime()) +"\n")
 
 	    if self.extract_ave < self.supply_ave 	\
 		and self.fanspeed <> 1 			\
@@ -1282,6 +1291,7 @@ class Systemair(object):
 		and not self.shower:
 			self.set_fanspeed(1)
 			self.msg += "Dynamic fanspeed, recover cool air\n"
+		        os.write(ferr, "Dynamic fanspeed 1 recover cool air "+str(time.ctime()) +"\n")
 
 	    if (self.fanspeed== 3			\
  		and self.extract_ave < self.target + 1 	\
@@ -1297,6 +1307,7 @@ class Systemair(object):
 		and not self.shower):
 			self.set_fanspeed(2)
 			self.msg  +="Dynamic fanspeed 2\n"
+		        os.write(ferr, "Dynamic fanspeed 2 with long dt "+str(time.ctime()) +"\n")
 
 	    # SHOWER MODEwTIMEOUT #
 	    if self.shower == True and self.shower_initial -time.time() < -45*60:
