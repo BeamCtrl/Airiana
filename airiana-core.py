@@ -4,7 +4,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 ############################
-vers = "8.3"
+vers = "8.4"
 Running =True
 savecair=False
 # Register cleanup
