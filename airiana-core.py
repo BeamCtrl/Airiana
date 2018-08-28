@@ -4,7 +4,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 ############################
-vers = "8.4"
+vers = "8.5"
 Running =True
 savecair=False
 # Register cleanup
@@ -1189,7 +1189,7 @@ class Systemair(object):
 			self.cycle_exchanger(0)
 			self.cycle_exchanger(5)
 			self.modetoken = 0
-	    elif self.exchanger_mode ==5 and self.supply_ave > self.inlet_ave:
+	    elif self.exchanger_mode ==5 and self.supply_ave > self.inlet_ave and savecair:
 		self.cycle_exchanger(0)
 
 		self.modetoken = 0
