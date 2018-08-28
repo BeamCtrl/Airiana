@@ -1562,11 +1562,12 @@ if __name__  ==  "__main__":
         		device.msg = ""
 			logger()
 		#send local tempt to temperatur.nu
-		if device.iter%251==0 and "temperatur.nu" in sys.argv:
+		if device.iter%251==0:
 			if "debug" in sys.argv:
 				os.system("echo \"251\" >./RAM/exec_tree")
 			device.get_local()
-	                os.system("wget -q -O temperatur.nu  http://www.temperatur.nu/rapportera.php?hash=42bc157ea497be87b86e8269d8dc2d42\\&t="+str(round(device.inlet_ave,1))+" &")
+			if "temperatur.nu" in sys.argv:
+		                os.system("wget -q -O temperatur.nu  http://www.temperatur.nu/rapportera.php?hash=42bc157ea497be87b86e8269d8dc2d42\\&t="+str(round(device.inlet_ave,1))+" &")
 		#generarte graphs and refresh airdata instance.
 		if device.iter%563==0:
 			if "debug" in sys.argv:
