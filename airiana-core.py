@@ -42,13 +42,14 @@ if "debug" in sys.argv and not os.path.lexists("./sensors"):
 #################################
 starttime=time.time()
 #Setup deamon env
+ferr = os.open("./RAM/err",os.O_WRONLY|os.O_CREAT)
+
 if "daemon" in sys.argv:
 	fout = os.open("./RAM/out",os.O_WRONLY|os.O_CREAT)
 	os.dup2(fout,sys.stdout.fileno())
 	print "Output redirected to file;"
 	if not "debug" is sys.argv :
 		os.system("rm -f ./RAM/err")
-	ferr = os.open("./RAM/err",os.O_WRONLY|os.O_CREAT)
 	os.dup2(ferr,sys.stderr.fileno())
 	os.lseek(ferr,0, os.SEEK_END)
 
@@ -458,6 +459,9 @@ class Systemair(object):
 
 	#Get relative humidity from internal sensor, valid units in self.has_RH_sensor tuple
 	def get_RH (self):
+	    if "noRH" in sys.argv:
+		self.RH_valid = 0
+		return 0
 	    if not savecair:
 		req.modbusregister(382,0)
 		self.RH_valid = int(req.response)
@@ -475,7 +479,6 @@ class Systemair(object):
 			self.hum_list.insert(0,self.new_humidity)
 			if len(self.hum_list)>self.averagelimit:
 				self.hum_list.pop(-1)
-
 	#get the nr of days  used and alarm lvl for filters
 	def get_filter_status(self):
 	    if not savecair:
@@ -829,8 +832,10 @@ class Systemair(object):
 
 		#create humidity if no sensor data avail
 		if not self.RH_valid:
-			self.new_humidity += (((( low_pw+d_pw ) / max_pw ) * 100 )-self.local_humidity) *0.0001
-
+			tmp_RH = (( low_pw+d_pw ) / max_pw )*100
+			self.new_humidity += (tmp_RH-self.new_humidity) *0.001
+			#if "debug" in sys.argv:
+			#	self.msg += str(self.new_humidity)+"  "+str( self.local_humidity)+"\n"
 		#query for a ref humidity at temp
 		if data is not "None":
 			max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)

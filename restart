@@ -30,6 +30,7 @@ if "alive_logger.py" in sys.argv:
 
 if "http" in sys.argv:
 	os.system("sudo pkill --signal 15 httpsrvr.py")
+	os.system("./http")
 
 os.system("disown")
 
