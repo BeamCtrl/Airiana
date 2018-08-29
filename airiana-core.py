@@ -833,7 +833,7 @@ class Systemair(object):
 		#create humidity if no sensor data avail
 		if not self.RH_valid:
 			tmp_RH = (( low_pw+d_pw ) / max_pw )*100
-			self.new_humidity += (tmp_RH-self.new_humidity) *0.001
+			self.new_humidity += (tmp_RH-self.new_humidity) *0.0001
 			#if "debug" in sys.argv:
 			#	self.msg += str(self.new_humidity)+"  "+str( self.local_humidity)+"\n"
 		#query for a ref humidity at temp
@@ -889,7 +889,7 @@ class Systemair(object):
 					self.initial_temp = self.extract_ave
 					self.initial_fanspeed= self.fanspeed
 					self.set_fanspeed(3)
-
+					self.new_humidity += 15
 					self.inhibit=time.time()
 					self.shower_initial=self.inhibit
 					self.status_field[0] += 1
