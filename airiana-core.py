@@ -49,7 +49,7 @@ if "daemon" in sys.argv:
 	os.dup2(fout,sys.stdout.fileno())
 	print "Output redirected to file;"
 	if not "debug" is sys.argv :
-		os.system("rm -f ./RAM/err")
+		pass#os.system("rm -f ./RAM/err")
 	os.dup2(ferr,sys.stderr.fileno())
 	os.lseek(ferr,0, os.SEEK_END)
 
@@ -833,7 +833,7 @@ class Systemair(object):
 		#create humidity if no sensor data avail
 		if not self.RH_valid:
 			tmp_RH = (( low_pw+d_pw ) / max_pw )*100
-			self.new_humidity += (tmp_RH-self.new_humidity) *0.0001
+			self.new_humidity += (tmp_RH-self.new_humidity) *0.001
 			#if "debug" in sys.argv:
 			#	self.msg += str(self.new_humidity)+"  "+str( self.local_humidity)+"\n"
 		#query for a ref humidity at temp
@@ -1500,7 +1500,7 @@ if __name__  ==  "__main__":
 	    device.div = device.inlet_ave
 	    if "humidity" in sys.argv:
 		device.get_local()
-		device.new_humidity = device.moisture_calcs()
+		device.new_humidity = device.moisture_calcs(10.0)
 	    starttime=time.time()
 	    print "system started:",time.ctime(starttime),";"
 	    sys.stdout.flush()
