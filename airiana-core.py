@@ -48,8 +48,10 @@ if "daemon" in sys.argv:
 	fout = os.open("./RAM/out",os.O_WRONLY|os.O_CREAT)
 	os.dup2(fout,sys.stdout.fileno())
 	print "Output redirected to file;"
-	if not "debug" is sys.argv :
-		pass#os.system("rm -f ./RAM/err")
+	if not "debug" in sys.argv:
+		os.system("rm -f ./RAM/err")
+		ferr = os.open("./RAM/err",os.O_WRONLY|os.O_CREAT)
+
 	os.dup2(ferr,sys.stderr.fileno())
 	os.lseek(ferr,0, os.SEEK_END)
 
@@ -1136,33 +1138,41 @@ class Systemair(object):
 			and self.exchanger_mode <> 0 		\
 			and self.shower == False 		\
 			and self.inlet_ave >10:
-				self.modetoken =time.time()
 				self.cycle_exchanger(0)
+				self.modetoken = time.time()
+			        os.write(ferr, "Exchange set to 5 inlet>10C and extr above target "+str(time.ctime()) +"\n")
+
 		if self.supply_ave > self.target 		\
 			and self.exchanger_mode <> 0 		\
 			and self.shower== False:
 				self.cycle_exchanger(0)
 				self.modetoken=time.time()
+			        os.write(ferr, "Exchange set to 0 supply>target "+str(time.ctime()) +"\n")
+
 		if self.extract_ave < self.target-1 		\
 			and self.exchanger_mode <> 5 		\
 			and not self.cool_mode :
 				self.cycle_exchanger(5)
 				self.modetoken=time.time()
+			        os.write(ferr, "Exchange set to 5 <target-1C "+str(time.ctime()) +"\n")
+
 		if self.supply_ave <10 				\
 			and self.extract_ave < self.target+1 	\
 			and  self.exchanger_mode <> 5 		\
 			and not self.cool_mode :
 				self.cycle_exchanger(5)
+			        os.write(ferr, "Exchange set to 5 supply<10C "+str(time.ctime()) +"\n")
 				self.modetoken=time.time()
 		if self.exchanger_mode <> 5 			\
 			and self.inlet_ave < 10 		\
-			and self.forcast[0] < 10		\
-			and self.forcast[1] <> -1 		\
+			and self.forcast[0] <= 10 		\
+			and self.forcast[1] > -1 		\
 			and self.fanspeed == 1 			\
 			and not self.cool_mode 			\
 			and not self.shower:
 				self.modetoken=time.time()
 				self.cycle_exchanger(5)
+			        os.write(ferr, "Exchange set to 5 inlet<10C "+str(time.ctime()) +"\n")
 
 	    #FORECAST RELATED COOLING
 	    try:
@@ -1175,8 +1185,10 @@ class Systemair(object):
 				if savecair:
 					req.write_register(1407,100)
 					req.write_register(1406,100)
-				if self.exchanger_mode <>0:
-					self.cycle_exchanger(0)
+					if self.exchanger_mode <>0:
+						self.cycle_exchanger(0)
+
+				
 				self.set_fanspeed(3)
 				self.cool_mode = True
 	    except: os.write(ferr, "Forcast cooling error "+str(time.ctime()) +"\n")
@@ -1189,10 +1201,10 @@ class Systemair(object):
 			self.cycle_exchanger(0)
 			self.cycle_exchanger(5)
 			self.modetoken = 0
-	    elif self.exchanger_mode ==5 and self.supply_ave > self.inlet_ave and savecair:
+	    elif self.exchanger_mode ==5 and self.supply_ave > self.inlet_ave and savecair and self.cool_mode:
 		self.cycle_exchanger(0)
-
 		self.modetoken = 0
+
 	    if self.cool_mode and not self.inhibit and not self.shower:
 		if (self.extract_ave <20.7 ) and self.fanspeed <> 1 :
 			self.set_fanspeed(1)
@@ -1218,7 +1230,7 @@ class Systemair(object):
 
 		if (self.forcast[0] <= 16 or self.forcast[1]>=4) and time.localtime().tm_hour >12:
 			self.cool_mode=False
-			if savecair:
+			if savecair and self.ef==100:
 				req.write_register(1407,85)
 				req.write_register(1406,85)
 
@@ -1327,12 +1339,13 @@ class Systemair(object):
 				self.indoor_dewpoint = self.airdata_inst.dew_point(self.new_humidity+10,self.extract_ave)
 		else:
 			self.indoor_dewpoint = 5.0
-		if self.inlet_ave > self.indoor_dewpoint+0.2   and self.sf <> self.ef and not self.press_inhibit and not self.forcast[1] == -1 :
-			self.set_differential(0)
-			if "debug" in sys.argv: self.msg += "\nPressure diff to 0%"
-		if (self.inlet_ave < self.indoor_dewpoint-0.1  and self.sf == self.ef and self.inlet_ave < 15 and not self.press_inhibit) or (self.forcast[-1] == -1 and self.sf == self.ef):
-			self.set_differential(10)
-			if "debug" in sys.argv: self.msg += "\nPressure diff to +10%"
+		if not self.cool_mode:
+			if self.inlet_ave > self.indoor_dewpoint+0.2   and self.sf <> self.ef and not self.press_inhibit and not self.forcast[1] == -1 :
+				self.set_differential(0)
+				if "debug" in sys.argv: self.msg += "\nPressure diff to 0%"
+			if (self.inlet_ave < self.indoor_dewpoint-0.1  and self.sf == self.ef and self.inlet_ave < 15 and not self.press_inhibit) or (self.forcast[-1] == -1 and self.sf == self.ef):
+				self.set_differential(10)
+				if "debug" in sys.argv: self.msg += "\nPressure diff to +10%"
     	    #if "debug" in sys.argv: print "Pressure inhibit = " , str(time.ctime(self.press_inhibit))
 
 	#Get the active forcast
@@ -1420,7 +1433,7 @@ class Systemair(object):
 			if temp <> self.prev_static_temp:
 				self.prev_static_temp = temp
 				self.kinetic_compensation = 0
-				self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/2
+				#self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/2
 				temp = weather
 				if temp >=3:
 					self.kinetic_compensation += 0.5
@@ -1701,7 +1714,7 @@ if __name__  ==  "__main__":
 					else: print "break"
 				if data == 0:
 					device.cycle_exchanger(None)
-
+					device.modetoken = time.time()
 				if data == 96:
 					clear_screen()
 					device.msg += "Fanspeed to Off\n"
