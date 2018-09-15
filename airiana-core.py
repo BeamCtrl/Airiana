@@ -417,7 +417,7 @@ class Systemair(object):
 		self.set_system_name()
 		self.RH_valid = 0
 		self.hum_list = []
-		self.status_field = [-1,0,0,self.system_name,vers,os.popen("git log --pretty=format:'%h' -n 1").read(),0]
+		self.status_field = [-1,0,0,self.system_name,vers,os.popen("git log --pretty=format:'%h' -n 1").read(),0,self.inlet_ave,self.extract_ave]
 		self.heater = 0
 		self.exchanger_speed = 0
 
@@ -1140,7 +1140,7 @@ class Systemair(object):
 			and self.inlet_ave >10:
 				self.cycle_exchanger(0)
 				self.modetoken = time.time()
-			        os.write(ferr, "Exchange set to 5 inlet>10C and extr above target "+str(time.ctime()) +"\n")
+			        os.write(ferr, "Exchange set to 0 inlet>10C and extr above target "+str(time.ctime()) +"\n")
 
 		if self.supply_ave > self.target 		\
 			and self.exchanger_mode <> 0 		\
@@ -1254,7 +1254,7 @@ class Systemair(object):
 		and self.extract_ave < self.target + 0.5 	\
 		and self.extract_ave - self.supply_ave > 0.1 	\
 		and (self.RH_valid				\
-			and self.new_humidity-self.local_humidity <6) 	\
+			and self.new_humidity-self.local_humidity <5) 	\
 		and not self.shower 				\
 		and not self.inhibit 				\
 		and not self.cool_mode:
@@ -1286,9 +1286,8 @@ class Systemair(object):
 			self.msg += "Dynamic fanspeed 3\n"
 		        os.write(ferr, "Dynamic fanspeed 3 "+str(time.ctime()) +"\n")
 
-	    if self.fanspeed <> 1 and self.RH_valid		\
+	    if self.fanspeed <> 1				\
 		and ((self.extract_ave < self.target		\
-		and self.new_humidity-self.local_humidity<7	\
 		and not self.inhibit				\
 		and not self.cool_mode	 			\
 		and not self.shower)				\
@@ -1299,7 +1298,7 @@ class Systemair(object):
 		and not self.shower)) :
 			self.set_fanspeed(1)
 			self.msg += "Dynamic fanspeed 1\n"
-		        os.write(ferr, "Dynamic fanspeed 1 "+str(time.ctime()) +"\n")
+		        os.write(ferr, "Dynamic fanspeed 1 ex < target "+str(time.ctime()) +"\n")
 
 	    if self.extract_ave < self.supply_ave 	\
 		and self.fanspeed <> 1 			\
@@ -1581,6 +1580,11 @@ if __name__  ==  "__main__":
 			device.get_local()
 			if "temperatur.nu" in sys.argv:
 		                os.system("wget -q -O temperatur.nu  http://www.temperatur.nu/rapportera.php?hash=42bc157ea497be87b86e8269d8dc2d42\\&t="+str(round(device.inlet_ave,1))+" &")
+			if "ping" in sys.argv:
+
+				device.status_field[7]=round(device.inlet_ave,2)
+				device.status_field[8]=round(device.extract_ave,2)
+				report_alive()
 		#generarte graphs and refresh airdata instance.
 		if device.iter%563==0:
 			if "debug" in sys.argv:
@@ -1594,8 +1598,6 @@ if __name__  ==  "__main__":
 				os.system("echo \"7200s\" >./RAM/exec_tree")
 			os.system("./backup.py &")
 			os.system("cp ./RAM/data.log ./data.save")
-			if "ping" in sys.argv:
-				report_alive()
 		#restart HTTP SERVER get filterstatus, reset IP on buttons page, update weather forcast
 		if device.iter %(int(3600*2 /device.avg_frame_time))==0:
 			device.get_filter_status()
