@@ -605,6 +605,10 @@ class Systemair(object):
 		##EXTRACT
 		req.modbusregister(12543,1)
 		extract = req.response
+		try: # replace erronous data input when temp diff exceeds 1C between samples
+			if extract - self.rawdata[0]>1:
+				extract =self.rawdata[0]
+		except: pass
 		req.modbusregister(12102,1)
 		supply = req.response
 		req.modbusregister(12101,1)
@@ -1238,7 +1242,7 @@ class Systemair(object):
 
 	    if self.fanspeed == 1 				\
 		and ((self.extract_ave > self.target 		\
-		and self.extract_ave > self.target + 0.6 	\
+		and self.extract_ave > self.target + 0.5 	\
 		and self.extract_ave - self.supply_ave>0.1 	\
 		and self.extract_dt_long >= 0.2)		\
 		or  (self.RH_valid				\
@@ -1251,7 +1255,7 @@ class Systemair(object):
 		        os.write(ferr, "Dynamic fanspeed 2 with RH "+str(time.ctime()) +"\n")
 
 	    if self.fanspeed == 2 				\
-		and self.extract_ave < self.target + 0.5 	\
+		and self.extract_ave < self.target + 0.6 	\
 		and self.extract_ave - self.supply_ave > 0.1 	\
 		and (self.RH_valid				\
 			and self.new_humidity-self.local_humidity <5) 	\
@@ -1290,10 +1294,12 @@ class Systemair(object):
 		and ((self.extract_ave < self.target		\
 		and not self.inhibit				\
 		and not self.cool_mode	 			\
-		and not self.shower)				\
+		and not self.shower				\
+		and not self.RH_valid)				\
 		or (self.extract_ave < self.target + 0.5 	\
 		and self.extract_dt_long < -0.5		 	\
 		and not self.inhibit				\
+		and not self.RH_valid				\
 		and not self.cool_mode				\
 		and not self.shower)) :
 			self.set_fanspeed(1)
@@ -1580,19 +1586,18 @@ if __name__  ==  "__main__":
 			device.get_local()
 			if "temperatur.nu" in sys.argv:
 		                os.system("wget -q -O temperatur.nu  http://www.temperatur.nu/rapportera.php?hash=42bc157ea497be87b86e8269d8dc2d42\\&t="+str(round(device.inlet_ave,1))+" &")
-			if "ping" in sys.argv:
-
-				device.status_field[7]=round(device.inlet_ave,2)
-				device.status_field[8]=round(device.extract_ave,2)
-				report_alive()
-		#generarte graphs and refresh airdata instance.
+		#send ping status, generarte graphs and refresh airdata instance.
 		if device.iter%563==0:
 			if "debug" in sys.argv:
 				os.system("echo \"563\" >./RAM/exec_tree")
 			device.update_airdata_instance()
 			if "debug" in sys.argv:os.system("nice ./grapher.py debug & >>/dev/null")
 			else : os.system("nice ./grapher.py  & >> /dev/null")
-		# send alive packet to headmaster and check for updates
+			if "ping" in sys.argv:
+				device.status_field[7]=round(device.inlet_ave,2)
+				device.status_field[8]=round(device.extract_ave,2)
+				report_alive()
+		#check for updates
 		if device.iter % int(3600/0.2)==0:
 			if "debug" in sys.argv:
 				os.system("echo \"7200s\" >./RAM/exec_tree")
