@@ -4,7 +4,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 ############################
-vers = "8.5"
+vers = "8.6"
 Running =True
 savecair=False
 # Register cleanup
@@ -417,7 +417,7 @@ class Systemair(object):
 		self.set_system_name()
 		self.RH_valid = 0
 		self.hum_list = []
-		self.status_field = [-1,0,0,self.system_name,vers,os.popen("git log --pretty=format:'%h' -n 1").read(),0,self.inlet_ave,self.extract_ave]
+		self.status_field = [-1,0,0,self.system_name,vers,os.popen("git log --pretty=format:'%h' -n 1").read(),0,self.inlet_ave,self.extract_ave,self.ef,self.new_humidity]
 		self.heater = 0
 		self.exchanger_speed = 0
 
@@ -1596,6 +1596,8 @@ if __name__  ==  "__main__":
 			if "ping" in sys.argv:
 				device.status_field[7]=round(device.inlet_ave,2)
 				device.status_field[8]=round(device.extract_ave,2)
+				device.status_field[9]=round(device.ef,2)
+				device.status_field[10]=round(device.new_humidity,2)
 				report_alive()
 		#check for updates
 		if device.iter % int(3600/0.2)==0:
