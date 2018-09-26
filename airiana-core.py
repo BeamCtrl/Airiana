@@ -417,7 +417,7 @@ class Systemair(object):
 		self.set_system_name()
 		self.RH_valid = 0
 		self.hum_list = []
-		self.status_field = [-1,0,0,self.system_name,vers,os.popen("git log --pretty=format:'%h' -n 1").read(),0,self.inlet_ave,self.extract_ave,self.ef,self.new_humidity]
+		self.status_field = [-1,self.exchanger_mode,0,self.system_name,vers,os.popen("git log --pretty=format:'%h' -n 1").read(),0,self.inlet_ave,self.extract_ave,self.ef,self.new_humidity]
 		self.heater = 0
 		self.exchanger_speed = 0
 
@@ -813,7 +813,6 @@ class Systemair(object):
                 self.rotor_state = req.response[0]
                 if req.response[1]:self.rotor_active = "Yes"
                 else: self.rotor_active = "No"
-		self.status_field[1] = self.exchanger_mode
 	    else:
 		req.modbusregister(2140,0)
 		if req.response:
@@ -822,6 +821,7 @@ class Systemair(object):
 			self.rotor_active = "No"
 		self.rotor_state = 0
 		self.exchanger_speed = req.response
+	    self.status_field[1] = self.exchanger_mode
 
 	def moisture_calcs(self,data="None"):## calculate moisure/humidities
 		self.cond_eff=.60 #  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
