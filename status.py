@@ -31,7 +31,7 @@ while True:
 		from users import users
 		if users_prev <> users:
 			init()
-		html = "<html>STATUS VIEW AIRIANA SYSTEMS<br><table><tr><th>Name</th><th>Ping</th><th>Status</th></tr>"
+		html = "<html>STATUS VIEW AIRIANA SYSTEMS<br><table><tr><th>Name</th><th>Ping</th><th>Status</th><th>Shr</th><th>Ex</th><th>tm</th><th>Unit</th><th>Vr</th><th>hash</th><th>uTm</th><th>In</th><th>Out</th><th>flw</th><th>RH</th></tr>"
 		flag = "unknown"
 		files = os.listdir("./public/local_links/")
 		for each in files:
@@ -58,7 +58,10 @@ while True:
 						mail_sent[each.split(".")[0]] = True
 						mailer.setup ("daniel.halling@outlook.com","airiana@outlook.com","Airiana user: "+str(users[str(each.split(".")[0])])+" has changed status to inactive.")
 						mailer.send()
-				html += "<tr><td><a href=\"/local_links/"+each+"\">"+users[str(each.split(".")[0])]+"</a></td><td>"+time.ctime(mod)+"</td><td>"+flag+" "+str(round(status[str(each.split(".")[0])],2))+" "+str(lis)+" </td></tr>\n" 
+				status_table= ""
+				for item in lis:
+					status_table += str(item) +"</td><td>"
+				html += "<tr><td><a href=\"/local_links/"+each+"\">"+users[str(each.split(".")[0])]+"</a></td><td>"+time.ctime(mod)+"</td><td>"+flag+" "+str(round(status[str(each.split(".")[0])],2))+"</td><td> "+status_table+" </td></tr>\n"
 			except KeyError:
  				html += "<tr><td><a href=\"/local_links/"+each+"\">"+each+"</a></td><td>"+time.ctime(mod)+"</td><td>"+flag+" </td></tr>\n" 
 

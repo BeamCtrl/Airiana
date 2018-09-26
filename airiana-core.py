@@ -824,7 +824,7 @@ class Systemair(object):
 	    self.status_field[1] = self.exchanger_mode
 
 	def moisture_calcs(self,data="None"):## calculate moisure/humidities
-		self.cond_eff=.60 #  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
+		self.cond_eff=1.0 #  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
 		######### SAT MOIST UPDATE ############
 		if self.energy_diff > 0 and self.rotor_active=="Yes":
 			try:
