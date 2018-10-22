@@ -26,7 +26,7 @@ class Energy(object):
 		self.specific_heat = 1.005  #J/g*K
 		self.humid = .50
 		self.mass_const = 0.62198
-
+		self.a = 6.1121
 	#CALCULATE AIR DENSITY AT A GIVEN TEMPERATURE
 	def get_mass(self,temp):
 		return (self.density(temp)) #kg/m3
@@ -99,9 +99,13 @@ class Energy(object):
 	def dew_point(self,RH,temp):
 		#Constants used acc NOAA std#
 		a=6.1121 #mBar
-		b=18.678
 		c=234.5 # C
 		d=257.14 #acc ardon buck (1996)
+		b=18.67 
+		#if self.a <> b:
+		#	b= self.a
+		#	print "b set to",b
+
 		def gamma(RH,temp):
 			Ps = math.log((float(RH)/100)*math.exp( ((b-(temp/d))*(temp/(c+temp))) )  )
 			return Ps
@@ -126,7 +130,17 @@ if  "__main__" in __name__:
 
 	#print air.temp_diff(air.energy_flow(34,21.58,17.73)-0.2,21.58,34)
 	#print "ref.",21.58-17.73
-	print air.temp_diff (-10,24,20)
+	#print air.temp_diff (-10,24,20)
+	each = 22
+	print each,"C",
+	for RH in range(1,100,8):
+		print  RH,"%:",round(air.dew_point(RH,each),1)," ", 
+	print ""
+	air.a = 16.500
+	print each,"C",
+	for RH in range(1,100,8):
+		print  RH,"%:",round(air.dew_point(RH,each),1)," ", 
+	print ""
 
 
 

@@ -130,7 +130,7 @@ def update_sensors():
 		except KeyError: pass#device.msg +="\nerror on sensor 91"
 		try:
 			device.inside =float(sensor_dict["92"]["temperature"])
-			device.inside_humid =int(sensor_dict["92"]["humidity"])
+			device.inside_humid =int(sensor_dict["92"]["humidity"])+5
 		except KeyError: pass#device.msg +="\nerror on sensor 92"
 
 	except IndexError:

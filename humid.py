@@ -10,9 +10,10 @@ def get_humidity():
                 for each in data.readlines():
                          tmp = each.split(":")
 			 try:
-	                         if float(tmp[0])<time.time()-(24*3600):
+				 if time.localtime(float(tmp[0]))[3] >4 and time.localtime(float(tmp[0]))[3] <8:
+	                         	#if float(tmp[0])<time.time()-(24*3600):
 				 	pass
-				 else:                    
+				 else:
 					templist.append (float(tmp[5]))
 			 except: pass
                 inlet_min = min(templist)
