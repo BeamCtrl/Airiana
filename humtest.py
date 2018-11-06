@@ -8,6 +8,7 @@ if len(sys.argv)==1:
 else: 
 	fil= os.popen("cat "+sys.argv[-1])
 data = fil.readlines()
+
 #print data[-1], tm.time()
 sen_hum = []
 sen_temp = []
@@ -26,17 +27,28 @@ diff = []
 #print "Processing line: ",
 try:
 	#i=0
+	if len(sys.argv)>1:
+		init = float(data[0].split(":")[0])
+		day =  tm.time()-init
+		print "start time", tm.ctime(init)
+		print "Will process ",len (data), "data points"
+	else:
+		day = 60*60*24
+	i = 0
 	for each in data:
+	    i+=1
+	    if round(float(i)/len(data)*100,3)%20==0 and day <> 60*60*24: print str(round(float(i)/len(data)*100,3))+"%",
 	    try: 
 	     #i+=1
 	     #print i,
 	     #print(chr(27)+"["+str(len(str(i))+2)+"D"),
 	     sys.stdout.flush()
 	     tmp =each.split(":")
+
+	     #temp = (tm.time()-day)-((tm.time()-day)%(3600))	
 	     for entry in tmp: 
 		if entry==np.nan: entry=0
-	     #temp = (tm.time()-day)-((tm.time()-day)%(3600))	
-	     if float(tmp[0]) > 0: #temp:	
+	     if float(tmp[0]) > 0 and float(tmp[0]) > tm.time()-(day): #temp:	
 		sen_hum.append(float(tmp[3]))
 		sen_temp.append(float(tmp[1]))
 		extract.append(float(tmp[2]))
