@@ -6,17 +6,19 @@ def get_humidity():
 		global airdata_inst,extract
                 day = 60*24
                 templist = []
-                data = os.popen("tail -n "+str(int(day/0.5))+" ./RAM/data.log")
+                data = os.popen("tail -n "+str(int(day))+" ./RAM/data.log")
                 for each in data.readlines():
                          tmp = each.split(":")
 			 try:
-				 if time.localtime(float(tmp[0]))[3] >4 and time.localtime(float(tmp[0]))[3] <8:
+				 if time.localtime(float(tmp[0]))[3] >4 and time.localtime(float(tmp[0]))[3] <8 and float(tmp[0])>time.time()-(day*60):
 	                         	#if float(tmp[0])<time.time()-(24*3600):
-				 	pass
-				 else:
 					templist.append (float(tmp[5]))
+				 else:
+					#print time.localtime(float(tmp[0]))[3]
+				 	pass
 			 except: pass
-                inlet_min = min(templist)
+		#print templist
+                inlet_min = min(templist)+1
 		airdata_inst.vapor_max(inlet_min)
 		top = airdata_inst.pw
 		airdata_inst.vapor_max(extract)
