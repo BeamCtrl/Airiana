@@ -8,8 +8,9 @@ if len(sys.argv)==1:
 else: 
 	fil= os.popen("cat "+sys.argv[-1])
 data = fil.readlines()
+if "data.log" in sys.argv:
+	data+=	os.popen("cat ./RAM/data.log").readlines()
 
-#print data[-1], tm.time()
 sen_hum = []
 sen_temp = []
 extract =[]
@@ -23,8 +24,6 @@ outside = []
 cond_comp=[]
 inside_hum=[]
 diff = []
-#data.pop(0)
-#print "Processing line: ",
 try:
 	#i=0
 	if len(sys.argv)>1:
@@ -66,25 +65,13 @@ try:
 	    except ValueError: pass#print tmp[0]
 	    except: traceback.print_exc() 	
 except:traceback.print_exc()
-red_hum = []
-red_time=[]
-i=0
-for each in calc_hum:
-	i+=1
-	if float(each) <> 0.0: 
-		try:
-			red_time.append(time[i])
-			red_hum.append(each)
-			#print each, time[i]
-		except:pass
-#for each in diff: print each
 import statistics as stat
 #print "\n",tm.ctime()
-print "\nStart: " + tm.ctime(float(-red_time[0]+tm.time()))
+print "\nStart: " + tm.ctime(float(-time[0]+tm.time()))
 print "max",max(diff),"%  min",min(diff),"%"
 ave, stddev = stat.stddev(diff)
 tmp = "stddev: "+"+-"+ str(round(stddev,2))+ "% ave:"+str(round(ave,2))+"%\n"
 #tmp = "stddev: "+u"\u00B1"+ str(round(stddev,2))+ "% ave:"+str(round(ave,2))+"%"
 tmp +=  "Last: "+ str(calc_hum[-1]-supply_humid[-1])+'%'
 print tmp
-print "End: " + tm.ctime(float(-red_time[-1]+tm.time()))+"\n"
+print "End: " + tm.ctime(float(-time[-1]+tm.time()))+"\n"

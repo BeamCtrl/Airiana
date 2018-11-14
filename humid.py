@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import airdata,os,time,sys
+import numpy
 airdata_inst = airdata.Energy()
 extract = float(sys.argv[1])
 def get_humidity():
@@ -18,7 +19,8 @@ def get_humidity():
 				 	pass
 			 except: pass
 		#print templist
-                inlet_min = min(templist)+1
+                #inlet_min = min(templist)+1
+                inlet_min = numpy.average(templist)+1
 		airdata_inst.vapor_max(inlet_min)
 		top = airdata_inst.pw
 		airdata_inst.vapor_max(extract)
