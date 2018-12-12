@@ -11,7 +11,7 @@ def get_humidity():
                 for each in data.readlines():
                          tmp = each.split(":")
 			 try:
-				 if time.localtime(float(tmp[0]))[3] >4 and time.localtime(float(tmp[0]))[3] <8 and float(tmp[0])>time.time()-(day*60):
+				 if time.localtime(float(tmp[0]))[3] >5 and time.localtime(float(tmp[0]))[3] <9 and float(tmp[0])>time.time()-(day*60):
 	                         	#if float(tmp[0])<time.time()-(24*3600):
 					templist.append (float(tmp[5]))
 				 else:

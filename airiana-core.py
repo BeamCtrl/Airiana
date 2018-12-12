@@ -4,7 +4,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 ############################
-vers = "8.7"
+vers = "8.8"
 Running =True
 savecair=False
 # Register cleanup
@@ -1246,7 +1246,7 @@ class Systemair(object):
 		and self.extract_ave - self.supply_ave>0.1 	\
 		and self.extract_dt_long >= 0.2)		\
 		or  (self.RH_valid				\
-			and self.new_humidity-self.local_humidity >7))\
+			and self.new_humidity-self.local_humidity >7 and self.new_humidity >25))\
 		and not self.shower 				\
 		and not self.inhibit 				\
 		and not self.cool_mode:
@@ -1258,7 +1258,7 @@ class Systemair(object):
 		and self.extract_ave < self.target + 0.6 	\
 		and self.extract_ave - self.supply_ave > 0.1 	\
 		and (self.RH_valid				\
-			and self.new_humidity-self.local_humidity <5) 	\
+			and self.new_humidity-self.local_humidity <5 or self.new_humidity < 20) 	\
 		and not self.shower 				\
 		and not self.inhibit 				\
 		and not self.cool_mode:
@@ -1429,7 +1429,8 @@ class Systemair(object):
 			#if weather == 15 or weather == 9 or weather == 10:
 			#	self.kinetic_compensation = 0
 			#else:
-			#	self.kinetic_compensation -= comp * self.avg_frame_time
+			#	pass
+			self.kinetic_compensation -= comp * self.avg_frame_time
 			self.local_humidity = self.moisture_calcs(self.prev_static_temp-self.kinetic_compensation)
 
 			if "debug" in sys.argv:
