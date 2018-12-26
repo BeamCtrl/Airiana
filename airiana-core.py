@@ -990,7 +990,7 @@ class Systemair(object):
 		if "Timer" in threading.enumerate()[-1].name: tmp+= "Ventilation timer on: "+str((int(time.time())-int(device.timer))/60)+":"+str((int(time.time()-int(self.timer))%60))+"\n"
 		#tmp+= str(threading.enumerate())+"\n"
 		if self.shower : tmp += "Shower mode engaged at:" +time.ctime(self.shower_initial)+"\n"
-		if self.inhibit>0:tmp+=  "Mode sensing inhibited "+"("+str(int((self.inhibit+600-time.time())/60+1))+"min)\n"
+		if self.inhibit>0:tmp+=  "Mode sensing inhibited "+"("+str(int((self.inhibit+1800-time.time())/60+1))+"min)\n"
 		if self.press_inhibit>0:tmp+=  "Pressure change inhibited "+"("+str(int((self.press_inhibit+1800-time.time())/60+1))+"min)\n"
 		if self.modetoken >=1 :tmp+= "Mode change inhibited at: "+time.ctime(self.modetoken)+"("+str(int((self.modetoken+3600-time.time())/60+1))+"min)\n"
 		if self.cool_mode: tmp+= "Cooling mode is in effect, target is 20.7C extraction temperature\n"
