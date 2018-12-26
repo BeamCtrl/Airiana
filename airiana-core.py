@@ -4,7 +4,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 ############################
-vers = "8.8"
+vers = "8.9"
 Running =True
 savecair=False
 # Register cleanup
@@ -104,7 +104,7 @@ def report_alive():
 				try:
 					message += "\nstatus:"+str(device.status_field)+"\n"
 				except: pass
-				if "debug" in sys.argv: device.msg +=  message + "\n"
+				#if "debug" in sys.argv: device.msg +=  message + "\n"
 
 		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 		sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
@@ -1121,7 +1121,7 @@ class Systemair(object):
 	    global monitoring
 	    #### INHIBITS AND LIMITERS
 	    now = time.time()
-	    if self.inhibit < now-(60*10):self.inhibit = 0
+	    if self.inhibit < now-(60*30):self.inhibit = 0
     	    if self.modetoken < now-(60*60): self.modetoken=0
 	    if self.press_inhibit < now-(60*30):self.press_inhibit = 0
 
@@ -1246,7 +1246,7 @@ class Systemair(object):
 		and self.extract_ave - self.supply_ave>0.1 	\
 		and self.extract_dt_long >= 0.2)		\
 		or  (self.RH_valid				\
-			and self.new_humidity-self.local_humidity >7 and self.new_humidity >25))\
+			and self.new_humidity-self.local_humidity >7 and self.local_humidity >=25))\
 		and not self.shower 				\
 		and not self.inhibit 				\
 		and not self.cool_mode:
@@ -1258,7 +1258,7 @@ class Systemair(object):
 		and self.extract_ave < self.target + 0.6 	\
 		and self.extract_ave - self.supply_ave > 0.1 	\
 		and (self.RH_valid				\
-			and self.new_humidity-self.local_humidity <5 or self.new_humidity < 20) 	\
+			and self.new_humidity-self.local_humidity <5 or self.local_humidity < 25) 	\
 		and not self.shower 				\
 		and not self.inhibit 				\
 		and not self.cool_mode:

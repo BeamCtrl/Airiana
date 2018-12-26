@@ -98,10 +98,17 @@ class Energy(object):
 	# CALCULATE DEWPOINT FROM temperature and relative humidity
 	def dew_point(self,RH,temp):
 		#Constants used acc NOAA std#
-		a=6.1121 #mBar
-		c=234.5 # C
-		d=257.14 #acc ardon buck (1996)
-		b=18.67 
+		if temp<0:
+			a=0.61115 #mBar
+			c=333.7 # C
+			d=279.82 #acc ardon buck (1996)
+			b=23.036
+
+		else:
+			a=0.61121 #mBar
+			c=234.5 # C
+			d=257.14 #acc ardon buck (1996)
+			b=18.67
 		#if self.a <> b:
 		#	b= self.a
 		#	print "b set to",b
@@ -136,7 +143,7 @@ if  "__main__" in __name__:
 	for RH in range(1,100,8):
 		print  RH,"%:",round(air.dew_point(RH,each),1)," ", 
 	print ""
-	air.a = 16.500
+	#air.a = 16.500
 	print each,"C",
 	for RH in range(1,100,8):
 		print  RH,"%:",round(air.dew_point(RH,each),1)," ", 
