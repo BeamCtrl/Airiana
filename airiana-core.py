@@ -167,7 +167,13 @@ def logger ():
 		fdo.write(cmd+"\n")
 		fdo.close()
 	except:traceback.print_exc()
-
+	if "homeAss" in sys.argv:
+		os.system("./ha-httpsensor.py -n Indoor -u C -d temperature -v "+str(round(device.extract_ave,1))+">/dev/null &")
+		os.system("./ha-httpsensor.py -n Outside -u C -d temperature -v "+str(round(device.inlet_ave,1))+">/dev/null &")
+		try:
+			os.system("./ha-httpsensor.py -n Efficiency -u % -d calculated -v "+str(round(numpy.average(device.eff_ave),2))+">/dev/null &")
+		except:pass
+		os.system("./ha-httpsensor.py -n Humidity -d humidity -u % -v "+str(int(device.new_humidity))+">/dev/null &")
 #PRINT COMM SETTING
 def display_settings():
         clear_screen()
