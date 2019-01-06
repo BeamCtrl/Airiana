@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 ###################IMPORTS
 import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
@@ -168,8 +169,8 @@ def logger ():
 		fdo.close()
 	except:traceback.print_exc()
 	if "homeAss" in sys.argv:
-		os.system("./ha-httpsensor.py -n Indoor -u C -d temperature -v "+str(round(device.extract_ave,1))+">/dev/null &")
-		os.system("./ha-httpsensor.py -n Outside -u C -d temperature -v "+str(round(device.inlet_ave,1))+">/dev/null &")
+		os.system("./ha-httpsensor.py -n Indoor -u °C -d temperature -v "+str(round(device.extract_ave,1))+">/dev/null &")
+		os.system("./ha-httpsensor.py -n Outside -u °C -d temperature -v "+str(round(device.inlet_ave,1))+">/dev/null &")
 		try:
 			os.system("./ha-httpsensor.py -n Efficiency -u % -d calculated -v "+str(round(numpy.average(device.eff_ave),2))+">/dev/null &")
 		except:pass
@@ -426,7 +427,7 @@ class Systemair(object):
 		self.status_field = [-1,self.exchanger_mode,0,self.system_name,vers,os.popen("git log --pretty=format:'%h' -n 1").read(),0,self.inlet_ave,self.extract_ave,self.ef,self.new_humidity]
 		self.heater = 0
 		self.exchanger_speed = 0
-
+		self.unit_comp =[]
 	def system_setup (self):
 		self.get_heater()
 		if self.heater <> 0:
@@ -473,8 +474,8 @@ class Systemair(object):
 	    if not savecair:
 		req.modbusregister(382,0)
 		self.RH_valid = int(req.response)
-		req.modbusregister(380,0)
 		if self.RH_valid:
+			req.modbusregister(380,0)
 			self.new_humidity = float(req.response)
 			self.hum_list.insert(0,self.new_humidity)
 			if len(self.hum_list)>300:
@@ -843,6 +844,8 @@ class Systemair(object):
 		low_pw = self.airdata_inst.sat_vapor_press(div)
 
 		#create humidity if no sensor data avail
+		if numpy.isnan(self.new_humidity):# reset nan error
+			self.new_humidity =20
 		if not self.RH_valid:
 			tmp_RH = (( low_pw+d_pw ) / max_pw )*100
 			self.new_humidity += (tmp_RH-self.new_humidity) *0.001
@@ -885,6 +888,8 @@ class Systemair(object):
 						req.write_register(1161,4)
 					else:
 	                                        self.set_fanspeed(3)
+					if self.RH_valid: 
+						self.showerRH = self.hum_list[-1]
                                         self.inhibit=time.time()
                                         self.shower_initial=self.inhibit
 					self.msg = "Shower mode engaged\n"
@@ -906,12 +911,17 @@ class Systemair(object):
 					self.shower_initial=self.inhibit
 					self.status_field[0] += 1
 
-		if numpy.average(self.extract_dt_list)*60 < 0		\
+		if numpy.average(self.extract_dt_list)*60 < 0.5		\
 			and self.shower==True 				\
 			and self.shower_initial - time.time()<-60:
+			state = False
 			if "debug" in sys.argv:
 				self.msg="Shower wait state, "+str(round(self.extract_ave,2))+"C "+str(round(self.initial_temp+0.3,2))+"C\n"
-			if self.extract_ave<=(self.initial_temp+0.3) or self.shower_initial -time.time() < -30*60:
+			if not self.RH_valid and self.extract_ave<=(self.initial_temp+0.3) or self.shower_initial -time.time() < -45*60:
+				state = True
+			if self.RH_valid and self.showerRH +5 > self.hum_list[0] or self.shower_initial - time.time()-45*60:
+				state = True
+			if state:
 				self.shower=False
 				try:
 					self.msg ="Shower mode off, returning to "+str(self.speeds[self.initial_fanspeed]+"\n")
@@ -1458,7 +1468,6 @@ if __name__  ==  "__main__":
 	print "Reporting system start;"
 	#print os.read(bus,10000)
 	report_alive()
-	
 	device = Systemair()
 
 	try:
