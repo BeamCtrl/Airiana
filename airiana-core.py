@@ -5,7 +5,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 ############################
-vers = "8.9"
+vers = "9.0"
 Running =True
 savecair=False
 # Register cleanup
@@ -693,6 +693,8 @@ class Systemair(object):
 
 	def set_fanspeed(self,target):
 		self.inhibit = time.time()
+		if target > self.fanspeed:  # add one to bucket
+			self.status_field[0] += 1
 		#print actual,"->",target
 	    	if target>=4: target=0
 		if target<0: target=0
@@ -879,7 +881,7 @@ class Systemair(object):
 		if self.RH_valid == 1 and not self.shower: # Shower humidity sensor control
 			try:
 				if self.hum_list[0]-self.hum_list[-1] > 8  and \
-				numpy.average(self.extract_dt_list)*60 > 0.5:
+				numpy.average(self.extract_dt_list)*60 > 0.0:
 					self.shower = True
                                         self.initial_temp = self.extract_ave
                                         self.initial_fanspeed= self.fanspeed
@@ -1627,7 +1629,7 @@ if __name__  ==  "__main__":
 			os.system("./public/ip-replace.sh &")  # reset ip-addresses on buttons.html
 			os.system("./public/ip-util.sh &")  # reset ip-addresses on buttons.html
 			device.get_forcast()
-			if device.status_field[0]>0:device.status_field[0] -= 1 # remove one shower token from bucket every 2 hrs.
+			if device.status_field[0]>0:device.status_field[0] -= 2 # remove one shower token from bucket every 2 hrs.
 		## PRINT TO DISPLAY ##
 		device.print_xchanger()
 		device.iter+=1
