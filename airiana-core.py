@@ -5,7 +5,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 ############################
-vers = "9.0"
+vers = "9.01"
 Running =True
 savecair=False
 # Register cleanup
@@ -592,8 +592,7 @@ class Systemair(object):
 		#########
 		###########################################
 		if self.system_name=="VTR300":
-			#req.response[2] = req.response[4]
-			pass
+			req.response[4]	= req.response[4]+10
 		#if self.rotor_active =="No" :
 		#	req.response[2]  -= (req.response[1]-req.response[4])*0.01  #exhaust compensation exch off
 		#else : 	req.response[2]  -= (req.response[1]-req.response[4])*0.06  #exhaust compensation exch ON
@@ -891,7 +890,7 @@ class Systemair(object):
 					else:
 	                                        self.set_fanspeed(3)
 					if self.RH_valid: 
-						self.showerRH = self.hum_list[-1]
+						self.showerRH = self.hum_list[0]
                                         self.inhibit=time.time()
                                         self.shower_initial=self.inhibit
 					self.msg = "Shower mode engaged\n"
@@ -918,7 +917,7 @@ class Systemair(object):
 			and self.shower_initial - time.time()<-60:
 			state = False
 			if "debug" in sys.argv:
-				self.msg="Shower wait state, "+str(round(self.extract_ave,2))+"C "+str(round(self.initial_temp+0.3,2))+"C\n"
+				self.msg="Shower wait state, "+str(round(self.extract_ave,2))+"C "+str(round(self.initial_temp+0.3,2))+"C RH: "+str(self.showerRH+5)+"\n"
 			if not self.RH_valid and self.extract_ave<=(self.initial_temp+0.3) or self.shower_initial -time.time() < -45*60:
 				state = True
 			if self.RH_valid and self.showerRH +5 > self.hum_list[0] or self.shower_initial - time.time()-45*60:
@@ -1766,6 +1765,8 @@ if __name__  ==  "__main__":
 						device.initial_temp=device.extract_ave + 1
 						device.initial_fanspeed = 1
 						device.shower_initial = time.time()
+						device.showerRH=device.new_humidity +2
+
 				if data == 13:
 					device.cool_mode= not device.cool_mode
 
