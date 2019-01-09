@@ -1628,7 +1628,7 @@ if __name__  ==  "__main__":
 			os.system("./public/ip-replace.sh &")  # reset ip-addresses on buttons.html
 			os.system("./public/ip-util.sh &")  # reset ip-addresses on buttons.html
 			device.get_forcast()
-			if device.status_field[0]>0:device.status_field[0] -= 2 # remove one shower token from bucket every 2 hrs.
+			if device.status_field[0]>0:device.status_field[0] -= 1 # remove one shower token from bucket every 2 hrs.
 		## PRINT TO DISPLAY ##
 		device.print_xchanger()
 		device.iter+=1
