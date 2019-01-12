@@ -430,10 +430,11 @@ class Systemair(object):
 		self.unit_comp =[]
 	def system_setup (self):
 		self.get_heater()
+			# make sure the electric heater is oFF
 		if self.heater <> 0:
 			self.set_heater(0)
-		if savecair:
 			#setup airflow levels
+		if savecair:
 			req.write_register(1400,16)
 		 	req.write_register(1401,16)
 		 	req.write_register(1402,20)
@@ -445,9 +446,14 @@ class Systemair(object):
 		 	req.write_register(1408,100)
 		 	req.write_register(1409,100)
 
-		else:
-			if "VTR300" in self.system_name:
-				pass
+		elif "VTR300" in self.system_name:
+			self.write_register(101,30)
+			self.write_register(102,30)
+			self.write_register(103,55)
+			self.write_register(104,55)
+			self.write_register(105,107)
+			self.write_register(106,107)
+
 			if "VR400" in self.system_name: 
 				pass
 	#get heater status
@@ -868,15 +874,17 @@ class Systemair(object):
 			self.extract_dt_list.append(self.extract_dt)
 			if len(self.extract_dt_list)>500: self.extract_dt_list.pop(0)
 		#LONG
-		if self.iter %round(3600/self.avg_frame_time,-2) == 0:
+		if self.iter %round(360/self.avg_frame_time,-2) == 0:
 			if self.dt_hold == 0: self.dt_hold = self.extract_ave
-			self.extract_dt_long= float((self.extract_ave-self.dt_hold))/((time.time()-self.extract_dt_long_time)/3600)
+			self.extract_dt_long= float((self.extract_ave-self.dt_hold))/((time.time()-self.extract_dt_long_time)/360)
 			self.extract_dt_long_time=time.time()
 			self.dt_hold= self.extract_ave
 			self.avg_frame_time=(time.time()-starttime)/self.iter
 
 	# decect if shower is on
 	def shower_detect(self):
+		if "debug" in sys.argv and self.shower:
+			self.msg="Shower wait state, "+str(round(self.extract_ave,2))+"C "+str(round(self.initial_temp+0.3,2))+"C RH: "+str(self.showerRH)+"\n"
 		if self.RH_valid == 1 and not self.shower: # Shower humidity sensor control
 			try:
 				if self.hum_list[0]-self.hum_list[-1] > 8  and \
@@ -890,7 +898,7 @@ class Systemair(object):
 					else:
 	                                        self.set_fanspeed(3)
 					if self.RH_valid: 
-						self.showerRH = self.hum_list[0]
+						self.showerRH = self.hum_list[-1]
                                         self.inhibit=time.time()
                                         self.shower_initial=self.inhibit
 					self.msg = "Shower mode engaged\n"
@@ -901,6 +909,8 @@ class Systemair(object):
 			lim = 0.08
 			if self.ef >50: lim = 0.10
 			if self.extract_dt > lim and self.inhibit == 0 and numpy.average(self.extract_dt_list)*60>1.60:
+				if "debug" in sys.argv:
+					self.msg="Shower state, "+str(round(self.extract_ave,2))+"C "+str(round(self.initial_temp+0.3,2))+"C RH: "+str(self.showerRH+5)+"\n"
 				self.msg = "Shower mode engaged\n"
 				if self.shower==False:
 					self.shower = True
@@ -915,14 +925,16 @@ class Systemair(object):
 		if numpy.average(self.extract_dt_list)*60 < 0.5		\
 			and self.shower==True 				\
 			and self.shower_initial - time.time()<-60:
-			state = False
 			if "debug" in sys.argv:
-				self.msg="Shower wait state, "+str(round(self.extract_ave,2))+"C "+str(round(self.initial_temp+0.3,2))+"C RH: "+str(self.showerRH+5)+"\n"
-			if not self.RH_valid and self.extract_ave<=(self.initial_temp+0.3) or self.shower_initial -time.time() < -45*60:
+				self.msg="Shower wait state, "+str(round(self.extract_ave,2))+"C "+str(round(self.initial_temp+0.3,2))+"C RH: "+str(self.showerRH-3)+"\n"
+			state = False
+			if  self.RH_valid==False and self.extract_ave<=(self.initial_temp+0.3) or self.shower_initial -time.time() < -45*60:
 				state = True
-			if self.RH_valid and self.showerRH +5 > self.hum_list[0] or self.shower_initial - time.time()-45*60:
+			if self.RH_valid and self.showerRH+5  > self.new_humidity or self.shower_initial - time.time() < -45*60:
+				if "debug" in sys.argv:
+					self.msg+= "RH after shower now OK\n"
 				state = True
-			if state:
+			if state == True:
 				self.shower=False
 				try:
 					self.msg ="Shower mode off, returning to "+str(self.speeds[self.initial_fanspeed]+"\n")
@@ -1541,7 +1553,7 @@ if __name__  ==  "__main__":
 	    if "ping" in sys.argv:report_alive()
 	    time.sleep(2)
 	    starttime=time.time()
-	    while Running:##### mainloop do each pass ###########
+	    while Running:  ##### mainloop do each pass ###########
 		#do temps,energy and derivatives
 		device.update_temps()
 		device.update_xchanger()
@@ -1762,11 +1774,11 @@ if __name__  ==  "__main__":
 				if data == 12:
 					device.shower = not device.shower
 					if device.shower:
-						device.initial_temp=device.extract_ave + 1
+						device.initial_temp=device.extract_ave - 1
 						device.initial_fanspeed = 1
 						device.shower_initial = time.time()
-						device.showerRH=device.new_humidity +2
-
+						device.showerRH=device.new_humidity -10
+						device.set_fanspeed(2)
 				if data == 13:
 					device.cool_mode= not device.cool_mode
 
