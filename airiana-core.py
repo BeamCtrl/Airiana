@@ -446,14 +446,6 @@ class Systemair(object):
 		 	req.write_register(1408,100)
 		 	req.write_register(1409,100)
 
-		elif "VTR300" in self.system_name:
-			self.write_register(101,30)
-			self.write_register(102,30)
-			self.write_register(103,55)
-			self.write_register(104,55)
-			self.write_register(105,107)
-			self.write_register(106,107)
-
 			if "VR400" in self.system_name: 
 				pass
 	#get heater status
@@ -909,8 +901,6 @@ class Systemair(object):
 			lim = 0.08
 			if self.ef >50: lim = 0.10
 			if self.extract_dt > lim and self.inhibit == 0 and numpy.average(self.extract_dt_list)*60>1.60:
-				if "debug" in sys.argv:
-					self.msg="Shower state, "+str(round(self.extract_ave,2))+"C "+str(round(self.initial_temp+0.3,2))+"C RH: "+str(self.showerRH+5)+"\n"
 				self.msg = "Shower mode engaged\n"
 				if self.shower==False:
 					self.shower = True
@@ -925,8 +915,6 @@ class Systemair(object):
 		if numpy.average(self.extract_dt_list)*60 < 0.5		\
 			and self.shower==True 				\
 			and self.shower_initial - time.time()<-60:
-			if "debug" in sys.argv:
-				self.msg="Shower wait state, "+str(round(self.extract_ave,2))+"C "+str(round(self.initial_temp+0.3,2))+"C RH: "+str(self.showerRH-3)+"\n"
 			state = False
 			if  self.RH_valid==False and self.extract_ave<=(self.initial_temp+0.3) or self.shower_initial -time.time() < -45*60:
 				state = True
