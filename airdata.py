@@ -72,8 +72,21 @@ class Energy(object):
 		#print self.abs,"g/m3 vapor_max"," temp:",T," sat. pressure:",self.pw
 		return self.abs
 	def sat_vapor_press (self,T):
-		self.pw = 6.1121*math.exp( (18.678-T/234.5) * (T/(T+257.14))  ) * 100
-		return self.pw
+		#Constants used acc NOAA std#
+		if T<0:
+			a=0.61115 #mBar
+			c=333.7 # C
+			d=279.82 #acc ardon buck (1996)
+			b=23.036
+
+		else:
+			a=0.61121 #mBar
+			c=234.5 # C
+			d=257.14 #acc ardon buck (1996)
+			b=18.678
+		#self.pw = a*math.exp((b-T/d)*(T/(c+T)) ) * 1000 
+		self.pw = a*math.exp( (b-T/c) * (T/(T+d))  ) 
+		return self.pw # kPa
 	def vapor_mass(self,pw): #return vapor mass from vapor partial pressure
 		return (self.mass_const*pw)/(self.press-pw)
 
@@ -93,61 +106,38 @@ class Energy(object):
 
 	#Return latent energy in a givven mas of condensing water vapor
 	def condensation_energy (self, grams):
-		return float(grams*(2490)) # 2490 kJ/Kg consensated water
+		return float(grams*(2490)) # 2490 kJ/kg consensated water
 
 	# CALCULATE DEWPOINT FROM temperature and relative humidity
 	def dew_point(self,RH,temp):
-		#Constants used acc NOAA std#
-		if temp<0:
-			a=0.61115 #mBar
-			c=333.7 # C
-			d=279.82 #acc ardon buck (1996)
-			b=23.036
-
-		else:
-			a=0.61121 #mBar
-			c=234.5 # C
-			d=257.14 #acc ardon buck (1996)
-			b=18.67
-		#if self.a <> b:
-		#	b= self.a
-		#	print "b set to",b
-
+		if RH == 100: return temp
 		def gamma(RH,temp):
-			Ps = math.log((float(RH)/100)*math.exp( ((b-(temp/d))*(temp/(c+temp))) )  )
+			Ps = math.log( (float(RH)/100)* self.sat_vapor_press(temp) )
 			return Ps
-		return (c*gamma(RH,temp))/(b-gamma(RH,temp))
-
-
+		#return (257.14*gamma(RH,temp))/(18.678-gamma(RH,temp))
+		diff = -10000000
+		T  =temp
+		reference = self.sat_vapor_press(T)*(float(RH)/100)
+		while  diff < 0:
+			diff = reference - self.sat_vapor_press(T)
+			T = T - 0.1
+		return T+0.1
+			
 # Abs_hum  = C * Pw/T  C = 2.16679 gK/J Pw vapor press T temp in Kelvin
 #Pw = A*10^(mT/T+Tn)  -->A=6.116441 m=7.591386 Tn=240.7263   vl -20C ->+50C
 #ref Vaisala.comhumidity conversion formulas
 if  "__main__" in __name__:
 	air =Energy()
-	#print air.energy_to_pwdiff(25,22)
-	#print air.energy_to_pwdiff(12,22)/(0.0034)
-	#print air.sat_vapor_press(10)
-	#print air.sat_vapor_press(20)
-	#print air.sat_vapor_press(100)
-	#for each in range(-60,121):
-	#	print air.density(each),"kg/m3",each, "C", air.sat_vapor_press(each),"Pa"
-	#print air.dew_point(30,22.0)		
-	#print air.energy_flow(34,18.29,21.73)
-	#print air.energy_flow(34,21.58,17.73)
-
-	#print air.temp_diff(air.energy_flow(34,21.58,17.73)-0.2,21.58,34)
-	#print "ref.",21.58-17.73
-	#print air.temp_diff (-10,24,20)
 	each = 22
-	print each,"C",
-	for RH in range(1,100,8):
-		print  RH,"%:",round(air.dew_point(RH,each),1)," ", 
-	print ""
+	for RH in range(1,101,1):
+		print each,"C",
+		print  RH,"% Dew:",round(air.dew_point(RH,each),1),"C ",1000*air.sat_vapor_press(each),"Pa" , 1000*air.sat_vapor_press(air.dew_point(RH,each))
+	print ""	
 	#air.a = 16.500
 	print each,"C",
-	for RH in range(1,100,8):
+	"""for RH in range(1,100,8):
 		print  RH,"%:",round(air.dew_point(RH,each),1)," ", 
-	print ""
+	print """
 
 
 

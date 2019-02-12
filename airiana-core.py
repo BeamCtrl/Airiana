@@ -5,7 +5,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 ############################
-vers = "9.1"
+vers = "9.2"
 Running =True
 savecair=False
 # Register cleanup
@@ -175,6 +175,7 @@ def logger ():
 			os.system("./ha-httpsensor.py -n Efficiency -u % -d calculated -v "+str(round(numpy.average(device.eff_ave),2))+">/dev/null &")
 		except:pass
 		os.system("./ha-httpsensor.py -n Humidity -d humidity -u % -v "+str(int(device.new_humidity))+">/dev/null &")
+		os.system("./ha-httpsensor.py -n Extract Fan -d fanspeed -u rpm -v "+str(int(device.ef_rpm))+">/dev/null &")
 #PRINT COMM SETTING
 def display_settings():
         clear_screen()
@@ -475,17 +476,15 @@ class Systemair(object):
 		if self.RH_valid:
 			req.modbusregister(380,0)
 			self.new_humidity = float(req.response)
-			self.hum_list.insert(0,self.new_humidity)
-			if len(self.hum_list)>300:
-				self.hum_list.pop(-1)
 	    else:
 		req.modbusregister(12135,0)
 		if req.response <> 0:
 			self.RH_valid = 1
 			self.new_humidity = float(req.response)
-			self.hum_list.insert(0,self.new_humidity)
-			if len(self.hum_list)>self.averagelimit:
-				self.hum_list.pop(-1)
+	    if self.RH_valid:
+		self.hum_list.insert(0,self.new_humidity)
+		if len(self.hum_list)>self.averagelimit:
+			self.hum_list.pop(-1)
 	#get the nr of days  used and alarm lvl for filters
 	def get_filter_status(self):
 	    if not savecair:
@@ -982,8 +981,12 @@ class Systemair(object):
 				tmp += "Indoor Sensor:\t "+str(self.inside)+"C "+str(self.inside_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.inside_humid,self.inside),2))+"C\n"
 				tmp += "Fanspeed level: "+str(self.fanspeed)+"\n"
 				tmp += "Long dt: "+str(self.extract_dt_long)+"\n"
-
 			except: pass
+			tmp += "diff. humidity partial pressure in-out: "+str(\
+					1000*(self.airdata_inst.sat_vapor_press(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave))\
+					- self.airdata_inst.sat_vapor_press(self.airdata_inst.dew_point(self.local_humidity,self.extract_ave)) \
+					))+"Pa\n"
+
 		if "humidity" in sys.argv:
 			tmp+= "Pressure limit: "+str(round(self.indoor_dewpoint,2))+"C\n"
 
@@ -1263,7 +1266,7 @@ class Systemair(object):
 		and self.extract_ave - self.supply_ave>0.1 	\
 		and self.extract_dt_long >= 0.2)		\
 		or  (self.RH_valid				\
-			and self.new_humidity-self.local_humidity >7 and self.local_humidity >=25))\
+			and numpy.average(self.hum_list)-self.local_humidity >7 and self.local_humidity >=25))\
 		and not self.shower 				\
 		and not self.inhibit 				\
 		and not self.cool_mode:
@@ -1275,7 +1278,7 @@ class Systemair(object):
 		and self.extract_ave < self.target + 0.6 	\
 		and self.extract_ave - self.supply_ave > 0.1 	\
 		and (self.RH_valid				\
-			and self.new_humidity-self.local_humidity <5 or self.local_humidity < 25) 	\
+			and numpy.average(self.hum_list)-self.local_humidity <5 or self.local_humidity < 25) 	\
 		and not self.shower 				\
 		and not self.inhibit 				\
 		and not self.cool_mode:
