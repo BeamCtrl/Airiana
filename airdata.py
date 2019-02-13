@@ -85,7 +85,7 @@ class Energy(object):
 			d=257.14 #acc ardon buck (1996)
 			b=18.678
 		#self.pw = a*math.exp((b-T/d)*(T/(c+T)) ) * 1000 
-		self.pw = a*math.exp( (b-T/c) * (T/(T+d))  ) 
+		self.pw = a*math.exp( (b-T/c) * (T/(T+d))  )  #kPa
 		return self.pw # kPa
 	def vapor_mass(self,pw): #return vapor mass from vapor partial pressure
 		return (self.mass_const*pw)/(self.press-pw)

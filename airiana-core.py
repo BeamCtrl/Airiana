@@ -5,7 +5,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 ############################
-vers = "9.2"
+vers = "9.3"
 Running =True
 savecair=False
 # Register cleanup
@@ -837,9 +837,9 @@ class Systemair(object):
 			except: d_pw=0
 		else: d_pw = 0
 
-		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
+		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)*1000
 		div = self.prev_static_temp -self.kinetic_compensation # to test new ref 
-		low_pw = self.airdata_inst.sat_vapor_press(div)
+		low_pw = self.airdata_inst.sat_vapor_press(div)*1000
 
 		#create humidity if no sensor data avail
 		if numpy.isnan(self.new_humidity):# reset nan error
