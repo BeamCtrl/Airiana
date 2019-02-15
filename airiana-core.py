@@ -874,7 +874,7 @@ class Systemair(object):
 
 	# decect if shower is on
 	def shower_detect(self):
-		if "debug" in sys.argv and self.shower:
+		if "debug" in sys.argv and self.shower and self.RH_valid:
 			self.msg="Shower wait state, "+str(round(self.extract_ave,2))+"C "+str(round(self.initial_temp+0.3,2))+"C RH: "+str(self.showerRH)+"\n"
 		if self.RH_valid == 1 and not self.shower: # Shower humidity sensor control
 			try:
