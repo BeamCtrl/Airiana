@@ -1,9 +1,11 @@
 #!/usr/bin/python 
 import minimalmodbus,traceback,time,serial
 unit = "/dev/serial0"
-
+i=0
+target =None
 speeds = (1200,2400,4800,9600,19200,28800,38400,57600,115200)
-minimalmodbus.BAUDRATE = 19200
+#print speeds[i]
+minimalmodbus.BAUDRATE =19200 # speeds[i]
 minimalmodbus.PARITY   = serial.PARITY_NONE
 minimalmodbus.BYTESIZE = 8
 minimalmodbus.STOPBITS = 1		
@@ -14,9 +16,12 @@ client.precalculate_read_size=True
 #12100,12101,12102,12103,12104,12105,12106,12107,12108,12109
 import sys
 if "list" in sys.argv:
-	for each in range(21000):
+	for each in range(1000,21000):
 		res= client.read_register(each,0,signed=True)
-		if res <>0: print each,":",res
+		if res :
+			print each,":",res
+			sys.stdout.flush()
+		#else: print each
 		#if int(res) == 25:
 		#	raw_input()
 
@@ -39,9 +44,9 @@ if "diff" in sys.argv:
 				if second[address]<>first[address]:  print "Address:",address,"-",first[address],":",second[address]
 			except:pass
 	#raw_input("press enter to resume diff")
-
 while True:
-	   target = raw_input("addrs:")
+	try:
+	   if target== None: target = raw_input("addrs:")
 	   if "w" in target:
 		inp =raw_input("data:")
 		res = client.write_register(int(target[1:]),int(inp))
@@ -51,4 +56,12 @@ while True:
 		target = int(target)
    		res = int(client.read_register(target,0,functioncode=3,signed=True))
 		print "target:",target,res
-
+	except IndexError:
+		i=0
+	except KeyboardInterrupt: 
+		exit(2)
+	target =None
+	#except:	
+	#	target=None
+	#	i+=1
+	#	#setup()

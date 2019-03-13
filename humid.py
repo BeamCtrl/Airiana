@@ -19,15 +19,18 @@ def get_humidity():
 				 	pass
 			 except: pass
 		#print templist
-                #inlet_min = min(templist)+1
-                inlet_min = numpy.average(templist)+1
-		airdata_inst.vapor_max(inlet_min)
+                inlet_min = numpy.average(templist)
+		airdata_inst.vapor_max(inlet_min+1)
 		top = airdata_inst.pw
+		if inlet_min < 0:
+			top = airdata_inst.pw*(1+((inlet_min*-2)/100)) # to translate into RHwmo
 		airdata_inst.vapor_max(extract)
 		bottom = airdata_inst.pw
-		print top/bottom*100, inlet_min
+		print top/bottom*100, inlet_min+1
 
-#input indoor temp, output: relative humidity as expressed by indoortemp/last 24hrs min temp
+#input : indoor temp
+#output: relative humidity as expressed by indoortemp last 24hrs min temp
+
 try:
 	get_humidity()
 except: print -1, -1

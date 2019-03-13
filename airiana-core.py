@@ -967,7 +967,7 @@ class Systemair(object):
 			if "humidity" in sys.argv and "debug" in sys.argv : tmp +="\nCondensation  efficiency: " +str(round(self.cond_eff,2)*100)+"%\n"
 		if "humidity" in sys.argv :
 			if "debug" in sys.argv:
-				tmp += "Static: "+str(round(self.local_humidity+self.humidity_comp,2))+"%\n"
+				tmp += "Static RH low: "+str(round(self.local_humidity,2))+"%\n"
 				if self.RH_valid:
 					try:
 						tmp+= "Valid RH "+str(self.RH_valid)+" "+str(self.hum_list[0]-self.hum_list[-1])+"d%\n"
@@ -1266,7 +1266,7 @@ class Systemair(object):
 		and self.extract_ave - self.supply_ave>0.1 	\
 		and self.extract_dt_long >= 0.2)		\
 		or  (self.RH_valid				\
-			and numpy.average(self.hum_list)-self.local_humidity >7 and self.local_humidity >=25))\
+			and numpy.average(self.hum_list)-self.local_humidity >7))\
 		and not self.shower 				\
 		and not self.inhibit 				\
 		and not self.cool_mode:
@@ -1278,7 +1278,7 @@ class Systemair(object):
 		and self.extract_ave < self.target + 0.6 	\
 		and self.extract_ave - self.supply_ave > 0.1 	\
 		and (self.RH_valid				\
-			and numpy.average(self.hum_list)-self.local_humidity <5 or self.local_humidity < 25) 	\
+			and numpy.average(self.hum_list)-self.local_humidity <5) 	\
 		and not self.shower 				\
 		and not self.inhibit 				\
 		and not self.cool_mode:
@@ -1438,24 +1438,25 @@ class Systemair(object):
                 if "debug" in sys.argv: self.msg += "change completed\n"
 	#get and set the local low/static humidity
 	def get_local(self):
-		try:	
+		
 			out = os.popen("./humid.py "+str(self.extract_ave)).readline()
 			tmp = out.split(" ")
 			temp = float(tmp[1])
 			wthr = os.popen("./forcast.py tomorrows-low").read().split(" ")
 			weather = int(os.popen("./forcast.py now").read().split(" ")[-2])
-			comp = float(wthr[0])-(float(wthr[2])/2)
-			comp = (comp - (temp-self.kinetic_compensation))/500
+			comp = float(wthr[0])+1-(float(wthr[2])/2) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/2
+			comp = (comp - (temp-self.kinetic_compensation))/250
 			#if weather == 15 or weather == 9 or weather == 10:
 			#	self.kinetic_compensation = 0
 			#else:
 			#	pass
 			self.kinetic_compensation -= comp * self.avg_frame_time
-			self.local_humidity = self.moisture_calcs(self.prev_static_temp-self.kinetic_compensation)
+			#self.local_humidity = self.moisture_calcs(self.prev_static_temp-self.kinetic_compensation)
+			self.local_humidity = float(tmp[0])-self.kinetic_compensation
 
 			if "debug" in sys.argv:
 				self.msg += "Comp set to: " +str(round(comp,4))+" Calc RH%:"+str(self.local_humidity)+"%\n"
-			if temp <> self.prev_static_temp:
+			if temp <> self.prev_static_temp and time.localtime().tm_hour == 8 and time.localtime().tm_min < 5:
 				self.prev_static_temp = temp
 				self.kinetic_compensation = 0
 				#self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/2
@@ -1465,7 +1466,7 @@ class Systemair(object):
 				elif temp == 15 or temp == 9 or temp == 10:
 					self.kinetic_compensation = 0
 				self.humidity_comp = 0
-		except: print "dayliy low calc error"#,comp,wthr,traceback.print_exc()
+			#except: print "dayliy low calc error"#,comp,wthr,traceback.print_exc()
 
 ## Init base class ##
 if __name__  ==  "__main__":
@@ -1576,6 +1577,8 @@ if __name__  ==  "__main__":
 			if "debug" in sys.argv:
 				os.system("echo \"7\" >./RAM/exec_tree")
 			device.update_fan_rpm()
+			device.print_xchanger() # PRint to screen
+
 		#debug specific sensors and temp probe status
 		if device.iter%11==0:
 			if "debug" in sys.argv:
@@ -1602,9 +1605,6 @@ if __name__  ==  "__main__":
 		if device.iter%251==0:
 			if "debug" in sys.argv:
 				os.system("echo \"251\" >./RAM/exec_tree")
-			device.get_local()
-			if "temperatur.nu" in sys.argv:
-		                os.system("wget -q -O temperatur.nu  http://www.temperatur.nu/rapportera.php?hash=42bc157ea497be87b86e8269d8dc2d42\\&t="+str(round(device.inlet_ave,1))+" &")
 		#send ping status, generarte graphs and refresh airdata instance.
 		if device.iter%563==0:
 			if "debug" in sys.argv:
@@ -1618,6 +1618,11 @@ if __name__  ==  "__main__":
 				device.status_field[9]=round(device.ef,2)
 				device.status_field[10]=round(device.new_humidity,2)
 				report_alive()
+			if "humidity" in sys.argv:
+				device.get_local()
+			if "temperatur.nu" in sys.argv:
+		                os.system("wget -q -O temperatur.nu  http://www.temperatur.nu/rapportera.php?hash=42bc157ea497be87b86e8269d8dc2d42\\&t="+str(round(device.inlet_ave,1))+" &")
+
 		#check for updates
 		if device.iter % int(3600/0.2)==0:
 			if "debug" in sys.argv:
@@ -1632,8 +1637,6 @@ if __name__  ==  "__main__":
 			os.system("./public/ip-util.sh &")  # reset ip-addresses on buttons.html
 			device.get_forcast()
 			if device.status_field[0]>0:device.status_field[0] -= 1 # remove one shower token from bucket every 2 hrs.
-		## PRINT TO DISPLAY ##
-		device.print_xchanger()
 		device.iter+=1
 		########### Selection menu if not daemon######
 		if "daemon" not in sys.argv:
