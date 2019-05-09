@@ -128,7 +128,7 @@ class Energy(object):
 #ref Vaisala.comhumidity conversion formulas
 if  "__main__" in __name__:
 	air =Energy()
-	each = 45
+	each = 23
 	for RH in range(1,101,1):
 		print each,"C",
 		print  RH,"% Dew:",round(air.dew_point(RH,each),1),"C ",1000*air.sat_vapor_press(each),"Pa" , 1000*air.sat_vapor_press(air.dew_point(RH,each))

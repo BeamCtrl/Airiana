@@ -46,7 +46,9 @@ try:
 
 	     #temp = (tm.time()-day)-((tm.time()-day)%(3600))	
 	     for entry in tmp: 
-		if entry==np.nan: entry=0
+		if entry==np.nan or entry == "nan" or float(tmp[4])>100 or float(tmp[4])<0 : 
+			#print float(tmp[4]),tmp[8]
+			raise ZeroDivisionError
 	     if float(tmp[0]) > 0 and float(tmp[0]) > tm.time()-(day): #temp:	
 		sen_hum.append(float(tmp[3]))
 		sen_temp.append(float(tmp[1]))
@@ -61,8 +63,10 @@ try:
 		cond_comp.append(float(tmp[10]))
 		inside_hum.append(int(tmp[11]))
 		diff.append (round(calc_hum[-1]-supply_humid[-1] ,3)) 
+		if diff[-1]< -30: print tmp[0]
 	    except IndexError:inside_hum.append(0)
 	    except ValueError: pass#print tmp[0]
+	    except ZeroDivisionError:pass
 	    except: traceback.print_exc() 	
 except:traceback.print_exc()
 import statistics as stat

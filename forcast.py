@@ -5,8 +5,9 @@ import os, time, sys,datetime
 #print dir(os.stat("forecast.xml"))
 #print os.stat("forecast.xml").st_ctime -time.time()
 loc = os.popen("cat location").read()
+sun ={}
 try:
-	if os.stat("/home/pi/airiana/RAM/forecast.xml").st_ctime -time.time() < -3600 or os.stat("/home/pi/airiana/RAM/forecast.xml").st_size ==0:
+	if os.stat("/home/pi/airiana/RAM/forecast.xml").st_ctime -time.time() < -3600 or os.stat("/home/pi/airiana/RAM/forecast.xml").st_size ==0 or "-f" in sys.argv:
 		#print "Downloading updated forcast" 
 		os.system("wget -q -O /home/pi/airiana/RAM/forecast.xml "+loc)
 except Exception as err:
@@ -33,6 +34,9 @@ fd = open('/home/pi/airiana/RAM/forecast.xml','r')
 forcasts = []
 def start_element(name, attrs):
 		#print name , attrs
+		if name == 'sun':
+			global sun
+			sun = attrs
 		if name == 'time': 
 			forcasts.append(Weather())
 			forcasts[-1].valid_to =time.strptime(attrs['to'],"%Y-%m-%dT%H:%M:%S")
@@ -89,3 +93,12 @@ if "tomorrows-low" in sys.argv:
 	for each in forcasts:
 		if each.valid_from.tm_mday==tomorrow.tm_mday and each.period == "1":
 			print each.temp, each.weather_type,each.wind_speed
+
+
+if "sun" in sys.argv and len(sun)<>0:
+	print sun['rise'].split("T")[1]
+	print sun['set'].split("T")[1]
+
+if "sun" in sys.argv and len(sun)==0:
+	print "07:00:00"
+	print "19:00:00"

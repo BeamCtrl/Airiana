@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python 
 # -*- coding: utf-8 -*-
 ###################IMPORTS
 import airdata, serial, numpy, select, threading, minimalmodbus
@@ -346,8 +346,10 @@ class Systemair(object):
 		self.diff_ave=[0]
 		self.totalenergy = 0.0
 		self.averagelimit = 1800#min122
-		self.sf = 18
-		self.ef = 23
+		self.sf = 20
+		self.ef = 20
+		self.sf_base = 20
+		self.ef_base = 20
 		self.ef_rpm = 1500
 		self.sf_rpm = 1500
 		self.inlet = []
@@ -357,6 +359,7 @@ class Systemair(object):
 		self.extract = []
 		self.extract_ave=0.0
 		self.electric_power = 1
+		self.flowOffset = [0,0]
 		self.house_heat_limit = 8
 		self.humidity_target =0
 		self.exhaust = []
@@ -416,7 +419,8 @@ class Systemair(object):
 		self.time = []
 		self.extract_dt_list = []
 		self.humidity_comp = 0
-		self.prev_static_temp = 0
+		self.pressure_diff = 0
+		self.prev_static_temp = 8
 		self.indoor_dewpoint = 0
 		self.target = 22
 		self.energy_diff=0
@@ -449,6 +453,20 @@ class Systemair(object):
 
 			if "VR400" in self.system_name: 
 				pass
+			if "VTR300" in self.system_name:
+				req.read_register(137,0)
+				if int(req.response) == 1:
+					req.write_register(137,0)
+				req.read_register(107,0)
+				if int(req.response) == 1:
+					req.write_register(107,0)
+				# SET BASE FLOW RATES
+				#req.write_register(101,30) read only
+                        	req.write_register(102,30)
+                        	req.write_register(103,50)
+                        	req.write_register(104,50)
+                        	#req.write_register(105,107) read only
+                        	req.write_register(106,107)
 	#get heater status
 	def get_heater(self):
 		if not savecair:
@@ -1140,10 +1158,15 @@ class Systemair(object):
 	def check_flags(self):
 	    global monitoring
 	    #### INHIBITS AND LIMITERS
-	    now = time.time()
+	    now = time.time()                        
 	    if self.inhibit < now-(60*10):self.inhibit = 0
     	    if self.modetoken < now-(60*60): self.modetoken=0
 	    if self.press_inhibit < now-(60*30):self.press_inhibit = 0
+	    if self.flowOffset[1]-time.time() < -3600 \
+				and self.flowOffset[0]>0 \
+				and numpy.average(self.hum_list)-self.local_humidity <7:
+		self.flowOffset[0]-=1
+		self.flowOffset[1]=time.time()
 
 	#Monitor Logical crits for state changes on exchanger, pressure, rpms, forcast
 	def monitor(self):
@@ -1273,6 +1296,7 @@ class Systemair(object):
 		 	self.set_fanspeed(2)
 		 	self.msg += "Dynamic fanspeed 2\n"
 		        os.write(ferr, "Dynamic fanspeed 2 with RH "+str(time.ctime()) +"\n")
+			self.flowOffset = [self.flowOffset[0]+5,time.time()]
 
 	    if self.fanspeed == 2 				\
 		and self.extract_ave < self.target + 0.6 	\
@@ -1299,7 +1323,7 @@ class Systemair(object):
 
 	    if self.fanspeed <> 3 							\
 		and self.extract_ave-0.1 > self.supply_ave 				\
-		and (self.extract_ave >= self.target+1 or (self.extract_dt_long >=0.7)	\
+		and (self.extract_ave >= self.target+1.2 or (self.extract_dt_long >=0.7)	\
 		and self.inlet_ave > 5 or self.extract_ave > self.target+1.5 )		\
 		and self.exchanger_mode <> 5 						\
 		and not self.extract_dt_long < -0.2 					\
@@ -1336,7 +1360,7 @@ class Systemair(object):
 		        os.write(ferr, "Dynamic fanspeed 1 recover cool air "+str(time.ctime()) +"\n")
 
 	    if (self.fanspeed== 3			\
- 		and self.extract_ave < self.target + 1 	\
+ 		and self.extract_ave < self.target + 0.8 	\
 		and not self.extract_dt_long > 0.7
 		and not self.shower			\
 		and not self.inhibit			\
@@ -1347,7 +1371,7 @@ class Systemair(object):
 		and not self.inhibit 			\
 		and not self.shower):
 			self.set_fanspeed(2)
-			self.msg  +="Dynamic fanspeed 2\n"
+			self.msg  +="Dynamic fanspeed 2 with long dt\n"
 		        os.write(ferr, "Dynamic fanspeed 2 with long dt "+str(time.ctime()) +"\n")
 
 	    # SHOWER MODEwTIMEOUT #
@@ -1388,6 +1412,7 @@ class Systemair(object):
 		self.forcast=[-1,-1]
 	#set the fan pressure diff
 	def set_differential(self, percent):
+	    self.pressure_diff  = percent
 	    if not savecair and not self.shower:
 		if "debug" in sys.argv: self.msg += "start pressure change " +str( percent)+"\n"
 		if percent>20:percent = 20
@@ -1436,36 +1461,58 @@ class Systemair(object):
                 if req.response == target:
                         self.press_inhibit = time.time()
                 if "debug" in sys.argv: self.msg += "change completed\n"
+	
+	#Set base flow rate with an offset to regulate humidity in a more clever manner.
+	def check_flow_offset(self):
+		if savecair:
+			if self.flowOffset[0] > 20: self.flowOffset[0] = 20
+			base = self.ef_base+self.pressure_diff
+			if self.fanspeed == 1 and self.ef <> base+self.flowOffset[0] and not self.shower:
+				req.write_register(1403,base+self.flowOffset[0])
+				req.write_register(1402,self.sf_base+self.flowOffset[0])
+				self.msg += "Updated base extract flow to: "+str(base+self.flowOffset[0])+"\n"
+				self.ef = base+self.flowOffset[0]
+				self.sf = self.sf_base+self.flowOffset[0]
+		if self.has_RH and not savecair:
+			 if self.fanspeed == 1 and self.ef <> base+self.flowOffset[0] and not self.shower:
+                                req.write_register(102,base+self.flowOffset[0])
+                                req.write_register(101,self.sf_base+self.flowOffset[0])
+                                self.msg += "Updated base extract flow to: "+str(base+self.flowOffset[0])+"\n"
+                                self.ef = base+self.flowOffset[0]
+                                self.sf = self.sf_base+self.flowOffset[0]
+
 	#get and set the local low/static humidity
 	def get_local(self):
-		
 			out = os.popen("./humid.py "+str(self.extract_ave)).readline()
 			tmp = out.split(" ")
 			temp = float(tmp[1])
 			wthr = os.popen("./forcast.py tomorrows-low").read().split(" ")
-			weather = int(os.popen("./forcast.py now").read().split(" ")[-2])
-			comp = float(wthr[0])+1-(float(wthr[2])/2) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/2
+			sun = int(os.popen("./forcast.py sun").readlines()[0].split(":")[0])
+			comp = float(wthr[0])-(float(wthr[2])/2) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/2
 			comp = (comp - (temp-self.kinetic_compensation))/250
-			#if weather == 15 or weather == 9 or weather == 10:
-			#	self.kinetic_compensation = 0
-			#else:
-			#	pass
 			self.kinetic_compensation -= comp * self.avg_frame_time
 			#self.local_humidity = self.moisture_calcs(self.prev_static_temp-self.kinetic_compensation)
-			self.local_humidity = float(tmp[0])-self.kinetic_compensation
-
+			self.local_humidity = float(tmp[0]) - self.kinetic_compensation
+			if self.prev_static_temp-self.kinetic_compensation > self.inlet_ave and (time.localtime().tm_hour < 3 or time.localtime().tm_hour > 8):
+				self.prev_static_temp = self.inlet_ave+self.kinetic_compensation
+				self.kinetic_compensation = self.kinetic_compensation * 0.9
 			if "debug" in sys.argv:
-				self.msg += "Comp set to: " +str(round(comp,4))+" Calc RH%:"+str(self.local_humidity)+"%\n"
-			if temp <> self.prev_static_temp and time.localtime().tm_hour == 8 and time.localtime().tm_min < 5:
+				self.msg += "Comp set to: " +str(round(self.kinetic_compensation,4))+" Calc RH%:"+str(self.local_humidity)+"% " + str(self.prev_static_temp)+"C "+str(temp)+"\n"
+			if time.localtime().tm_hour == sun and time.localtime().tm_min < 5:
 				self.prev_static_temp = temp
 				self.kinetic_compensation = 0
 				#self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/2
-				temp = weather
-				if temp >=3:
-					self.kinetic_compensation += 0.5
-				elif temp == 15 or temp == 9 or temp == 10:
+				weather = int(os.popen("./forcast.py now").read().split(" "))
+				type = weather[-2]
+				wind = int(weather[-4].split(".")[0])
+				if type >=3: # do an offset if there is cloudcover
+					self.kinetic_compensation += 1.5
+				elif type == 15 or type == 9 or type == 10: # zero if fog etc.
 					self.kinetic_compensation = 0
-				self.humidity_comp = 0
+				if wind >4:
+					self.kinetitc_compensation += wind /4
+			if self.prev_static_temp > temp:
+				self.prev_static_temp = temp
 			#except: print "dayliy low calc error"#,comp,wthr,traceback.print_exc()
 
 ## Init base class ##
@@ -1537,8 +1584,9 @@ if __name__  ==  "__main__":
 	    device.update_xchanger()
 	    device.div = device.inlet_ave
 	    if "humidity" in sys.argv:
-		device.get_local()
 		device.new_humidity = device.moisture_calcs(10.0)
+		device.get_local()
+		device.get_local()
 	    starttime=time.time()
 	    print "system started:",time.ctime(starttime),";"
 	    sys.stdout.flush()
@@ -1589,6 +1637,7 @@ if __name__  ==  "__main__":
 				update_sensors()
 				device.get_temp_status()
 				device.get_filter_status()
+			device.check_flow_offset()
 
 		#refresh static humidity
 		if device.iter%79==0:
@@ -1596,6 +1645,7 @@ if __name__  ==  "__main__":
 				os.system("echo \"79\" >./RAM/exec_tree")
 			device.update_airflow()
 			device.get_heater()
+
 			#if "humidity" in sys.argv and (device.system_name not in device.has_RH_sensor or not device.RH_valid):
 		#calc local humidity and exec logger
 		if device.iter%int(float(120)/device.avg_frame_time)==0:
