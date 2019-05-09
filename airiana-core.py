@@ -450,7 +450,7 @@ class Systemair(object):
 		 	req.write_register(1407,85)
 		 	req.write_register(1408,100)
 		 	req.write_register(1409,100)
-
+		else:
 			if "VR400" in self.system_name: 
 				pass
 			if "VTR300" in self.system_name:
@@ -1473,7 +1473,7 @@ class Systemair(object):
 				self.msg += "Updated base extract flow to: "+str(base+self.flowOffset[0])+"\n"
 				self.ef = base+self.flowOffset[0]
 				self.sf = self.sf_base+self.flowOffset[0]
-		if self.has_RH and not savecair:
+		if self.has_RH_sensor and not savecair:
 			 if self.fanspeed == 1 and self.ef <> base+self.flowOffset[0] and not self.shower:
                                 req.write_register(102,base+self.flowOffset[0])
                                 req.write_register(101,self.sf_base+self.flowOffset[0])
