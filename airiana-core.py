@@ -454,10 +454,10 @@ class Systemair(object):
 			if "VR400" in self.system_name: 
 				pass
 			if "VTR300" in self.system_name:
-				req.read_register(137,0)
+				req.modbusregister(137,0)
 				if int(req.response) == 1:
 					req.write_register(137,0)
-				req.read_register(107,0)
+				req.modbusegister(107,0)
 				if int(req.response) == 1:
 					req.write_register(107,0)
 				# SET BASE FLOW RATES
