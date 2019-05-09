@@ -1474,12 +1474,13 @@ class Systemair(object):
 				self.ef = base+self.flowOffset[0]
 				self.sf = self.sf_base+self.flowOffset[0]
 		if self.has_RH_sensor and not savecair:
-			 if self.fanspeed == 1 and self.ef <> base+self.flowOffset[0] and not self.shower:
+	 		base = 30+self.pressure_diff
+			if self.fanspeed == 1 and self.ef <> base+self.flowOffset[0] and not self.shower:
                                 req.write_register(102,base+self.flowOffset[0])
-                                req.write_register(101,self.sf_base+self.flowOffset[0])
+                                req.write_register(101,30+self.flowOffset[0])
                                 self.msg += "Updated base extract flow to: "+str(base+self.flowOffset[0])+"\n"
                                 self.ef = base+self.flowOffset[0]
-                                self.sf = self.sf_base+self.flowOffset[0]
+                                self.sf = 30+self.flowOffset[0]
 
 	#get and set the local low/static humidity
 	def get_local(self):
