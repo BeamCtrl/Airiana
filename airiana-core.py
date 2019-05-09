@@ -457,7 +457,7 @@ class Systemair(object):
 				req.modbusregister(137,0)
 				if int(req.response) == 1:
 					req.write_register(137,0)
-				req.modbusegister(107,0)
+				req.modbusregister(107,0)
 				if int(req.response) == 1:
 					req.write_register(107,0)
 				# SET BASE FLOW RATES
