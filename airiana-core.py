@@ -1036,7 +1036,7 @@ class Systemair(object):
 		if not monitoring: tmp += "\nSystem Automation off\n"
 
 		self.status_field[2] = round((time.time()-starttime)/self.iter,2)
-		self.status_field[6] = round((time.time()-starttime)/3600,0)
+		self.status_field[6] = round((time.time()-starttime)/3600,1)
 		#if self.iter %60==0 and "debug" in sys.argv :
 		#	try:
 		#		ave, dev = statistics.stddev(self.cond_data)
@@ -1503,8 +1503,8 @@ class Systemair(object):
 				self.prev_static_temp = temp
 				self.kinetic_compensation = 0
 				#self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/2
-				weather = int(os.popen("./forcast.py now").read().split(" ")[-1])
-				type = weather[-2]
+				weather = os.popen("./forcast.py now").read().split(" ")
+				type = int(weather[-2])
 				wind = int(weather[-4].split(".")[0])
 				if type >=3: # do an offset if there is cloudcover
 					self.kinetic_compensation += 1.5
