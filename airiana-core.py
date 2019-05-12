@@ -1505,7 +1505,7 @@ class Systemair(object):
 				#self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/2
 				weather = os.popen("./forcast.py now").read().split(" ")
 				type = int(weather[-2])
-				wind = int(weather[-4].split(".")[0])
+				wind = int(weather[-5].split(".")[0])
 				if type >=3: # do an offset if there is cloudcover
 					self.kinetic_compensation += 1.5
 				elif type == 15 or type == 9 or type == 10: # zero if fog etc.
