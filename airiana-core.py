@@ -584,7 +584,7 @@ class Systemair(object):
 				else: self.coef += 0.0001
 				self.coef=round(self.coef,5)
 			
-			self.dyn_coef = self.fanspeed * 1.5
+			self.dyn_coef = self.fanspeed * 2
 			"""if self.inhibit and self.extract_dt>0.1 and not self.shower:
 					self.dyn_coef +=0.1
 			if self.inhibit and self.extract_dt<-0.1 and not self.shower:
