@@ -1,4 +1,4 @@
-#!/usr/bin/python 
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 ###################IMPORTS
 import airdata, serial, numpy, select, threading, minimalmodbus
@@ -451,9 +451,7 @@ class Systemair(object):
 		 	req.write_register(1408,100)
 		 	req.write_register(1409,100)
 		else:
-			if "VR400" in self.system_name: 
-				pass
-			if "VTR300" in self.system_name:
+			if "VTR300" in self.system_name or "VR400" in self.system_name:
 				req.modbusregister(137,0)
 				if int(req.response) == 1:
 					req.write_register(137,0)
@@ -462,22 +460,22 @@ class Systemair(object):
 					req.write_register(107,0)
 				# SET BASE FLOW RATES
 				#req.write_register(101,30) read only
-                        	req.write_register(102,30)
-                        	req.write_register(103,50)
-                        	req.write_register(104,50)
-                        	#req.write_register(105,107) read only
-                        	req.write_register(106,107)
+                req.write_register(102,30)
+                req.write_register(103,50)
+                req.write_register(104,50)
+                #req.write_register(105,107) read only
+                req.write_register(106,107)
 	#get heater status
 	def get_heater(self):
 		if not savecair:
 			req.modbusregister(200,0)
 	                self.heater = int(req.response)
 		else: self.heater = 0
-		
+
 	#set heater status
 	def set_heater(self,heater):
 		req.write_register(200,heater)
-	
+
 	#get and set the Unit System name, from system types dict
 	def set_system_name(self):
 		req.modbusregister(500,0)
@@ -583,7 +581,7 @@ class Systemair(object):
 				if self.coef-0.10>0:self.coef -= 0.0001
 				else: self.coef += 0.0001
 				self.coef=round(self.coef,5)
-			
+
 			self.dyn_coef = self.fanspeed * 1.5
 			"""if self.inhibit and self.extract_dt>0.1 and not self.shower:
 					self.dyn_coef +=0.1
@@ -597,7 +595,7 @@ class Systemair(object):
 				self.tcomp = 0
 			if self.rotor_active =="No"  and self.inlet_coef <0.14:self.inlet_coef+= 0.0001 #OFF
 			if self.rotor_active =="Yes" and self.inlet_coef >0.07:self.inlet_coef-= 0.0001 # ON
-		
+
 		#update [4] with inlet coef
 		req.response[4]  -= (req.response[1]-req.response[4])*self.inlet_coef #inlet compensation exchanger OFF/ON
 		#update [1] with tcomp, after calc of [4]
@@ -611,12 +609,12 @@ class Systemair(object):
 		#if self.rotor_active =="No" :
 		#	req.response[2]  -= (req.response[1]-req.response[4])*0.01  #exhaust compensation exch off
 		#else : 	req.response[2]  -= (req.response[1]-req.response[4])*0.06  #exhaust compensation exch ON
-		
+
 		self.extract.insert(0, float(req.response[1])/10)
 		self.exhaust.insert(0, float(req.response[2])/10)
 		self.supply.insert (0, float(req.response[3])/10)
 		self.inlet.insert  (0, float(req.response[4])/10)
-		
+
       		#limit array size
 		for each in [self.inlet,self.supply,self.extract,self.exhaust]:
 			if len(each)>self.averagelimit: each.pop(-1)
@@ -640,7 +638,7 @@ class Systemair(object):
 		try:
 			self.dyn_coef = float(3200)/self.ef_rpm *0.01
 			self.tcomp= (extract-inlet)*self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
-		except ZeroDivisionError : pass 
+		except ZeroDivisionError : pass
 		self.extract.insert(0,float(extract+self.tcomp))
 		## SUPPLY
 		self.supply.insert(0,float(supply))
@@ -742,7 +740,7 @@ class Systemair(object):
 		except ZeroDivisionError:self.electric_power=0
 
 	def update_fanspeed(self):
-		self.fanspeed = self.get_fanspeed()		
+		self.fanspeed = self.get_fanspeed()
 
 	def update_airflow(self):
 	    if not savecair:
@@ -856,7 +854,7 @@ class Systemair(object):
 		else: d_pw = 0
 
 		max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)*1000
-		div = self.prev_static_temp -self.kinetic_compensation # to test new ref 
+		div = self.prev_static_temp -self.kinetic_compensation # to test new ref
 		low_pw = self.airdata_inst.sat_vapor_press(div)*1000
 
 		#create humidity if no sensor data avail
@@ -871,7 +869,7 @@ class Systemair(object):
 		if data is not "None":
 			max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
 			low_pw = self.airdata_inst.sat_vapor_press(data)
-		return (( low_pw) / max_pw ) * 100 
+		return (( low_pw) / max_pw ) * 100
 		#####END
 
 	#calc long and short derivatives
@@ -906,7 +904,7 @@ class Systemair(object):
 						req.write_register(1161,4)
 					else:
 	                                        self.set_fanspeed(3)
-					if self.RH_valid: 
+					if self.RH_valid:
 						self.showerRH = self.hum_list[-1]
                                         self.inhibit=time.time()
                                         self.shower_initial=self.inhibit
@@ -992,7 +990,7 @@ class Systemair(object):
 					except:
 						tmp+= "RH calcerror\n"
 						traceback.print_exc()
-				tmp += "Humidity:\t " +str(round(self.extract_ave,1))+"C "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave),2))+"C\n" 
+				tmp += "Humidity:\t " +str(round(self.extract_ave,1))+"C "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave),2))+"C\n"
 		if "debug" in sys.argv:
 			try:
 				tmp += "Outdoor Sensor:\t "+str(self.sensor_temp)+"C "+str(self.sensor_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.sensor_humid,self.sensor_temp),2))+"C\n"
@@ -1158,7 +1156,7 @@ class Systemair(object):
 	def check_flags(self):
 	    global monitoring
 	    #### INHIBITS AND LIMITERS
-	    now = time.time()                        
+	    now = time.time()
 	    if self.inhibit < now-(60*10):self.inhibit = 0
     	    if self.modetoken < now-(60*60): self.modetoken=0
 	    if self.press_inhibit < now-(60*30):self.press_inhibit = 0
@@ -1235,7 +1233,7 @@ class Systemair(object):
 					if self.exchanger_mode <>0:
 						self.cycle_exchanger(0)
 
-				
+
 				self.set_fanspeed(3)
 				self.cool_mode = True
 	    except: os.write(ferr, "Forcast cooling error "+str(time.ctime()) +"\n")
@@ -1425,7 +1423,7 @@ class Systemair(object):
 		req.modbusregister(104,0) #nominal supply flow
 		if req.response == target:
 			self.press_inhibit = time.time()
-		if "debug" in sys.argv: 
+		if "debug" in sys.argv:
 			if req.response == target :self.msg+= "supply flow change completed \n"
 		high_flow = 107
 		if percent < 0 :high_flow += 107*float(percent)/100
@@ -1445,7 +1443,7 @@ class Systemair(object):
 		if "debug" in sys.argv: self.msg += "start pressure change " +str( percent)+"\n"
                 if percent>20:percent = 20
                 if percent<-20:percent =-20
-		
+
 		req.modbusregister(101,0) #LOW supply flow
                 target = int(req.response + req.response * (float(percent)/100))
                 req.write_register(102,target) #LOW extract flow
@@ -1461,7 +1459,7 @@ class Systemair(object):
                 if req.response == target:
                         self.press_inhibit = time.time()
                 if "debug" in sys.argv: self.msg += "change completed\n"
-	
+
 	#Set base flow rate with an offset to regulate humidity in a more clever manner.
 	def check_flow_offset(self):
 		if savecair:
@@ -1840,5 +1838,3 @@ if __name__  ==  "__main__":
 
 	except KeyboardInterrupt:
 		exit_callback(2,None)
-
-
