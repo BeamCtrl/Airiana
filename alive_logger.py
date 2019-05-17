@@ -35,6 +35,7 @@ while True:
 		for_file += "\n"+incomming_msg
 		filename = "./public/local_links/"+mac+".html"
 		for_file += "\n"+"Source:"+str(addr)
+		for_file += incomming_msg
 		#print "filename:",filename
 		#print for_file
 		open(filename,"w+").write(for_file)

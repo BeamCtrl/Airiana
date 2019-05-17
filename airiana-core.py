@@ -104,6 +104,8 @@ def report_alive():
 				message += os.popen("hostname -I").read()
 				try:
 					message += "\nstatus:"+str(device.status_field)+"\n"
+					message += os.popen("tail -n 20 RAM/err").read()
+					message += "\n"
 				except: pass
 				#if "debug" in sys.argv: device.msg +=  message + "\n"
 
@@ -1255,12 +1257,12 @@ class Systemair(object):
 			self.msg += "Cooling complete\n"
 		        os.write(ferr, "Cooling complete "+str(time.ctime()) +"\n")
 
-		if self.fanspeed == 3 and self.supply_ave < 10:
+		if self.fanspeed == 3 and (self.supply_ave < 12 and self.extract_ave < 22):
 			self.set_fanspeed(2)
 			self.msg += "Cooling reduced\n"
 		        os.write(ferr, "Cooling reduced "+str(time.ctime()) +"\n")
 
-		if self.fanspeed == 2 and self.supply_ave > 12:
+		if self.fanspeed == 2 and self.supply_ave > 13:
 			self.set_fanspeed(3)
 			self.msg += "Cooling returned to High.\n"
 		        os.write(ferr, "Cooling returned "+str(time.ctime()) +"\n")
