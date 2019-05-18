@@ -1510,7 +1510,7 @@ class Systemair(object):
 				elif type == 15 or type == 9 or type == 10: # zero if fog etc.
 					self.kinetic_compensation = 0
 				if wind >4:
-					self.kinetitc_compensation += wind /4
+					self.kinetic_compensation += wind /4
 			if self.prev_static_temp > temp:
 				self.prev_static_temp = temp
 			#except: print "dayliy low calc error"#,comp,wthr,traceback.print_exc()
