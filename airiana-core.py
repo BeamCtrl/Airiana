@@ -5,7 +5,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 ############################
-vers = "9.7"
+vers = "9.8"
 Running =True
 savecair=False
 # Register cleanup
@@ -1248,6 +1248,7 @@ class Systemair(object):
 	    except: os.write(ferr, "Forcast cooling error "+str(time.ctime()) +"\n")
 	    # SAVECAIR COOL reCover cheat
 	    if self.cool_mode \
+		and self.exchanger_mode==5 \
 		and self.fanspeed == 1 \
 		and self.exchanger_speed < 95 \
 		and savecair \
@@ -1495,6 +1496,11 @@ class Systemair(object):
 			if self.prev_static_temp == 8:
 				if os.path.lexists("RAM/latest_static"):
 					self.prev_static_temp = float(os.popen("cat RAM/latest_static").readline().split("\n")[0])
+				else:
+					fd = os.open("RAM/latest_static",os.O_WRONLY | os.O_CREAT| os.O_TRUNC)
+					os.write(fd,str(self.prev_static_temp))
+					os.close(fd)
+
 			out = os.popen("./humid.py "+str(self.extract_ave)).readline()
 			tmp = out.split(" ")
 			try:
