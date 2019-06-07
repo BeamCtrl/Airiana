@@ -9,7 +9,7 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 html = """ 
 <html>
 <meta http-equiv="refresh" content="0;url=http://[IP]">
-
+[DA]
 
 </html>
 """
@@ -17,7 +17,7 @@ html = """
 sock.bind(("0.0.0.0",59999))
 while True:
 	if sock in select.select( [sock], [], [], 1)[0]:
-		incomming_msg, addr=sock.recvfrom(1024)
+		incomming_msg, addr=sock.recvfrom(37000)
 		#print "***", incomming_msg, "***"
 	 	#print incomming_msg.find("ether")
 
@@ -32,10 +32,11 @@ while True:
 		print time.ctime(), "MAC:", mac, "From:",addr
 		print "active IP:",ip
 		for_file= html.replace("[IP]",ip)
-		for_file += "\n"+incomming_msg
+		for_file= html.replace("[DA]",incomming_msg)
+		#for_file += "\n"+incomming_msg
 		filename = "./public/local_links/"+mac+".html"
 		for_file += "\n"+"Source:"+str(addr)
-		for_file += incomming_msg
 		#print "filename:",filename
 		#print for_file
+		for_file.replace("\n","<br>##")
 		open(filename,"w+").write(for_file)

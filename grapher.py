@@ -105,7 +105,8 @@ plot(time[-day:-1],exhaust[-day:-1], '-', linewidth=1,label="exhaust temperature
 plot(time[-day:-1],supply[-day:-1],'-',linewidth=1,label="supply temperature")
 if "debug" in sys.argv:
 	plot(time[-day:-1],outside[-day:-1],'-',linewidth=1,label="indoor sensor temperature")
-	axhline( y=float(os.popen("./humid.py 0").read().split(" ")[-1]) )
+	#axhline( y=float(os.popen("./humid.py 0").read().split(" ")[-1]) )
+	axhline( y=float(os.popen("cat RAM/latest_static").read().split(" ")[-1]) )
 grid(True)
 ax = gca()
 ax.set_ylim(int(min(inlet))-1, int(max(max(extract),max(inlet)))+1)

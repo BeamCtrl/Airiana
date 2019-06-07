@@ -5,7 +5,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 ############################
-vers = "9.6"
+vers = "9.7"
 Running =True
 savecair=False
 # Register cleanup
@@ -103,9 +103,13 @@ def report_alive():
 				message = each
 				message += os.popen("hostname -I").read()
 				try:
-					message += "\nstatus:"+str(device.status_field)+"\n"
-					message += os.popen("tail -n 20 RAM/err").read()
-					message += "\n"
+					message += "\nstatus:"+str(device.status_field)+"\n\n<br>"
+					fd = os.open("RAM/err",os.O_RDONLY)
+					os.lseek(fd,-35000,os.SEEK_END)
+					temp = os.read(fd,35000)
+					os.close(fd)
+					temp = temp.replace("\n","<br>")
+					message += temp + "\n"
 				except: pass
 				#if "debug" in sys.argv: device.msg +=  message + "\n"
 
@@ -237,7 +241,9 @@ class Request(object):
 	def error_review (self):
 		delta = self.iter - self.error_time
 		self.error_time = self.iter
-		rate = float(self.connect_errors+self.checksum_errors+self.write_errors+self.multi_errors) / delta
+		if delta <>0:
+			rate = float(self.connect_errors+self.checksum_errors+self.write_errors+self.multi_errors) / delta
+		else: rate=0.5
 		if rate >= 0.9:
 			os.read(bus,1000)
 			time.sleep(1)
@@ -1203,11 +1209,11 @@ class Systemair(object):
 			        os.write(ferr, "Exchange set to 5 <target-1C "+str(time.ctime()) +"\n")
 
 		if self.supply_ave <10 				\
-			and self.extract_ave < self.target+1 	\
+			and self.extract_ave < self.target 	\
 			and  self.exchanger_mode <> 5 		\
 			and not self.cool_mode :
 				self.cycle_exchanger(5)
-			        os.write(ferr, "Exchange set to 5 supply<10C "+str(time.ctime()) +"\n")
+			        os.write(ferr, "Exchange set to 5 supply<10C and extract< target "+str(time.ctime()) +"\n")
 				self.modetoken=time.time()
 		if self.exchanger_mode <> 5 			\
 			and self.inlet_ave < 10 		\
@@ -1237,8 +1243,10 @@ class Systemair(object):
 
 				self.set_fanspeed(3)
 				self.cool_mode = True
-	    except: os.write(ferr, "Forcast cooling error "+str(time.ctime()) +"\n")
+			        os.write(ferr, "Cooling activated "+str(time.ctime()) +"\n")
 
+	    except: os.write(ferr, "Forcast cooling error "+str(time.ctime()) +"\n")
+	    # SAVECAIR COOL reCover cheat
 	    if self.cool_mode \
 		and self.fanspeed == 1 \
 		and self.exchanger_speed < 95 \
@@ -1273,6 +1281,7 @@ class Systemair(object):
 		if self.supply_ave>self.extract_ave and self.fanspeed<>1:
 			self.set_fanspeed(1)
 			self.msg += "No cooling posible due to temperature conditions\n"
+		        os.write(ferr, "Cooling will wait, try to recycle cold air "+str(time.ctime()) +"\n")
 
 		if (self.forcast[0] <= 16 or self.forcast[1]>=4) and time.localtime().tm_hour >12:
 			self.cool_mode=False
@@ -1283,12 +1292,12 @@ class Systemair(object):
 	    #DYNAMIC FANSPEED CONTROL
 
 	    if self.fanspeed == 1 				\
-		and ((self.extract_ave > self.target 		\
-		and self.extract_ave > self.target + 0.5 	\
-		and self.extract_ave - self.supply_ave>0.1 	\
-		and self.extract_dt_long >= 0.2)		\
-		or  (self.RH_valid				\
-			and numpy.average(self.hum_list)-self.local_humidity >7))\
+		and 	((self.extract_ave > self.target 		\
+		and 	self.extract_ave > self.target + 0.5 	\
+		and 	self.extract_ave - self.supply_ave>0.1 	\
+		and 	self.extract_dt_long >= 0.2)		\
+		and	self.RH_valid				\
+		and 	numpy.average(self.hum_list)-self.local_humidity >7)\
 		and not self.shower 				\
 		and not self.inhibit 				\
 		and not self.cool_mode:
@@ -1347,7 +1356,7 @@ class Systemair(object):
 		and not self.shower)) :
 			self.set_fanspeed(1)
 			self.msg += "Dynamic fanspeed 1\n"
-		        os.write(ferr, "Dynamic fanspeed 1 ex < target "+str(time.ctime()) +"\n")
+		        os.write(ferr, "Dynamic fanspeed 1 extr < target "+str(time.ctime()) +"\n")
 
 	    if self.extract_ave < self.supply_ave 	\
 		and self.fanspeed <> 1 			\
@@ -1483,22 +1492,32 @@ class Systemair(object):
 
 	#get and set the local low/static humidity
 	def get_local(self):
+			if self.prev_static_temp == 8:
+				if os.path.lexists("RAM/latest_static"):
+					self.prev_static_temp = float(os.popen("cat RAM/latest_static").readline().split("\n")[0])
 			out = os.popen("./humid.py "+str(self.extract_ave)).readline()
 			tmp = out.split(" ")
-			temp = float(tmp[1])
+			try:
+				temp = float(tmp[1])
+			except:
+				return -1
 			wthr = os.popen("./forcast.py tomorrows-low").read().split(" ")
 			sun = int(os.popen("./forcast.py sun").readlines()[0].split(":")[0])
 			comp = float(wthr[0])-(float(wthr[2])/2) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/2
 			comp = (comp - (temp-self.kinetic_compensation))/250
 			self.kinetic_compensation -= comp * self.avg_frame_time
-			#self.local_humidity = self.moisture_calcs(self.prev_static_temp-self.kinetic_compensation)
-			self.local_humidity = float(tmp[0]) - self.kinetic_compensation
+			if self.prev_static_temp >= temp:
+				self.local_humidity = float(tmp[0]) - self.kinetic_compensation
+			else:
+				self.local_humidity = self.moisture_calcs(self.prev_static_temp-self.kinetic_compensation)
+
+
 			if self.prev_static_temp-self.kinetic_compensation > self.inlet_ave and (time.localtime().tm_hour < 3 or time.localtime().tm_hour > 8):
 				self.prev_static_temp = self.inlet_ave+self.kinetic_compensation
 				self.kinetic_compensation = self.kinetic_compensation * 0.9
 			if "debug" in sys.argv:
 				self.msg += "Comp set to: " +str(round(self.kinetic_compensation,4))+" Calc RH%:"+str(self.local_humidity)+"% " + str(self.prev_static_temp)+"C "+str(temp)+"\n"
-			if time.localtime().tm_hour == sun and time.localtime().tm_min < 5:
+			if time.localtime().tm_hour == sun and time.localtime().tm_min < 5 or "test" in sys.argv :
 				self.prev_static_temp = temp
 				self.kinetic_compensation = 0
 				#self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/2
@@ -1511,6 +1530,11 @@ class Systemair(object):
 					self.kinetic_compensation = 0
 				if wind >4:
 					self.kinetic_compensation += wind /4
+				self.prev_static_temp -= self.kinetic_compensation
+				self.kinetic_compensation = 0
+				fd = os.open("RAM/latest_static",os.O_WRONLY | os.O_CREAT| os.O_TRUNC)
+				os.write(fd,str(self.prev_static_temp))
+				os.close(fd)
 			if self.prev_static_temp > temp:
 				self.prev_static_temp = temp
 			#except: print "dayliy low calc error"#,comp,wthr,traceback.print_exc()
@@ -1690,7 +1714,7 @@ if __name__  ==  "__main__":
 		device.iter+=1
 		########### Selection menu if not daemon######
 		if "daemon" not in sys.argv:
-			timeout = 0.01
+			timeout = 0.1
 			print """
 	CTRL-C to exit,
 1: Toggle auto Monitoring	 6: Retrive all Modbus Registers
@@ -1701,7 +1725,7 @@ if __name__  ==  "__main__":
 		enter commands:""",
 		else: timeout=0.05
 		try:sys.stdout.flush()
-		except:pass
+		except IndexError:pass
 		data = -1
 		input = select.select([sys.stdin,cmd_socket],[],[],timeout)[0]
 		try:
