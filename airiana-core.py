@@ -104,18 +104,29 @@ def report_alive():
 				message += os.popen("hostname -I").read()
 				try:
 					message += "\nstatus:"+str(device.status_field)+"\n\n<br>"
+				except : pass
+				try:
 					fd = os.open("RAM/err",os.O_RDONLY)
-					os.lseek(fd,-35000,os.SEEK_END)
-					temp = os.read(fd,35000)
+					stats = os.stat("RAM/err")
+					sizeT = stats.st_size
+					if sizeT >1024*5:
+						sizeT = 1024*5
+					os.lseek(fd,-sizeT,os.SEEK_END)
+					temp = os.read(fd,sizeT)
 					os.close(fd)
 					temp = temp.replace("\n","<br>")
 					message += temp + "\n"
-				except: pass
+				except :
+					os.write(ferr, "Ping error "+traceback.print_exc() +"\n")
+					print "ERROR IN PING ",traceback.print_exc()
+					os.close(fd)
 				#if "debug" in sys.argv: device.msg +=  message + "\n"
 
 		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 		sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
-	except: pass
+	except:
+		traceback.print_exc()
+		os.write(ferr, "error while reporting alive"+"\n")
 
 #READ AVAIL SENSOR DATA
 def update_sensors():
@@ -1655,7 +1666,6 @@ if __name__  ==  "__main__":
 			if "debug" in sys.argv:
 				os.system("echo \"7\" >./RAM/exec_tree")
 			device.update_fan_rpm()
-			device.print_xchanger() # PRint to screen
 
 		#debug specific sensors and temp probe status
 		if device.iter%11==0:
@@ -1668,6 +1678,7 @@ if __name__  ==  "__main__":
 				device.get_temp_status()
 				device.get_filter_status()
 			device.check_flow_offset()
+			if "daemon" in sys.argv :device.print_xchanger() # PRint to screen
 
 		#refresh static humidity
 		if device.iter%79==0:
@@ -1675,7 +1686,6 @@ if __name__  ==  "__main__":
 				os.system("echo \"79\" >./RAM/exec_tree")
 			device.update_airflow()
 			device.get_heater()
-
 			#if "humidity" in sys.argv and (device.system_name not in device.has_RH_sensor or not device.RH_valid):
 		#calc local humidity and exec logger
 		if device.iter%int(float(120)/device.avg_frame_time)==0:
@@ -1720,6 +1730,7 @@ if __name__  ==  "__main__":
 		device.iter+=1
 		########### Selection menu if not daemon######
 		if "daemon" not in sys.argv:
+			device.print_xchanger() # PRint to screen
 			timeout = 0.1
 			print """
 	CTRL-C to exit,
