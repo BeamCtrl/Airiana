@@ -6,6 +6,35 @@ import os, time, sys,datetime
 #print os.stat("forecast.xml").st_ctime -time.time()
 loc = os.popen("cat location").read()
 sun ={}
+weather_types= {\
+				1:"Clear skies",2:"Fair weather",3:"Partly cloudy",\
+				4:"Cloudy",40:"Light showers",41:"Heavy showers",\
+				5:"Rain",24:"Light rain and thunder",\
+				6:"Rain and thunder",25:"Heavy rain and thunder",\
+				42:"light sleet showers",7:"Sleet showers",\
+				43:"Heavy sleet showers",26:"Light sleet showers and thunder",\
+				20:"sleet showers and thunder",27:"Heavy sleet showers and thunder",\
+				44:"Light snowfall",8:"Snow",\
+				45:"Heavy snow showers",28:"Light snow and thunder",\
+				29:"Heavy snow and thunder",\
+				21:"Snow showers and thunder",46:"Light rain",\
+				9:"Rain",10:"Heavy rain",\
+				30:"Light rain and thunder",\
+				22:"Rain and thunder",\
+				11:"Heavy rain and thunder",\
+				47:"Light sleet",\
+				12:"Sleet",\
+				48:"Heavy Sleet",\
+				31:"Light sleet and thunder",\
+				23:"Sleet and thunder",\
+				32:"Heavy sleet and thunder",\
+				49:"Light snow",\
+				13:"Snow",\
+				50:"Heavy snow",\
+				33:"Light snow and thunder",\
+				14:"Snow and thunder",\
+				34:"Heavy snow and thunder",\
+				15:"Fog",-1:"No weather data"}
 try:
 	if os.stat("/home/pi/airiana/RAM/forecast.xml").st_ctime -time.time() < -3600 or os.stat("/home/pi/airiana/RAM/forecast.xml").st_size ==0 or "-f" in sys.argv:
 		#print "Downloading updated forcast" 
@@ -28,7 +57,7 @@ class Weather():
 		self.pressure =0
 		self.symbolic ={}
 	def __str__(self):
-	 	 return time.asctime(self.valid_from)+" "+str(self.temp)+"C "+str(self.pressure)+"hPa "+str(self.precipitation)+"mm "+str(self.wind_speed)+"m/s Weather type: "+str(self.weather_type)+" "
+	 	 return time.asctime(self.valid_from)+" "+str(self.temp)+"C "+str(self.pressure)+"hPa "+str(self.precipitation)+"mm "+str(self.wind_speed)+"m/s Weather type: "+str(weather_types[int(self.weather_type)])+" "
 parser = xml.parsers.expat.ParserCreate()
 fd = open('/home/pi/airiana/RAM/forecast.xml','r')
 forcasts = []
@@ -74,7 +103,8 @@ if len(sys.argv)<2:
 			print "weather type",each.weather_type
 			#break
 if "now" in sys.argv:
-	print forcasts[0]
+	print time.asctime(forcasts[0].valid_from)+" "+str(forcasts[0].temp)+"C "+str(forcasts[0].pressure)+"hPa "+str(forcasts[0].precipitation)+"mm "+str(forcasts[0].wind_speed)+"m/s Weather type: "+str(int(forcasts[0].weather_type))+" "
+
 if "all" in sys.argv:
 	for each in forcasts: print each
 

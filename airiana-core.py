@@ -5,7 +5,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 ############################
-vers = "9.9"
+vers = "9.b"
 Running =True
 savecair=False
 # Register cleanup
@@ -125,8 +125,8 @@ def report_alive():
 		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 		sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
 	except:
-		traceback.print_exc()
-		os.write(ferr, "error while reporting alive"+"\n")
+		#traceback.print_exc()
+		os.write(ferr, "error while reporting alive"+str(time.ctime())+"\n")
 
 #READ AVAIL SENSOR DATA
 def update_sensors():
@@ -448,7 +448,7 @@ class Systemair(object):
 		self.set_system_name()
 		self.RH_valid = 0
 		self.hum_list = []
-		self.status_field = [-1,self.exchanger_mode,0,self.system_name,vers,os.popen("git log --pretty=format:'%h' -n 1").read(),0,self.inlet_ave,self.extract_ave,self.ef,self.new_humidity]
+		self.status_field = [-1,self.exchanger_mode,0,self.system_name,vers,os.popen("git log --pretty=format:'%h' -n 1").read(),0,self.inlet_ave,self.extract_ave,self.ef,self.new_humidity,0,self.cool_mode,self.supply_ave,self.exhaust_ave]
 		self.heater = 0
 		self.exchanger_speed = 0
 		self.unit_comp =[]
@@ -927,6 +927,7 @@ class Systemair(object):
                                         self.inhibit=time.time()
                                         self.shower_initial=self.inhibit
 					self.msg = "Shower mode engaged\n"
+					os.write(ferr,"Engaged Shower mode "+str(time.ctime())+"\n")
 					self.status_field[0] += 1
 			except IndexError: pass
 		elif not self.shower and not self.RH_valid:
@@ -944,6 +945,7 @@ class Systemair(object):
 					self.inhibit=time.time()
 					self.shower_initial=self.inhibit
 					self.status_field[0] += 1
+					os.write(ferr,"Engaged Shower mode "+str(time.ctime())+"\n")
 
 		if numpy.average(self.extract_dt_list)*60 < 0.5		\
 			and self.shower==True 				\
@@ -954,10 +956,13 @@ class Systemair(object):
 			if self.RH_valid and self.showerRH+5  > self.new_humidity or self.shower_initial - time.time() < -45*60:
 				if "debug" in sys.argv:
 					self.msg+= "RH after shower now OK\n"
+					os.write(ferr,"Shower mode off RH is ok "+str(time.ctime())+"\n")
+
 				state = True
 			if state == True:
 				self.shower=False
 				try:
+					os.write(ferr,"Leaving Shower mode "+str(time.ctime())+"\n")
 					self.msg ="Shower mode off, returning to "+str(self.speeds[self.initial_fanspeed]+"\n")
 				except KeyError: pass
 				if savecair:
@@ -1258,15 +1263,26 @@ class Systemair(object):
 
 	    except: os.write(ferr, "Forcast cooling error "+str(time.ctime()) +"\n")
 	    # SAVECAIR COOL reCover cheat
+	    if self.cool_mode\
+		and self.exchanger_mode<>5\
+		and self.fanspeed == 1\
+		and savecair\
+		and self.supply_ave < self.inlet_ave:
+			os.write(ferr,"Outside is to warm will force heat exchanger "+ str(time.ctime())+ "\n")
+			self.cycle_exchanger(5)
+			self.mode_token = 0
+
 	    if self.cool_mode \
 		and self.exchanger_mode==5 \
 		and self.fanspeed == 1 \
 		and self.exchanger_speed < 95 \
 		and savecair \
+		and not self.inhibit\
 		and self.supply_ave<self.inlet_ave:
 			self.cycle_exchanger(0)
 			self.cycle_exchanger(5)
 			self.modetoken = 0
+			self.inhibit = time.time()-9*60 # prevent more than one reset per minute
 	    elif self.exchanger_mode ==5 and self.supply_ave > self.inlet_ave and savecair and self.cool_mode:
 		self.cycle_exchanger(0)
 		self.modetoken = 0
@@ -1275,25 +1291,27 @@ class Systemair(object):
 		if (self.extract_ave <20.7 ) and self.fanspeed <> 1 :
 			self.set_fanspeed(1)
 			self.msg += "Cooling complete\n"
-		        os.write(ferr, "Cooling complete "+str(time.ctime()) +"\n")
+		        os.write(ferr, "Cooling complete 20.7C reached "+str(time.ctime()) +"\n")
 
 		if self.fanspeed == 3 and (self.supply_ave < 12 and self.extract_ave < 22):
 			self.set_fanspeed(2)
 			self.msg += "Cooling reduced\n"
-		        os.write(ferr, "Cooling reduced "+str(time.ctime()) +"\n")
+		        os.write(ferr, "Cooling reduced to medium "+str(time.ctime()) +"\n")
 
 		if self.fanspeed == 2 and self.supply_ave > 13:
 			self.set_fanspeed(3)
 			self.msg += "Cooling returned to High.\n"
-		        os.write(ferr, "Cooling returned "+str(time.ctime()) +"\n")
+		        os.write(ferr, "Cooling returned from medium"+str(time.ctime()) +"\n")
 
 		if self.fanspeed ==1 and self.extract_ave > 20.8 and self.inlet_ave < self.supply_ave:
 			self.set_fanspeed(3)
+			self.msg += "Cooling returned to High from low target achieved.\n"
+		        os.write(ferr, "Cooling returned to high from low, target achieved. "+str(time.ctime()) +"\n")
 
 		if self.supply_ave>self.extract_ave and self.fanspeed<>1:
 			self.set_fanspeed(1)
 			self.msg += "No cooling posible due to temperature conditions\n"
-		        os.write(ferr, "Cooling will wait, try to recycle cold air "+str(time.ctime()) +"\n")
+		        os.write(ferr, "Cooling will wait, will try to recycle cold air by low fanspeed"+str(time.ctime()) +"\n")
 
 		if (self.forcast[0] <= 16 or self.forcast[1]>=4) and time.localtime().tm_hour >12:
 			self.cool_mode=False
@@ -1707,6 +1725,10 @@ if __name__  ==  "__main__":
 				device.status_field[8]=round(device.extract_ave,2)
 				device.status_field[9]=round(device.ef,2)
 				device.status_field[10]=round(device.new_humidity,2)
+				device.status_field[11]= monitoring
+				device.status_field[12]= device.cool_mode
+				device.status_field[13]=round(device.supply_ave,2)
+				device.status_field[14]=round(device.exhaust_ave,2)
 				report_alive()
 			if "humidity" in sys.argv:
 				device.get_local()
