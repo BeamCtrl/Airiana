@@ -1296,17 +1296,17 @@ class Systemair(object):
 		if self.fanspeed == 3 and (self.supply_ave < 12 and self.extract_ave < 22):
 			self.set_fanspeed(2)
 			self.msg += "Cooling reduced\n"
-		        os.write(ferr, "Cooling reduced to medium "+str(time.ctime()) +"\n")
+		        os.write(ferr, "Cooling reduced to medium, supply bemow 12C"+str(time.ctime()) +"\n")
 
 		if self.fanspeed == 2 and self.supply_ave > 13:
 			self.set_fanspeed(3)
 			self.msg += "Cooling returned to High.\n"
-		        os.write(ferr, "Cooling returned from medium"+str(time.ctime()) +"\n")
+		        os.write(ferr, "Cooling returned from medium supply above 13C"+str(time.ctime()) +"\n")
 
-		if self.fanspeed ==1 and self.extract_ave > 20.8 and self.inlet_ave < self.supply_ave:
+		if self.fanspeed ==1 and self.extract_ave > 21 and self.inlet_ave < self.supply_ave:
 			self.set_fanspeed(3)
-			self.msg += "Cooling returned to High from low target achieved.\n"
-		        os.write(ferr, "Cooling returned to high from low, target achieved. "+str(time.ctime()) +"\n")
+			self.msg += "Cooling returned to High from low, above 21C.\n"
+		        os.write(ferr, "Cooling returned to high from low, above 21C. "+str(time.ctime()) +"\n")
 
 		if self.supply_ave>self.extract_ave and self.fanspeed<>1:
 			self.set_fanspeed(1)
@@ -1361,8 +1361,8 @@ class Systemair(object):
 
 	    if self.fanspeed <> 3 							\
 		and self.extract_ave-0.1 > self.supply_ave 				\
-		and (self.extract_ave >= self.target+1.2 or (self.extract_dt_long >=0.7)	\
-		and self.inlet_ave > 5 or self.extract_ave > self.target+1.5 )		\
+		and (self.extract_ave >= self.target+1.2				\
+			or (self.extract_dt_long >=0.7) and self.inlet_ave > 5 )	\
 		and self.exchanger_mode <> 5 						\
 		and not self.extract_dt_long < -0.2 					\
 		and not self.inhibit 							\
@@ -1370,7 +1370,7 @@ class Systemair(object):
 		and not self.shower:
 			self.set_fanspeed(3)
 			self.msg += "Dynamic fanspeed 3\n"
-		        os.write(ferr, "Dynamic fanspeed 3 "+str(time.ctime()) +"\n")
+		        os.write(ferr, "Dynamic fanspeed 3 target+1.2C or dt long > 0.7C/h "+str(time.ctime()) +"\n")
 
 	    if self.fanspeed <> 1				\
 		and ((self.extract_ave < self.target		\
