@@ -1296,17 +1296,17 @@ class Systemair(object):
 		if self.fanspeed == 3 and (self.supply_ave < 12 and self.extract_ave < 22):
 			self.set_fanspeed(2)
 			self.msg += "Cooling reduced\n"
-		        os.write(ferr, "Cooling reduced to medium, supply bemow 12C"+str(time.ctime()) +"\n")
+		        os.write(ferr, "Cooling reduced to medium, supply bemow 12C "+str(time.ctime()) +"\n")
 
 		if self.fanspeed == 2 and self.supply_ave > 13:
 			self.set_fanspeed(3)
 			self.msg += "Cooling returned to High.\n"
-		        os.write(ferr, "Cooling returned from medium supply above 13C"+str(time.ctime()) +"\n")
+		        os.write(ferr, "Cooling returned from medium supply above 13C "+str(time.ctime()) +"\n")
 
 		if self.fanspeed ==1 and self.extract_ave > 21 and self.inlet_ave < self.supply_ave:
 			self.set_fanspeed(3)
-			self.msg += "Cooling returned to High from low, above 21C.\n"
-		        os.write(ferr, "Cooling returned to high from low, above 21C. "+str(time.ctime()) +"\n")
+			self.msg += "Cooling returned to High from indoor 20.7 target.\n"
+		        os.write(ferr, "Cooling returned to high from indoor 20.7C target. "+str(time.ctime()) +"\n")
 
 		if self.supply_ave>self.extract_ave and self.fanspeed<>1:
 			self.set_fanspeed(1)
@@ -1560,11 +1560,11 @@ class Systemair(object):
 				type = int(weather[-2])
 				wind = int(weather[-5].split(".")[0])
 				if type >=3: # do an offset if there is cloudcover
-					self.kinetic_compensation += 1.5
+					self.kinetic_compensation += 1
 				elif type == 15 or type == 9 or type == 10: # zero if fog etc.
 					self.kinetic_compensation = 0
-				if wind >4:
-					self.kinetic_compensation += wind /4
+				if wind >2:
+					self.kinetic_compensation += wind /8
 				self.prev_static_temp -= self.kinetic_compensation
 				self.kinetic_compensation = 0
 				fd = os.open("RAM/latest_static",os.O_WRONLY | os.O_CREAT| os.O_TRUNC)
