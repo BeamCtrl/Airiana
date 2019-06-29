@@ -1220,6 +1220,7 @@ class Systemair(object):
 		if self.extract_ave < self.target-1 		\
 			and self.exchanger_mode <> 5 		\
 			and not self.cool_mode :
+
 				self.cycle_exchanger(5)
 				self.modetoken=time.time()
 			        os.write(ferr, "Exchange set to 5 <target-1C "+str(time.ctime()) +"\n")
@@ -1247,7 +1248,6 @@ class Systemair(object):
 		if self.forcast[0] > 16 and int(os.popen("./forcast.py tomorrows-low").read().split(" ")[0]) > self.house_heat_limit	\
 			and self.forcast[1] < 4 				\
 			and self.cool_mode == False 				\
-			and self.extract_ave+0.1 > self.supply_ave 		\
 			and self.extract_ave>20.7:
 				self.msg += "Predictive Cooling enaged\n"
 				if savecair:
@@ -1263,8 +1263,7 @@ class Systemair(object):
 
 	    except: os.write(ferr, "Forcast cooling error "+str(time.ctime()) +"\n")
 	    # SAVECAIR COOL reCover cheat
-	    if self.cool_mode\
-		and self.exchanger_mode<>5\
+	    if self.exchanger_mode<>5\
 		and self.fanspeed == 1\
 		and savecair\
 		and self.supply_ave < self.inlet_ave:
@@ -1272,17 +1271,17 @@ class Systemair(object):
 			self.cycle_exchanger(5)
 			self.mode_token = 0
 
-	    if self.cool_mode \
-		and self.exchanger_mode==5 \
+	    if self.exchanger_mode==5 \
 		and self.fanspeed == 1 \
 		and self.exchanger_speed < 95 \
 		and savecair \
 		and not self.inhibit\
 		and self.supply_ave<self.inlet_ave:
 			self.cycle_exchanger(0)
+			time.sleep(2)
 			self.cycle_exchanger(5)
 			self.modetoken = 0
-			self.inhibit = time.time()-9*60 # prevent more than one reset per minute
+			self.inhibit = time.time()-9*60-30 # prevent more than one reset per 30s
 	    elif self.exchanger_mode ==5 and self.supply_ave > self.inlet_ave and savecair and self.cool_mode:
 		self.cycle_exchanger(0)
 		self.modetoken = 0
@@ -1303,15 +1302,15 @@ class Systemair(object):
 			self.msg += "Cooling returned to High.\n"
 		        os.write(ferr, "Cooling returned from medium supply above 13C "+str(time.ctime()) +"\n")
 
-		if self.fanspeed ==1 and self.extract_ave > 21 and self.inlet_ave < self.supply_ave:
+		if self.fanspeed ==1 and self.extract_ave > 21 and self.extract_ave > self.supply_ave:
 			self.set_fanspeed(3)
-			self.msg += "Cooling returned to High from indoor 20.7 target.\n"
-		        os.write(ferr, "Cooling returned to high from indoor 20.7C target. "+str(time.ctime()) +"\n")
+			self.msg += "Cooling returned to High, indoor is hotter than outside.\n"
+		        os.write(ferr, "Cooling returned to high, indoor is hotter than outside. "+str(time.ctime()) +"\n")
 
 		if self.supply_ave>self.extract_ave and self.fanspeed<>1:
 			self.set_fanspeed(1)
 			self.msg += "No cooling posible due to temperature conditions\n"
-		        os.write(ferr, "Cooling will wait, will try to recycle cold air by low fanspeed"+str(time.ctime()) +"\n")
+		        os.write(ferr, "Cooling will wait, will try to recycle cold air by low fanspeed "+str(time.ctime()) +"\n")
 
 		if (self.forcast[0] <= 16 or self.forcast[1]>=4) and time.localtime().tm_hour >12:
 			self.cool_mode=False
