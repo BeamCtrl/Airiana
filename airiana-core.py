@@ -5,7 +5,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 #############################
-vers = "9.d"
+vers = "9.e"
 Running =True
 savecair=False
 # Register cleanup
@@ -479,11 +479,11 @@ class Systemair(object):
 					req.write_register(107,0)
 				# SET BASE FLOW RATES
 				#req.write_register(101,30) read only
-                req.write_register(102,30)
-                req.write_register(103,50)
-                req.write_register(104,50)
-                #req.write_register(105,107) read only
-                req.write_register(106,107)
+                	req.write_register(102,30)
+                	req.write_register(103,50)
+                	req.write_register(104,50)
+                	#req.write_register(105,107) read only
+                	req.write_register(106,107)
 	#get heater status
 	def get_heater(self):
 		if not savecair:
@@ -1302,12 +1302,12 @@ class Systemair(object):
 			self.msg += "Cooling returned to High.\n"
 		        os.write(ferr, "Cooling returned from medium supply above 13C "+str(time.ctime()) +"\n")
 
-		if self.fanspeed ==1 and self.extract_ave > 21 and self.extract_ave > self.supply_ave:
+		if self.fanspeed ==1 and self.extract_ave > 21 and self.extract_ave > self.inlet_ave:
 			self.set_fanspeed(3)
 			self.msg += "Cooling returned to High, indoor is hotter than outside.\n"
 		        os.write(ferr, "Cooling returned to high, indoor is hotter than outside. "+str(time.ctime()) +"\n")
 
-		if self.supply_ave>self.extract_ave and self.fanspeed<>1:
+		if self.inlet_ave>self.extract_ave and self.fanspeed<>1:
 			self.set_fanspeed(1)
 			self.msg += "No cooling posible due to temperature conditions\n"
 		        os.write(ferr, "Cooling will wait, will try to recycle cold air by low fanspeed "+str(time.ctime()) +"\n")
