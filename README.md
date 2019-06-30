@@ -2,8 +2,8 @@
 SystemAir control,
 
 Get your Systemair unit under control
-Talk to it via modbus and get a some extra featrues such as, most important it's fire and forget. 
-it keeps it self in check.
+Airiana talks to it via modbus and hooks you up with some extra featrues, most important it's fire and forget. 
+she keeps her self in check.
 
 featured special effects:
   Shower detections
@@ -12,6 +12,7 @@ featured special effects:
   Neat RH adaptaions for units with RH sensor
   Filter % remaining counter 
   24hr plotter all put on web-page for your convenience
+  does alot more calculation and spits out more data than you'll ever need.
   
 HW: Rpi + RS485 TxRx module, vr400/VTR300 or savecair unit from systemair.
   
