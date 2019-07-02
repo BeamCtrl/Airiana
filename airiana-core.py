@@ -5,7 +5,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 #############################
-vers = "9.e"
+vers = "9.f"
 Running =True
 savecair=False
 # Register cleanup
@@ -465,8 +465,8 @@ class Systemair(object):
 		 	req.write_register(1403,20)
 		 	req.write_register(1404,50)
 		 	req.write_register(1405,50)
-		 	req.write_register(1406,85)
-		 	req.write_register(1407,85)
+		 	req.write_register(1406,100)
+		 	req.write_register(1407,100)
 		 	req.write_register(1408,100)
 		 	req.write_register(1409,100)
 		else:
@@ -1250,11 +1250,11 @@ class Systemair(object):
 			and self.cool_mode == False 				\
 			and self.extract_ave>20.7:
 				self.msg += "Predictive Cooling enaged\n"
-				if savecair:
-					req.write_register(1407,100)
-					req.write_register(1406,100)
-					if self.exchanger_mode <>0:
-						self.cycle_exchanger(0)
+				#if savecair:
+				#req.write_register(1407,100)
+				#req.write_register(1406,100)
+				if self.exchanger_mode <>0:
+					self.cycle_exchanger(0)
 
 
 				self.set_fanspeed(3)
@@ -1314,9 +1314,9 @@ class Systemair(object):
 
 		if (self.forcast[0] <= 16 or self.forcast[1]>=4) and time.localtime().tm_hour >12:
 			self.cool_mode=False
-			if savecair and self.ef==100:
-				req.write_register(1407,85)
-				req.write_register(1406,85)
+			#if savecair and self.ef==100:
+			#	req.write_register(1407,85)
+			#	req.write_register(1406,85)
 
 	    #DYNAMIC FANSPEED CONTROL
 
