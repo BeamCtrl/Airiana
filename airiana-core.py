@@ -149,6 +149,7 @@ def update_sensors():
 		try:
 			device.inside =float(sensor_dict["92"]["temperature"])
 			device.inside_humid =int(sensor_dict["92"]["humidity"])+5
+			device.inside_humid += (75-device.inside_humid)/10
 		except KeyError: pass#device.msg +="\nerror on sensor 92"
 
 	except IndexError:
@@ -258,6 +259,7 @@ class Request(object):
 		if rate >= 0.9:
 			os.read(bus,1000)
 			time.sleep(1)
+			raise IOError
 		os.system ("echo "+str(rate)+" "+ str(self.wait_time)+" > RAM/error_rate")
 		self.connect_errors = 0
 		self.checksum_errors = 0
@@ -478,11 +480,11 @@ class Systemair(object):
 				if int(req.response) == 1:
 					req.write_register(107,0)
 				# SET BASE FLOW RATES
-				#req.write_register(101,30) read only
+			req.write_register(101,30) 	#read only
                 	req.write_register(102,30)
                 	req.write_register(103,50)
                 	req.write_register(104,50)
-                	#req.write_register(105,107) read only
+                	req.write_register(105,107) 	#read only
                 	req.write_register(106,107)
 	#get heater status
 	def get_heater(self):
@@ -1555,15 +1557,15 @@ class Systemair(object):
 				self.prev_static_temp = temp
 				self.kinetic_compensation = 0
 				#self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/2
-				weather = os.popen("./forcast.py now").read().split(" ")
+				weather = os.popen("./forcast.py -f now ").read().split(" ")
 				type = int(weather[-2])
 				wind = int(weather[-5].split(".")[0])
 				if type >=3: # do an offset if there is cloudcover
 					self.kinetic_compensation += 1
-				elif type == 15 or type == 9 or type == 10: # zero if fog etc.
-					self.kinetic_compensation = 0
 				if wind >2:
 					self.kinetic_compensation += wind /8
+				if type == 15 or type == 9 or type == 10: # zero if fog etc.
+					self.kinetic_compensation = 0
 				self.prev_static_temp -= self.kinetic_compensation
 				self.kinetic_compensation = 0
 				fd = os.open("RAM/latest_static",os.O_WRONLY | os.O_CREAT| os.O_TRUNC)

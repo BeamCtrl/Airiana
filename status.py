@@ -29,7 +29,7 @@ while True:
     try:
 		users_prev = users
 		from users import users
-		if users_prev <> users:
+		if len(users_prev) <> len(users):
 			init()
 		html = """<html>STATUS VIEW AIRIANA SYSTEMS<br>
 			<meta http-equiv="refresh" content="5">
