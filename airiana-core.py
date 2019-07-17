@@ -93,6 +93,18 @@ while True:
 
 ########### global uty functions################
 sensor_dict = {}
+def count_down (inhibit,target):
+	inhibit = int(target -( time.time() - inhibit))
+	if inhibit > 3600:
+		hrs = inhibit/3600
+		inhibit = inhibit -(hrs*3600)
+		return str(hrs)+"h"+str(inhibit/60)+"min"+str(inhibit%60).zfill(2)+"s"
+	if inhibit % 60 == 0:
+		return str(inhibit/60)+"min"
+	if inhibit > 60:
+		return str(inhibit/60)+"min"+str(inhibit%60).zfill(2)+"s"
+	if inhibit < 60:
+		return str(inhibit).zfill(2)+"s"
 
 #SEND PING TO EPIC HEADMASTER
 def report_alive():
@@ -467,8 +479,8 @@ class Systemair(object):
 		 	req.write_register(1403,20)
 		 	req.write_register(1404,50)
 		 	req.write_register(1405,50)
-		 	req.write_register(1406,100)
-		 	req.write_register(1407,100)
+		 	req.write_register(1406,90)
+		 	req.write_register(1407,90)
 		 	req.write_register(1408,100)
 		 	req.write_register(1409,100)
 		else:
@@ -1009,13 +1021,9 @@ class Systemair(object):
 		if "humidity" in sys.argv :
 			if "debug" in sys.argv:
 				tmp += "Static RH low: "+str(round(self.local_humidity,2))+"%\n"
-				if self.RH_valid:
-					try:
-						tmp+= "Valid RH "+str(self.RH_valid)+" "+str(self.hum_list[0]-self.hum_list[-1])+"d%\n"
-					except:
-						tmp+= "RH calcerror\n"
-						traceback.print_exc()
-				tmp += "Humidity:\t " +str(round(self.extract_ave,1))+"C "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave),2))+"C\n"
+				tmp+= "Humidity d/dt:"+str(self.hum_list[0]-self.hum_list[-1])+"%\n"
+			if self.RH_valid:
+				tmp += "Humidity: "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave),2))+"C\n"
 		if "debug" in sys.argv:
 			try:
 				tmp += "Outdoor Sensor:\t "+str(self.sensor_temp)+"C "+str(self.sensor_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.sensor_humid,self.sensor_temp),2))+"C\n"
@@ -1048,12 +1056,12 @@ class Systemair(object):
 		tmp += "Filter has been installed for "+ str(self.filter)+" days ,"+str(self.filter_remaining)+"% remaining.\n\n"
 		tmp += "Ambient Pressure:"+ str(self.airdata_inst.press)+"hPa\n"
 		if self.forcast[1]<>-1: tmp += "Weather forecast for tomorrow is: "+str(self.forcast[0])+"C "+self.weather_types[self.forcast[1]]+".\n\n"
-		if "Timer" in threading.enumerate()[-1].name: tmp+= "Ventilation timer on: "+str((int(time.time())-int(device.timer))/60)+":"+str((int(time.time()-int(self.timer))%60))+"\n"
+		if "Timer" in threading.enumerate()[-1].name: tmp+= "Ventilation timer on: "+count_down(self.timer,120*60)+"\n"
 		#tmp+= str(threading.enumerate())+"\n"
 		if self.shower : tmp += "Shower mode engaged at:" +time.ctime(self.shower_initial)+"\n"
-		if self.inhibit>0:tmp+=  "Mode sensing inhibited "+"("+str(int((self.inhibit+600-time.time())/60+1))+"min)\n"
-		if self.press_inhibit>0:tmp+=  "Pressure change inhibited "+"("+str(int((self.press_inhibit+1800-time.time())/60+1))+"min)\n"
-		if self.modetoken >=1 :tmp+= "Mode change inhibited at: "+time.ctime(self.modetoken)+"("+str(int((self.modetoken+3600-time.time())/60+1))+"min)\n"
+		if self.inhibit>0:tmp+=  "Status change inhibited ("+count_down(self.inhibit, 600)+")\n"
+		if self.press_inhibit>0:tmp+=  "Pressure change inhibited ("+count_down(self.press_inhibit,1800)+")\n"
+		if self.modetoken >=1 :tmp+= "Excahnger mode change inhibited ("+count_down(self.modetoken,3600)+")\n"
 		if self.cool_mode: tmp+= "Cooling mode is in effect, target is 20.7C extraction temperature\n"
 		#tmp += "lower limit:22.0C, when cooling 21.0C, fans up2 22.01C, fans up3 22.5 or +0.5C/hr\nExchanger limits ON:21C OFF:22C\nWeather Data from YR.no\n"
 		if not monitoring: tmp += "\nSystem Automation off\n"
@@ -1257,9 +1265,7 @@ class Systemair(object):
 				#req.write_register(1406,100)
 				if self.exchanger_mode <>0:
 					self.cycle_exchanger(0)
-
-
-				self.set_fanspeed(3)
+				self.set_differential(0)
 				self.cool_mode = True
 			        os.write(ferr, "Cooling activated "+str(time.ctime()) +"\n")
 
@@ -1836,12 +1842,18 @@ if __name__  ==  "__main__":
 						traceback.print_exc()
 						#raw_input("break")
 				if data == 8:
-					device.msg += "Forced Ventilation on timer\n"
-					prev = device.fanspeed
-					device.set_fanspeed(3)
-					monitoring = not monitoring
 					try:
+						if threading.enumerate()[-1].name == "Timer": 
+							tim.cancel()
+							tim2.cancel()
+							device.msg += "Removed Forced ventilation timer\n"
+							monitoring = True
+
 						if threading.enumerate()[-1].name != "Timer":
+							prev = device.fanspeed
+							device.set_fanspeed(3)
+							monitoring = False
+							device.msg += "Forced Ventilation on timer\n"
 							tim2 = threading.Timer(60.0*120,set_monitoring,[True] )
 							tim2.start()
 							tim = threading.Timer(60.0*120,device.set_fanspeed,[prev])
@@ -1893,6 +1905,8 @@ if __name__  ==  "__main__":
 
 		except TypeError:pass
 		except ValueError:pass
+		except IOError:
+		        os.write(ferr, "Connection to the systemAir unit has been lost at: "+str(time.ctime()) +"\n")
 		#except:
 		#	error  = open("error.txt","w")
 		#	traceback.print_tb(sys.exc_info()[-1],error)
