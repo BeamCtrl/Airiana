@@ -539,9 +539,9 @@ class Systemair(object):
 		if self.coef_fanspeed <> self.fanspeed and self.inhibit:
 			self.coefdebug = True
 		if numpy.average(self.extract_dt_list)*60>1 and self.coefdebug:
-			self.coef_new -=0.01
+			self.coef_new -=0.0001
 		if numpy.average(self.extract_dt_list)*60<-1 and self.coefdebug:
-			self.coef_new += 0.01
+			self.coef_new += 0.0001
 		if not self.inhibit and self.coefdebug:
 			self.coef_fanspeed = self.fanspeed
 			self.coefdebug = False
