@@ -1342,12 +1342,12 @@ class Systemair(object):
 		if self.fanspeed == 2 and self.supply_ave > 13:
 			self.set_fanspeed(3)
 			self.msg += "Cooling returned to High.\n"
-		        os.write(ferr, "Cooling returned from medium, supply above 13C "+str(time.ctime()) +"\n")
+		        os.write(ferr, "Cooling returned to high from medium, supply above 13C "+str(time.ctime()) +"\n")
 
 		if self.fanspeed == 1 and self.extract_ave > 21 and self.extract_ave+0.1 > self.inlet_ave:
 			self.set_fanspeed(3)
 			self.msg += "Cooling returned to High, indoor is hotter than outside.\n"
-		        os.write(ferr, "Cooling returned to high, indoor is hotter than outside. "+str(time.ctime())+" "+ str(self.fanspeed)+" "+str(self.extract_ave)+"\n")
+		        os.write(ferr, "Cooling returned to high, indoor is hotter than outside. "+str(time.ctime())+" "+ str(self.fanspeed)+" "+str(self.extract_ave)+" "+str(self.inlet_ave) +"\n")
 
 		if self.inlet_ave+0.1>self.extract_ave and self.fanspeed<>1 and self.extract_ave > 21:
 			self.set_fanspeed(1)
