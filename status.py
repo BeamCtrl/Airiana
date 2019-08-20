@@ -52,6 +52,7 @@ while True:
 			<th>Cooling active</th>
 			<th>Supply</th>
 			<th>Exhaust</th>
+			<th>P.diff</th>
 			</tr>"""
 		flag = "unknown"
 		files = os.listdir("./public/local_links/")
