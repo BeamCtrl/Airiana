@@ -1548,11 +1548,13 @@ class Systemair(object):
 	#Set base flow rate with an offset to regulate humidity in a more clever manner.
 	def check_flow_offset(self):
 		if savecair:
-			if self.flowOffset[0] > 20: self.flowOffset[0] = 20
+			if self.flowOffset[0] > 20: # Maximum offset allowed
+				self.flowOffset[0] = 20
 			base = self.ef_base+self.pressure_diff
 			if self.fanspeed == 1 and self.ef <> base+self.flowOffset[0] and not self.shower:
 				req.write_register(1403,base+self.flowOffset[0])
 				req.write_register(1402,self.sf_base+self.flowOffset[0])
+		 	        os.write(ferr, "Updated extract flow offset to: "+str(base.flowOffset[0])+str(time.ctime()) +"\n")
 				self.msg += "Updated base extract flow to: "+str(base+self.flowOffset[0])+"\n"
 				self.ef = base+self.flowOffset[0]
 				self.sf = self.sf_base+self.flowOffset[0]
