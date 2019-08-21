@@ -5,7 +5,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 #############################
-vers = "9.g"
+vers = "9.h"
 Running =True
 savecair=False
 # Register cleanup
@@ -466,7 +466,7 @@ class Systemair(object):
 		self.div =0
 		self.set_system_name()
 		self.RH_valid = 0
-		self.hum_list = []
+		self.hum_list = [40]
 		self.status_field = [-1,self.exchanger_mode,0,self.system_name,vers,os.popen("git log --pretty=format:'%h' -n 1").read(),0,self.inlet_ave,self.extract_ave,self.ef,self.new_humidity,0,self.cool_mode,self.supply_ave,self.exhaust_ave,self.pressure_diff]
 		self.heater = 0
 		self.exchanger_speed = 0
@@ -1061,6 +1061,7 @@ class Systemair(object):
 		if "humidity" in sys.argv :
 			if "debug" in sys.argv:
 				tmp += "Static RH low: "+str(round(self.local_humidity,2))+"% "+str(round(self.prev_static_temp - self.kinetic_compensation,2))+"C\n"
+			if self.RH_valid:
 				tmp+= "Humidity d/dt:"+str(self.hum_list[0]-self.hum_list[-1])+"%\n"
 			if self.RH_valid:
 				tmp += "Humidity: "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave),2))+"C\n"
