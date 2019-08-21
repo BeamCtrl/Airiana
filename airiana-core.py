@@ -5,7 +5,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 #############################
-vers = "9.i"
+vers = "9.j"
 Running =True
 savecair=False
 # Register cleanup
