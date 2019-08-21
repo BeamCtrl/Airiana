@@ -5,7 +5,7 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 #from mail import *
 #############################
-vers = "9.j"
+vers = "9.k"
 Running =True
 savecair=False
 # Register cleanup
@@ -567,7 +567,9 @@ class Systemair(object):
 		if len(self.hum_list)>self.averagelimit:
 			self.hum_list.pop(-1)
 		try:
-			if abs(self.new_humidity-self.hum_list[1]) > 2 and len(self.hum_list)>20:
+			if len(self.hum_list)<2:
+				self.hum_list[1] = self.new_humidity
+			if abs(self.new_humidity-self.hum_list[1]) > 2 :
 				self.new_humidity = self.hum_list[1]
 				self.hum_list[0]  = self.new_humidity
 		except: pass
