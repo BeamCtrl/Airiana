@@ -775,7 +775,7 @@ class Systemair(object):
 
 	def set_fanspeed(self,target):
 		self.inhibit = time.time()
-		if target > self.fanspeed:  # add one to bucket
+		if target <> self.fanspeed:  # add one to bucket
 			self.status_field[0] += 1
 		#print actual,"->",target
 	    	if target>=4: target=0
@@ -788,7 +788,9 @@ class Systemair(object):
 				req.write_register(1130,target)
 			else:
 				req.write_register(1130,target+1)
-		self.get_fanspeed()
+		if self.get_fanspeed() <> target:
+			os.write(ferr,"Incorrectly set fanspeed "+str(time.ctime())+"\n")
+			
 		#self.update_airflow()
 
 
