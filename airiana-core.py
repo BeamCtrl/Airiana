@@ -3,6 +3,7 @@
 ###################IMPORTS
 import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
+from request import Request
 #from mail import *
 #############################
 vers = "9.l"
@@ -219,117 +220,11 @@ def clear_screen():
                 os.fsync(fout)
         else:print chr(27) +"[2J\x1b[H"
 ##############################################
-#######Request object for doing modbus comms##
-class Request(object):
-	def __init__(self):
-		self.connect_errors= 0
-		self.checksum_errors = 0
-		self.multi_errors = 0
-		self.write_errors = 0
-		self.buff= ""
-		self.counter = 0
-		self.error_time=time.time()
-		self.wait_time =  wait_time
-		self.prev_rate = 0
-		self.rate =0
-		self.iter = 0
-	def modbusregisters(self,start,count,signed=False):
-		client.precalculate_read_size=True
-		self.iter += 1
-		try:
-			self.response= "no data"
-			try:
-				pass#os.write(bus,"\0x01")
-			except: pass
-			self.response = client.read_registers(start,count)
-			if signed:
-				for each in self.response:
-					if each & 0x8000: each -= 0xFFFF
-		except ValueError as error:
-			#print "multi, checksum error,retry:",self.checksum_errors,error.message,";"
-			#os.write(ferr,"read many: "+str(error)+"\n")
-			#print error.message.find("\x01\x83\x02\xc0\xf1")
-			if  error.message.find("\x01\x83\x02\xc0\xf1")<>-1:
-				print "multi, address out of range;"
-				#exit()
-			self.checksum_errors +=1
-			self.modbusregisters(start,count)
-		except IOError as error:
-			self.connect_errors += 1
-			if self.connect_errors > 100 or self.multi_errors >100:
-				self.error_review()
-				#os.write(ferr,"read many: "+str(error)+"\n")
-			#if self.connect_errors > 200: exit_callback(self,None)
-			if self.rate < 0.9:
-				self.modbusregisters(start,count)
-		client.precalculate_read_size=False
-
-	def error_review (self):
-		delta = self.iter - self.error_time
-		self.error_time = self.iter
-		if delta <>0:
-			rate = float(self.connect_errors+self.checksum_errors+self.write_errors+self.multi_errors) / delta
-		else: rate=0.5
-		if rate >= 0.9:
-			os.read(bus,1000)
-			time.sleep(1)
-			os.write(ferr,"read error high rate, possible no comms with unit error rate over 90%\n")
-			raise IOError
-		os.system ("echo "+str(rate)+" "+ str(self.wait_time)+" > RAM/error_rate")
-		self.connect_errors = 0
-		self.checksum_errors = 0
-		self.write_errors = 0
-		self.multi_errors = 0
-
-	def modbusregister (self,address,decimals):
-		self.iter += 1
-		client.precalculate_read_size=True
-
-		try:
-			self.response = "no data"
-			self.buff += os.read(bus,20) # bus purge
-                        self.response = client.read_register(address,decimals,signed=True)
-		except IOError as error:
-	 		self.connect_errors += 1
-			if self.connect_errors > 100: self.error_review()
-			self.buff += os.read(bus,20) # bus purge
-			#print "single, no response, retry:",self.connect_errors,address,";"
-			self.modbusregister(address,decimals)
-		except ValueError as error:
-			#print "single, checksum error,retry:",self.checksum_errors,error,";"
-			#os.write(ferr,"read: "+str(error)+"\n")
-			self.buff += os.read(bus,20) # bus purge
-			self.checksum_errors +=1
-			self.modbusregister(address,decimals)
-		client.precalculate_read_size=False
-
-	def write_register(self, reg, value,functioncode=6):
-		self.iter += 1
-		client.precalculate_read_size=True
-		if start == value: return 0
-		try:
-			#print "set", reg, "to",value
-			#time.sleep(self.wait_time)
-			#print os.read(bus,20)
-			resp = client.write_register(reg,value,0,6)
-		except IOError as error:
-			#print "write, ioerror",error,os.read(bus,20),";"
-			#os.write(ferr,"write: "+str(error)+"\n")
-			self.write_errors += 1
-			#self.write_register(reg,value)
-			pass
-		except ValueError as error:
-			#print "write, val error",error,os.read(bus,20),"\n--",reg," ",value,";"
-			#os.write(ferr,"write: "+str(error)+"\n")
-			self.write_errors += 1
-			#self.write_register(reg,value)
-			pass
-
 
 #################################################################################
 start = time.time() # START TIME
 # init request class for communication
-req = Request()
+req = Request(bus,client)
 ############DEVICE CLASS FOR SYSTEMAIR VR400DCV#############################
 class Systemair(object):
 	def __init__(self):
@@ -789,7 +684,7 @@ class Systemair(object):
 			else:
 				req.write_register(1130,target+1)
 		if self.get_fanspeed() <> target:
-			os.write(ferr,"Incorrectly set fanspeed "+str(time.ctime())+"\n")
+			os.write(ferr,"Incorrectly set fanspeed "+str(self.get_fanspeed())+" to "+str(target)+" "+str(time.ctime())+"\n")
 			
 		#self.update_airflow()
 
@@ -805,8 +700,10 @@ class Systemair(object):
 		self.electric_power+=5#controller power
 
 	    else:
-		req.modbusregisters(12400,2)
-		self.sf_rpm ,self.ef_rpm = req.response[0],req.response[1]
+		req.modbusregister(12400,0)
+		self.sf_rpm = req.response
+		req.modbusregister(12401,0)
+		self.ef_rpm = req.response
 		try:
 			self.electric_power= (self.ef_rpm/(100/(float(float(self.ef_rpm)/1381)**1.89))+self.sf_rpm/(100/(float(float(self.sf_rpm)/1381)**1.89)))
 		except ZeroDivisionError:self.electric_power=0
@@ -1556,7 +1453,7 @@ class Systemair(object):
 			if self.fanspeed == 1 and self.ef <> base+self.flowOffset[0] and not self.shower:
 				req.write_register(1403,base+self.flowOffset[0])
 				req.write_register(1402,self.sf_base+self.flowOffset[0])
-		 	        os.write(ferr, "Updated extract flow offset to: "+str(base.flowOffset[0])+str(time.ctime()) +"\n")
+		 	        os.write(ferr, "Updated extract flow offset to: "+str(self.flowOffset[0])+str(time.ctime()) +"\n")
 				self.msg += "Updated base extract flow to: "+str(base+self.flowOffset[0])+"\n"
 				self.ef = base+self.flowOffset[0]
 				self.sf = self.sf_base+self.flowOffset[0]
