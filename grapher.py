@@ -117,15 +117,16 @@ ax.set_xlim(min(time[-day:-1]),max(time[-day:-1]))
 ax.xaxis.set_ticks(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,4*3600))
 ax.set_xticklabels(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,4*3600))
 ax.invert_xaxis()
-if "debug" in sys.argv or "humidities" in sys.argv:
+if "debug" in sys.argv or "hasRH" in sys.argv:
 	s2=subplot(212)
-	s2.set_title("Humidities")
-	plot(red_time,red_hum, '-', linewidth=1,label="calculated humidity")
-	plot(time,cond_comp,'-',linewidth=1,label="condensation power")
+	s2.set_title("Humidity")
 	if "debug" in sys.argv:
-			plot(time[-day:-1],sen_hum[-day:-1], '-', linewidth=1,label="outdoor sensor humidity")
-			plot(time[-day:-1],supply_humid[-day:-1],'-',linewidth=1,label="supply estimate humidity")
-			plot(time[-day:-1],inside_hum[-day:-1],'-',linewidth=1,label="inside sensor humidity")
+		plot(time,cond_comp,'-',linewidth=1,label="Condensation power")
+		plot(red_time,red_hum, '-', linewidth=1,label="Inside sensor humidity")
+	if "debug" in sys.argv:
+			plot(time[-day:-1],sen_hum[-day:-1], '-', linewidth=1,label="Outdoor sensor humidity")
+	plot(time[-day:-1],inside_hum[-day:-1],'-',linewidth=1,label="Relative humidity")
+	plot(time[-day:-1],supply_humid[-day:-1],'-',linewidth=1,label="Calculated outside humidity")
 	
 	subplots_adjust( hspace=0.75 )
 	ax = gca()
@@ -151,7 +152,7 @@ for i in range(len(labels)):
 s1.set_xticklabels(labels)
 setp(s1.get_xticklabels(), rotation=45)
 
-if "debug" in sys.argv or "humidities" in sys.argv:
+if "debug" in sys.argv or "hasRH" in sys.argv:
 	subplot(212)
 	#gca().set_xlim(min(time[-day:-1]),max(time[-day:-1])+3600*4)
 	labels = [item.get_text() for item in s2.get_xticklabels()]

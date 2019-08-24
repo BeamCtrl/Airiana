@@ -964,14 +964,15 @@ class Systemair(object):
 		if "humidity" in sys.argv :
 			if "debug" in sys.argv:
 				tmp += "Static RH low: "+str(round(self.local_humidity,2))+"% "+str(round(self.prev_static_temp - self.kinetic_compensation,2))+"C\n"
+				if self.RH_valid:
+					tmp+= "Humidity d/dt:"+str(self.hum_list[0]-self.hum_list[-1])+"%\n"
 			if self.RH_valid:
-				tmp+= "Humidity d/dt:"+str(self.hum_list[0]-self.hum_list[-1])+"%\n"
-			if self.RH_valid:
-				tmp += "Humidity: "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave),2))+"C\n"
-		if "debug" in sys.argv:
-			try:
+				tmp += "Relative humidity: "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave),2))+"C\n"
+		if "sensor" in sys.argv:
 				tmp += "Outdoor Sensor:\t "+str(self.sensor_temp)+"C "+str(self.sensor_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.sensor_humid,self.sensor_temp),2))+"C\n"
 				tmp += "Indoor Sensor:\t "+str(self.inside)+"C "+str(self.inside_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.inside_humid,self.inside),2))+"C\n"
+		if "debug" in sys.argv:
+			try:
 				tmp += "Fanspeed level: "+str(self.fanspeed)+"\n"
 				tmp += "Long dt: "+str(self.extract_dt_long)+"\n"
 				tmp += "Coef calculated: " + str(self.coef_new)+"\n"
@@ -1674,17 +1675,20 @@ if __name__  ==  "__main__":
 				os.system("echo \"563\" >./RAM/exec_tree")
 			device.update_airdata_instance()
 			if "debug" in sys.argv:os.system("nice ./grapher.py debug & >>/dev/null")
-			else : os.system("nice ./grapher.py  & >> /dev/null")
+			elif device.hasRH:
+				os.system("nice ./grapher.py hasRH & >> /dev/null")
+			else :
+				os.system("nice ./grapher.py  & >> /dev/null")
 			if "ping" in sys.argv:
-				device.status_field[7]=round(device.inlet_ave,2)
-				device.status_field[8]=round(device.extract_ave,2)
-				device.status_field[9]=round(device.ef,2)
-				device.status_field[10]=round(device.new_humidity,2)
+				device.status_field[7] = round(device.inlet_ave,2)
+				device.status_field[8] = round(device.extract_ave,2)
+				device.status_field[9] = round(device.ef,2)
+				device.status_field[10]= round(device.new_humidity,2)
 				device.status_field[11]= monitoring
 				device.status_field[12]= device.cool_mode
-				device.status_field[13]=round(device.supply_ave,2)
-				device.status_field[14]=round(device.exhaust_ave,2)
-				device.status_field[15]=round(device.pressure_diff,2)
+				device.status_field[13]= round(device.supply_ave,2)
+				device.status_field[14]= round(device.exhaust_ave,2)
+				device.status_field[15]= round(device.pressure_diff,2)
 
 				report_alive()
 			if "humidity" in sys.argv:
