@@ -71,7 +71,7 @@ minimalmodbus.BYTESIZE = 8
 minimalmodbus.STOPBITS=1
 client = minimalmodbus.Instrument(unit,1)
 client.debug=False
-client.precalculate_read_size=False
+client.precalculate_read_size=True
 client.timeout= 0.05
 #############################################
 wait_time = 0.00
@@ -127,6 +127,10 @@ def report_alive():
 					os.lseek(fd,-sizeT,os.SEEK_END)
 					temp = os.read(fd,sizeT)
 					os.close(fd)
+					if sizeT == 5*1024 and not "keep-log" in sys.argv:
+						pf=open("RAM/err","w")
+						pf.write(temp)
+						pf.close()
 					temp = temp.replace("\n","<br>")
 					message += temp + "\n"
 				except :
@@ -1453,8 +1457,8 @@ class Systemair(object):
 			if self.fanspeed == 1 and self.ef <> base+self.flowOffset[0] and not self.shower:
 				req.write_register(1403,base+self.flowOffset[0])
 				req.write_register(1402,self.sf_base+self.flowOffset[0])
-		 	        os.write(ferr, "Updated extract flow offset to: "+str(self.flowOffset[0])+str(time.ctime()) +"\n")
-				self.msg += "Updated base extract flow to: "+str(base+self.flowOffset[0])+"\n"
+		 	        os.write(ferr, "Updated extract flow offset to: "+str(self.flowOffset[0])+" "+str(time.ctime()) +"\n")
+				#self.msg += "Updated base extract flow to: "+str(base+self.flowOffset[0])+"\n"
 				self.ef = base+self.flowOffset[0]
 				self.sf = self.sf_base+self.flowOffset[0]
 		if self.has_RH_sensor and not savecair:
@@ -1462,7 +1466,8 @@ class Systemair(object):
 			if self.fanspeed == 1 and self.ef <> base+self.flowOffset[0] and not self.shower:
                                 req.write_register(102,base+self.flowOffset[0])
                                 req.write_register(101,30+self.flowOffset[0])
-                                self.msg += "Updated base extract flow to: "+str(base+self.flowOffset[0])+"\n"
+                                #self.msg += "Updated base extract flow to: "+str(base+self.flowOffset[0])+"\n"
+				os.write(ferr, "Updated extract flow offset to: "+str(self.flowOffset[0])+" "+str(time.ctime()) +"\n")
                                 self.ef = base+self.flowOffset[0]
                                 self.sf = 30+self.flowOffset[0]
 

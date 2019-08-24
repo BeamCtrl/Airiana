@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import time
 import os
+import sys
 
 #######Request object for doing modbus comms##
 class Request(object):
@@ -13,7 +14,7 @@ class Request(object):
 		self.buff= ""
 		self.counter = 0
 		self.error_time=time.time()
-		self.wait_time =  0.05
+		self.wait_time =  0.01
 		self.prev_rate = 0
 		self.rate =0
 		self.iter = 0
@@ -57,7 +58,7 @@ class Request(object):
 			rate = float(self.connect_errors+self.checksum_errors+self.write_errors+self.multi_errors) / delta
 		else: rate=0.5
 		if rate >= 0.9:
-			os.read(bus,1000)
+			os.read(self.bus,1000)
 			time.sleep(1)
 			os.write(ferr,"read error high rate, possible no comms with unit error rate over 90%\n")
 			raise IOError
@@ -89,26 +90,36 @@ class Request(object):
 			self.modbusregister(address,decimals)
 		#client.precalculate_read_size=False
 
-	def write_register(self, reg, value,functioncode=6):
+	def write_register(self, reg, value,functioncode=6,tries=10):
 		self.iter += 1
-		#client.precalculate_read_size=True
+		#self.client.precalculate_read_size=True
 		#if start == value: return 0
 		try:
 			#print "set", reg, "to",value
 			#time.sleep(self.wait_time)
 			#print os.read(bus,20)
-			resp = self.client.write_register(reg,value,0,6)
+			if tries  > 0:
+				resp = self.client.write_register(reg,value,0,6)
+			#print tries,reg
+			#sys.stdout.flush()
 		except IOError as error:
-			#print "write, ioerror",error,os.read(bus,20),";"
+			print "write, ioerror",error,os.read(self.bus,20),";"
 			#os.write(ferr,"write: "+str(error)+"\n")
 			self.write_errors += 1
-			#self.write_register(reg,value)
+			self.write_register(reg,value,tries=tries-1)
 			pass
 		except ValueError as error:
-			#print "write, val error",error,os.read(bus,20),"\n--",reg," ",value,";"
+			print "write, val error",error,os.read(self.bus,20),"\n--",reg," ",value,";"
 			#os.write(ferr,"write: "+str(error)+"\n")
 			self.write_errors += 1
-			#self.write_register(reg,value)
-			pass
+			self.write_register(reg,value,tries=tries-1)
 
+			pass
+		self.modbusregister(reg,0)
+		if value <> self.response and tries>0:
+			self.write_register(reg,value,tries=tries-1)
+		if tries == 0:
+			fd = os.open("RAM/err",os.WR_ONLY)
+			os.write(fd,"Write error, no tries left on register:"+str(reg)+"\n")
+			os.close(fd)
 
