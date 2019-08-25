@@ -6,7 +6,7 @@ import os, traceback, time, sys, signal
 from request import Request
 #from mail import *
 #############################
-vers = "9.k"
+vers = "9.m"
 Running =True
 savecair=False
 # Register cleanup
@@ -50,9 +50,9 @@ if "daemon" in sys.argv:
 	fout = os.open("./RAM/out",os.O_WRONLY|os.O_CREAT)
 	os.dup2(fout,sys.stdout.fileno())
 	print "Output redirected to file;"
-	if not "keep-log" in sys.argv:
-		os.system("rm -f ./RAM/err")
-		ferr = os.open("./RAM/err",os.O_WRONLY|os.O_CREAT)
+	#if not "keep-log" in sys.argv:
+	#	os.system("rm -f ./RAM/err")
+	#	ferr = os.open("./RAM/err",os.O_WRONLY|os.O_CREAT)
 
 	os.dup2(ferr,sys.stderr.fileno())
 	os.lseek(ferr,0, os.SEEK_END)
