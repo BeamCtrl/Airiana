@@ -6,7 +6,7 @@ import os, traceback, time, sys, signal
 from request import Request
 #from mail import *
 #############################
-vers = "9.m"
+vers = "9.n"
 Running =True
 savecair=False
 # Register cleanup
@@ -1675,7 +1675,7 @@ if __name__  ==  "__main__":
 				os.system("echo \"563\" >./RAM/exec_tree")
 			device.update_airdata_instance()
 			if "debug" in sys.argv:os.system("nice ./grapher.py debug & >>/dev/null")
-			elif device.hasRH:
+			elif device.has_RH_sensor:
 				os.system("nice ./grapher.py hasRH & >> /dev/null")
 			else :
 				os.system("nice ./grapher.py  & >> /dev/null")
