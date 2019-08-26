@@ -6,7 +6,7 @@ import os, traceback, time, sys, signal
 from request import Request
 #from mail import *
 #############################
-vers = "9.n"
+vers = "9.o"
 Running =True
 savecair=False
 # Register cleanup
@@ -18,7 +18,7 @@ def exit_callback(self, arg):
                 os.system("cp ./RAM/data.log ./data.save")
                 if threading.enumerate()[-1].name=="Timer": threading.enumerate()[-1].cancel()
                 cmd_socket.close()
-		sys.exit()
+		sys.exit(0)
 
 signal.signal(signal.SIGTERM, exit_callback)
 signal.signal(signal.SIGINT , exit_callback)
@@ -127,10 +127,10 @@ def report_alive():
 					os.lseek(fd,-sizeT,os.SEEK_END)
 					temp = os.read(fd,sizeT)
 					os.close(fd)
-					if sizeT == 5*1024 and not "keep-log" in sys.argv:
-						pf=open("RAM/err","w")
-						pf.write(temp)
-						pf.close()
+					if sizeT == 5*1024 and "keep-log" in sys.argv:
+						os.ftruncate(ferr,0)
+						os.write(ferr,temp)
+						os.fsync(ferr)
 					temp = temp.replace("\n","<br>")
 					message += temp + "\n"
 				except :

@@ -21,7 +21,7 @@ class Request(object):
 		self.bus = bus
 		self.client = client
 	def modbusregisters(self,start,count,signed=False):
-		#client.precalculate_read_size=True
+		self.client.precalculate_read_size=True
 		self.iter += 1
 		try:
 			self.response= "no data"
@@ -49,7 +49,7 @@ class Request(object):
 			#if self.connect_errors > 200: exit_callback(self,None)
 			if self.rate < 0.9:
 				self.modbusregisters(start,count)
-		#client.precalculate_read_size=False
+		self.client.precalculate_read_size=False
 
 	def error_review (self):
 		delta = self.iter - self.error_time
@@ -70,7 +70,7 @@ class Request(object):
 
 	def modbusregister (self,address,decimals):
 		self.iter += 1
-		#client.precalculate_read_size=True
+		self.client.precalculate_read_size=True
 
 		try:
 			self.response = "no data"
@@ -88,11 +88,11 @@ class Request(object):
 			self.buff += os.read(self.bus,20) # bus purge
 			self.checksum_errors +=1
 			self.modbusregister(address,decimals)
-		#client.precalculate_read_size=False
+		self.client.precalculate_read_size=False
 
 	def write_register(self, reg, value,functioncode=6,tries=10):
 		self.iter += 1
-		#self.client.precalculate_read_size=True
+		self.client.precalculate_read_size=True
 		#if start == value: return 0
 		try:
 			#print "set", reg, "to",value
