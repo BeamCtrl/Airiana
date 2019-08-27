@@ -6,7 +6,7 @@ import os, traceback, time, sys, signal
 from request import Request
 #from mail import *
 #############################
-vers = "9.p"
+vers = "9.q"
 Running =True
 savecair=False
 # Register cleanup
@@ -1477,7 +1477,12 @@ class Systemair(object):
 	def get_local(self):
 			if self.prev_static_temp == 8:
 				if os.path.lexists("RAM/latest_static"):
-					self.prev_static_temp = float(os.popen("cat RAM/latest_static").readline().split("\n")[0])
+					try:
+						self.prev_static_temp = float(os.popen("cat RAM/latest_static").readline().split("\n")[0])
+					except:
+						self.prev_static_temp = self.inlet_ave
+						os.write(ferr, "Unable to load latest_static temp "+str(time.ctime()) +"\n")
+
 				else:
 					fd = os.open("RAM/latest_static",os.O_WRONLY | os.O_CREAT| os.O_TRUNC)
 					os.write(fd,str(self.prev_static_temp))
@@ -1488,12 +1493,13 @@ class Systemair(object):
 			try:
 				temp = float(tmp[1])
 			except:
+				os.write(ferr, "Unable to cast 24h low temp "+" "+str(time.ctime()) +"\n")
 				return -1
 			wthr = os.popen("./forcast.py tomorrows-low").read().split(" ")
 			if self.forcast[1]<> -1:
 				sun = int(os.popen("./forcast.py sun").readlines()[0].split(":")[0])
 				comp = float(wthr[0])-(float(wthr[2])/8) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/8
-			else: 
+			else:
 				sun = 7
 				comp = 0
 			comp = (comp - (self.prev_static_temp-self.kinetic_compensation))/(24*3)
