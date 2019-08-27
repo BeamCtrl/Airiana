@@ -119,7 +119,7 @@ class Request(object):
 		if value <> self.response and tries>0:
 			self.write_register(reg,value,tries=tries-1)
 		if tries == 0:
-			fd = os.open("RAM/err",os.WR_ONLY)
+			fd = os.open("RAM/err",os.O_WRONLY)
 			os.write(fd,"Write error, no tries left on register:"+str(reg)+"\n")
 			os.close(fd)
 

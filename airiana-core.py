@@ -18,6 +18,7 @@ def exit_callback(self, arg):
                 os.system("cp ./RAM/data.log ./data.save")
                 if threading.enumerate()[-1].name=="Timer": threading.enumerate()[-1].cancel()
                 cmd_socket.close()
+		os.write(ferr, "Exiting in a safe way" +"\n")
 		sys.exit(0)
 
 signal.signal(signal.SIGTERM, exit_callback)
@@ -1535,6 +1536,8 @@ if __name__  ==  "__main__":
 	print "Reporting system start;"
 	#print os.read(bus,10000)
 	report_alive()
+	os.write(ferr, "System started "+str(time.ctime())+"\n")
+
 	device = Systemair()
 
 	try:
