@@ -1343,7 +1343,7 @@ class Systemair(object):
 		and not self.shower:
 			self.set_fanspeed(1)
 			self.msg += "Dynamic fanspeed, recover cool air\n"
-		        os.write(ferr, "Dynamic fanspeed 1 recover cool air "+str(time.ctime()) +"\n"+str(self.extract_ave)+' '+str(self.supply_ave+'\n'))
+		        os.write(ferr, "Dynamic fanspeed 1 recover cool air "+str(time.ctime()) +"\n"+str(self.extract_ave)+' '+str(self.supply_ave)+'\n')
 
 	    if (self.fanspeed== 3			\
  		and self.extract_ave < self.target + 0.8 	\
