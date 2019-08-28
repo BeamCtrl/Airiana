@@ -106,13 +106,15 @@ class Request(object):
 			#print "write, ioerror",error,os.read(self.bus,20),";"
 			#os.write(ferr,"write: "+str(error)+"\n")
 			self.write_errors += 1
-			self.write_register(reg,value,tries=tries-1)
+			if tries  > 0:
+				self.write_register(reg,value,tries=tries-1)
 			pass
 		except ValueError as error:
 			#print "write, val error",error,os.read(self.bus,20),"\n--",reg," ",value,";"
 			#os.write(ferr,"write: "+str(error)+"\n")
 			self.write_errors += 1
-			self.write_register(reg,value,tries=tries-1)
+			if tries  > 0:
+				self.write_register(reg,value,tries=tries-1)
 
 			pass
 		self.modbusregister(reg,0)
