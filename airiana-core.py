@@ -1517,7 +1517,7 @@ class Systemair(object):
 				self.kinetic_compensation = self.kinetic_compensation * 0.9
 			if "debug" in sys.argv:
 				self.msg += "Comp set to: " +str(round(comp,4))+" Calc RH%: "+str(self.local_humidity)+"% prev_static: " + str(self.prev_static_temp)+"C 24h-low: "+str(temp)+"C tomorrows low: "+wthr[0]+"c\n"
-			if time.localtime().tm_hour == sun and time.localtime().tm_min < 5 or "test" in sys.argv:
+			if time.localtime().tm_hour == sun and time.localtime().tm_min < 5:
 				self.prev_static_temp = temp
 				self.kinetic_compensation = 0
 				#self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/2
