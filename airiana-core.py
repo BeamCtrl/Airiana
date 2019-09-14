@@ -146,7 +146,7 @@ def report_alive():
 		sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
 	except:
 		#traceback.print_exc()
-		os.write(ferr, "error while reporting alive"+str(time.ctime())+"\n")
+		os.write(ferr, "Error reporting alive at "+str(time.ctime())+"\n")
 
 #READ AVAIL SENSOR DATA
 def update_sensors():
@@ -693,7 +693,7 @@ class Systemair(object):
 		if self.get_fanspeed() <> target:
 			os.write(ferr,"Incorrectly set fanspeed "+str(self.get_fanspeed())+" to "+str(target)+" "+str(time.ctime())+"\n")
 			
-		#self.update_airflow()
+		self.update_airflow()
 
 
 	def update_fan_rpm(self):
@@ -1496,6 +1496,7 @@ class Systemair(object):
 				temp = float(tmp[1])
 			except:
 				os.write(ferr, "Unable to cast 24h low temp "+" "+str(time.ctime()) +"\n")
+				os.system("echo 8 > ./RAM/latest_static")
 				return -1
 			wthr = os.popen("./forcast.py tomorrows-low").read().split(" ")
 			if self.forcast[1]<> -1:
@@ -1611,7 +1612,6 @@ if __name__  ==  "__main__":
 	    device.div = device.inlet_ave
 	    if "humidity" in sys.argv:
 		device.new_humidity = device.moisture_calcs(10.0)
-		device.get_local()
 		device.get_local()
 	    starttime=time.time()
 	    print "system started:",time.ctime(starttime),";"
