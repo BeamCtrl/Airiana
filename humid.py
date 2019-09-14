@@ -22,7 +22,8 @@ def get_humidity():
 				 	pass
 			 except: print "error"
 		#print templist
-                inlet_min = numpy.average(templist)
+                if len(templist)>0:inlet_min = numpy.average(templist)
+		else: raise IndexError
 		airdata_inst.vapor_max(extract)
 		bottom = airdata_inst.pw
 		airdata_inst.vapor_max(inlet_min)

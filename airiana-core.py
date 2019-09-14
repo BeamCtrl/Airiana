@@ -129,7 +129,9 @@ def report_alive():
 					temp = os.read(fd,sizeT)
 					os.close(fd)
 					if sizeT == 5*1024 and "keep-log" in sys.argv:
+						os.lseek(ferr,0,os.SEEK_SET)
 						os.ftruncate(ferr,0)
+						os.fsync(ferr)
 						os.write(ferr,temp)
 						os.fsync(ferr)
 					temp = temp.replace("\n","<br>")
