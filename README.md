@@ -14,5 +14,5 @@ featured special effects:
   24hr plotter all put on web-page for your convenience
   does alot more calculation and spits out more data than you'll ever need.
   
-HW: Rpi + RS485 TxRx module, vr400/VTR300 or savecair unit from systemair.
+HW: Rpi + RS485 TxRx module, VR400/VR700/VTR300 or savecair unit from systemair.
   
