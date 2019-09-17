@@ -691,8 +691,7 @@ class Systemair(object):
 			else:
 				req.write_register(1130,target+1)
 		if self.get_fanspeed() <> target:
-			os.write(ferr,"Incorrectly set fanspeed "+str(self.get_fanspeed())+" to "+str(target)+" "+str(time.ctime())+"\n")
-			
+			os.write(ferr,"Incorrectly set fanspeed "+str(self.get_fanspeed())+" to "+str(target)+" "+str(time.ctime())+"\n")		
 		self.update_airflow()
 
 
@@ -1272,12 +1271,12 @@ class Systemair(object):
 	    #DYNAMIC FANSPEED CONTROL
 
 	    if self.fanspeed == 1 				\
-		and 	((self.extract_ave > self.target 		\
+		and 	((self.extract_ave > self.target 	\
 		and 	self.extract_ave > self.target + 0.5 	\
 		and 	self.extract_ave - self.supply_ave>0.1 	\
 		and 	self.extract_dt_long >= 0.2)		\
-		and	self.RH_valid				\
-		and 	numpy.average(self.hum_list)-self.local_humidity >7)\
+		or	(self.RH_valid				\
+		and 	numpy.average(self.hum_list)-self.local_humidity >7))\
 		and not self.shower 				\
 		and not self.inhibit 				\
 		and not self.cool_mode:
@@ -1451,7 +1450,7 @@ class Systemair(object):
                 if req.response == target:
                         self.press_inhibit = time.time()
                 if "debug" in sys.argv: self.msg += "change completed\n"
-
+		self.update_airflow()
 	#Set base flow rate with an offset to regulate humidity in a more clever manner.
 	def check_flow_offset(self):
 		if savecair:
@@ -1497,7 +1496,7 @@ class Systemair(object):
 			except:
 				os.write(ferr, "Unable to cast 24h low temp "+" "+str(time.ctime()) +"\n")
 				os.system("echo 8 > ./RAM/latest_static")
-				return -1
+				temp = self.inlet_ave
 			wthr = os.popen("./forcast.py tomorrows-low").read().split(" ")
 			if self.forcast[1]<> -1:
 				sun = int(os.popen("./forcast.py sun").readlines()[0].split(":")[0])
@@ -1507,10 +1506,10 @@ class Systemair(object):
 				comp = 0
 			comp = (comp - (self.prev_static_temp-self.kinetic_compensation))/(24*3)
 			self.kinetic_compensation -= comp * self.avg_frame_time
-			if self.prev_static_temp >= temp:
-				self.local_humidity = self.moisture_calcs(float(temp) - self.kinetic_compensation)
+			if self.prev_static_temp <= temp:
+				self.local_humidity = self.moisture_calcs(float(temp) - self.kinetic_compensation) #if 24hr low is higher than current temp
 			else:
-				self.local_humidity = self.moisture_calcs(self.prev_static_temp-self.kinetic_compensation)
+				self.local_humidity = self.moisture_calcs(self.prev_static_temp-self.kinetic_compensation) # if 24hr low is lower than current temp
 
 			if self.prev_static_temp-self.kinetic_compensation > self.inlet_ave and (time.localtime().tm_hour < 3 or time.localtime().tm_hour > 8):
 				self.prev_static_temp = self.inlet_ave+self.kinetic_compensation
@@ -1536,8 +1535,8 @@ class Systemair(object):
 				fd = os.open("RAM/latest_static",os.O_WRONLY | os.O_CREAT| os.O_TRUNC)
 				os.write(fd,str(self.prev_static_temp))
 				os.close(fd)
-			if self.prev_static_temp > temp:
-				self.prev_static_temp = temp
+			#if self.prev_static_temp > temp:
+			#	self.prev_static_temp = temp
 			#except: print "dayliy low calc error"#,comp,wthr,traceback.print_exc()
 
 ## Init base class ##
