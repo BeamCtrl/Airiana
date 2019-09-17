@@ -6,7 +6,7 @@ import os, traceback, time, sys, signal
 from request import Request
 #from mail import *
 #############################
-vers = "9.r"
+vers = "9.s"
 Running =True
 savecair=False
 # Register cleanup
