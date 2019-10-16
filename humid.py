@@ -5,11 +5,11 @@ airdata_inst = airdata.Energy()
 extract = float(sys.argv[1])
 def get_humidity():
 		global airdata_inst,extract
-                day = 60*24
+                day = 60*18
                 templist = []
                 data = os.popen("tail -n "+str(int(day))+" ./RAM/data.log")
 		try:
-			sunrise = int(os.popen ("./forcast.py sun").readlines()[0].split(":")[0])
+			sunrise = int(os.popen ("sudo ./forcast.py sun").readlines()[0].split(":")[0])
 		except: sunrise = 6
                 for each in data.readlines():
                          tmp = each.split(":")

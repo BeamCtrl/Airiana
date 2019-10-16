@@ -60,7 +60,7 @@ class Request(object):
 		if rate >= 0.9:
 			os.read(self.bus,1000)
 			time.sleep(1)
-			fd = os.open("RAM/err",os.WR_ONLY)
+			fd = os.open("RAM/err",os.O_WRONLY)
 			os.write(fd,"read error high rate, possible no comms with unit error rate over 90%\n")
 			os.close(fd)
 			raise IOError

@@ -82,9 +82,9 @@ try:
 		x.append (calc_hum[-1])
 		y.append (supply_humid[-1])
 		diff.append (round(calc_hum[-1]-supply_humid[-1] ,3)) 
-		if diff[-1]< -35: print tmp[0]
+		if diff[-1]< -35:pass # print tmp[0]
 	    except IndexError:inside_hum.append(0)
-	    except ValueError: pass#print tmp[0]
+	    except ValueError: pass #print tmp[0]
 	    except ZeroDivisionError:pass
 	    except: traceback.print_exc() 	
 except:traceback.print_exc()

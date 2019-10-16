@@ -128,7 +128,7 @@ def report_alive():
 					os.lseek(fd,-sizeT,os.SEEK_END)
 					temp = os.read(fd,sizeT)
 					os.close(fd)
-					if sizeT == 5*1024 and "keep-log" in sys.argv:
+					if sizeT == 5*1024 and not "keep-log" in sys.argv:
 						os.lseek(ferr,0,os.SEEK_SET)
 						os.ftruncate(ferr,0)
 						os.fsync(ferr)
@@ -970,7 +970,7 @@ class Systemair(object):
 					tmp+= "Humidity d/dt:"+str(self.hum_list[0]-self.hum_list[-1])+"%\n"
 			if self.RH_valid:
 				tmp += "Relative humidity: "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave),2))+"C\n"
-		if "sensor" in sys.argv:
+		if "sensors" in sys.argv:
 				tmp += "Outdoor Sensor:\t "+str(self.sensor_temp)+"C "+str(self.sensor_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.sensor_humid,self.sensor_temp),2))+"C\n"
 				tmp += "Indoor Sensor:\t "+str(self.inside)+"C "+str(self.inside_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.inside_humid,self.inside),2))+"C\n"
 		if "debug" in sys.argv:
@@ -1063,7 +1063,7 @@ class Systemair(object):
 
 	#change exchanger mode to to, if no to flip 0 or 5
 	def cycle_exchanger(self,to):
-	  os.write(ferr, "cycle exchanger to:"+str(to)+" "+str(time.ctime()) +"\n")
+	  os.write(ferr, "cycle exchanger to: "+str(to)+" "+str(time.ctime()) +"\n")
 	  if not savecair:
 	    def set_val(val):
 		try:
@@ -1172,14 +1172,14 @@ class Systemair(object):
 
 				self.cycle_exchanger(5)
 				self.modetoken=time.time()
-			        os.write(ferr, "Exchange set to 5 <target-1C "+str(time.ctime()) +"\n")
+			        os.write(ferr, "1.Exchange set to 5. extract is less than target-1C "+str(time.ctime()) +"\n")
 
 		if self.supply_ave <10 				\
 			and self.extract_ave < self.target 	\
 			and  self.exchanger_mode <> 5 		\
 			and not self.cool_mode :
 				self.cycle_exchanger(5)
-			        os.write(ferr, "Exchange set to 5 supply<10C and extract< target "+str(time.ctime()) +"\n")
+			        os.write(ferr, "2.Exchange set to 5 supply<10C and extract< target "+str(time.ctime()) +"\n")
 				self.modetoken=time.time()
 		if self.exchanger_mode <> 5 			\
 			and self.inlet_ave < 10 		\
@@ -1190,7 +1190,7 @@ class Systemair(object):
 			and not self.shower:
 				self.modetoken=time.time()
 				self.cycle_exchanger(5)
-			        os.write(ferr, "Exchange set to 5 inlet<10C "+str(time.ctime()) +"\n")
+			        os.write(ferr, "3.Exchange set to 5 inlet<10C "+str(time.ctime()) +"\n")
 
 	    #FORECAST RELATED COOLING
 	    try:
@@ -1507,7 +1507,7 @@ class Systemair(object):
 			comp = (comp - (self.prev_static_temp-self.kinetic_compensation))/(24*3)
 			self.kinetic_compensation -= comp * self.avg_frame_time
 			if self.prev_static_temp <= temp:
-				self.local_humidity = self.moisture_calcs(float(temp) - self.kinetic_compensation) #if 24hr low is higher than current temp
+				self.local_humidity = self.moisture_calcs(temp - self.kinetic_compensation) #if 24hr low is higher than current temp
 			else:
 				self.local_humidity = self.moisture_calcs(self.prev_static_temp-self.kinetic_compensation) # if 24hr low is lower than current temp
 
@@ -1516,7 +1516,7 @@ class Systemair(object):
 				self.kinetic_compensation = self.kinetic_compensation * 0.9
 			if "debug" in sys.argv:
 				self.msg += "Comp set to: " +str(round(comp,4))+" Calc RH%: "+str(self.local_humidity)+"% prev_static: " + str(self.prev_static_temp)+"C 24h-low: "+str(temp)+"C tomorrows low: "+wthr[0]+"c\n"
-			if time.localtime().tm_hour == sun and time.localtime().tm_min < 5:
+			if time.localtime().tm_hour == sun and time.localtime().tm_min < 5 or self.prev_static_temp == 8:
 				self.prev_static_temp = temp
 				self.kinetic_compensation = 0
 				#self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/2
@@ -1637,7 +1637,7 @@ if __name__  ==  "__main__":
 		if device.iter%5==0:
 			if "debug" in sys.argv:
 				os.system("echo \"5\" >./RAM/exec_tree")
-				device.coef_debug()
+				#device.coef_debug()
 			if monitoring:
 				device.monitor()
 				device.shower_detect()
@@ -1749,6 +1749,7 @@ if __name__  ==  "__main__":
 				try:
 					device.msg += "Network command recieved: Processing... "+str(data)+"\n"
 					log = "echo \"" + str(time.ctime()) +":" +str(sender) +":" +str(data) +"\" >> netlog.log &"
+					os.write(ferr,log+'\n')
 					os.system(log)
 					#device.msg += log+"\n"+str(data)+" "+str(type(data))+" "+str(len(data))+"\n"
 				except:
