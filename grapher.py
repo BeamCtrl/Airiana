@@ -122,10 +122,10 @@ if "debug" in sys.argv or "hasRH" in sys.argv:
 	s2.set_title("Humidity")
 	if "debug" in sys.argv:
 		plot(time,cond_comp,'-',linewidth=1,label="Condensation power")
-		plot(red_time,red_hum, '-', linewidth=1,label="Inside sensor humidity")
+		plot(time,inside_hum, '-', linewidth=1,label="Inside sensor humidity")
 	if "debug" in sys.argv:
 			plot(time[-day:-1],sen_hum[-day:-1], '-', linewidth=1,label="Outdoor sensor humidity")
-	plot(time[-day:-1],inside_hum[-day:-1],'-',linewidth=1,label="Relative humidity")
+	plot(red_time[-day:-1],red_hum[-day:-1],'-',linewidth=1,label="Relative humidity")
 	plot(time[-day:-1],supply_humid[-day:-1],'-',linewidth=1,label="Calculated outside humidity")
 	
 	subplots_adjust( hspace=0.75 )
