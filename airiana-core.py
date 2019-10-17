@@ -576,8 +576,8 @@ class Systemair(object):
 		#DO CALC FOR REQ[2] exhaust temp expectancy for VR300 machines as they have no exhust temp sensor:
 		#########
 		###########################################
-		if self.system_name=="VTR300":
-			req.response[4]	= req.response[4]+10
+		#if self.system_name=="VTR300":
+		#	req.response[4]	= req.response[4]+10
 		#if self.rotor_active =="No" :
 		#	req.response[2]  -= (req.response[1]-req.response[4])*0.01  #exhaust compensation exch off
 		#else : 	req.response[2]  -= (req.response[1]-req.response[4])*0.06  #exhaust compensation exch ON
