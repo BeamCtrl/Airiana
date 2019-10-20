@@ -54,12 +54,13 @@ dewpoint=[]
 fd = open(str(log)+".log","a+")
 fd.seek(0)
 for each in fd.readlines():
-	data = each.split(":")
-	#print data
-	time.append(float(data[0]))
-	temp.append(float(data[1]))
-	humid.append(int(data[2][0:-1]))
-	dewpoint.append(air_obj.dew_point(humid[-1],temp[-1]))
+	if float(data[0]>time.time()-3600*24*365):
+		data = each.split(":")
+		#print data
+		time.append(float(data[0]))
+		temp.append(float(data[1]))
+		humid.append(int(data[2][0:-1]))
+		dewpoint.append(air_obj.dew_point(humid[-1],temp[-1]))
 fig=figure(1,figsize=(11,8),dpi=250)
 #s1=subplot("111")
 #temp_line=plot(time,temp)[0]

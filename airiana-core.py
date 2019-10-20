@@ -730,8 +730,10 @@ class Systemair(object):
 			self.ef=0
 			self.sf=0
 	    else:
-		req.modbusregisters(14000,2)
-		self.sf,self.ef = req.response[0],req.response[1]
+		req.modbusregister(14000,0)
+		self.sf = int(req.response)
+		req.modbusregister(14001,0)
+		self.ef = int(req.response)
 
 
 	def update_airdata_instance(self):
