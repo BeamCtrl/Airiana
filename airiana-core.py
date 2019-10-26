@@ -1513,8 +1513,8 @@ class Systemair(object):
 			else:
 				self.local_humidity = self.moisture_calcs(self.prev_static_temp-self.kinetic_compensation) # if 24hr low is lower than current temp
 
-			if self.prev_static_temp-self.kinetic_compensation > self.inlet_ave and (time.localtime().tm_hour < 3 or time.localtime().tm_hour > 8):
-				self.prev_static_temp = self.inlet_ave+self.kinetic_compensation
+			if self.prev_static_temp-self.kinetic_compensation > self.inlet_ave):
+				#self.prev_static_temp = self.inlet_ave+self.kinetic_compensation
 				self.kinetic_compensation = self.kinetic_compensation * 0.9
 			if "debug" in sys.argv:
 				self.msg += "Comp set to: " +str(round(comp,4))+" Calc RH%: "+str(self.local_humidity)+"% prev_static: " + str(self.prev_static_temp)+"C 24h-low: "+str(temp)+"C tomorrows low: "+wthr[0]+"c\n"

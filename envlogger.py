@@ -54,8 +54,8 @@ dewpoint=[]
 fd = open(str(log)+".log","a+")
 fd.seek(0)
 for each in fd.readlines():
-	if float(data[0]>time.time()-3600*24*365):
-		data = each.split(":")
+	data = each.split(":")
+	if float(data[0]) > tm.time()-3600*24*100:
 		#print data
 		time.append(float(data[0]))
 		temp.append(float(data[1]))
