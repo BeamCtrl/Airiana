@@ -1501,8 +1501,12 @@ class Systemair(object):
 				temp = self.inlet_ave
 			wthr = os.popen("./forcast.py tomorrows-low").read().split(" ")
 			if self.forcast[1]<> -1:
-				sun = int(os.popen("./forcast.py sun").readlines()[0].split(":")[0])
-				comp = float(wthr[0])-(float(wthr[2])/8) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/8
+				try:
+					sun = int(os.popen("./forcast.py sun").readlines()[0].split(":")[0])
+				except ValueError:
+					sun = 7
+				finally:
+					comp = float(wthr[0])-(float(wthr[2])/8) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/8
 			else:
 				sun = 7
 				comp = 0
@@ -1513,7 +1517,7 @@ class Systemair(object):
 			else:
 				self.local_humidity = self.moisture_calcs(self.prev_static_temp-self.kinetic_compensation) # if 24hr low is lower than current temp
 
-			if self.prev_static_temp-self.kinetic_compensation > self.inlet_ave):
+			if self.prev_static_temp-self.kinetic_compensation > self.inlet_ave:
 				#self.prev_static_temp = self.inlet_ave+self.kinetic_compensation
 				self.kinetic_compensation = self.kinetic_compensation * 0.9
 			if "debug" in sys.argv:
