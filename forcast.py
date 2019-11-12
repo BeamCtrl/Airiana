@@ -39,9 +39,11 @@ try:
 	if os.stat("/home/pi/airiana/RAM/forecast.xml").st_ctime -time.time() < -3600 or os.stat("/home/pi/airiana/RAM/forecast.xml").st_size ==0 or "-f" in sys.argv:
 		#print "Downloading updated forcast" 
 		os.system("wget -q -O /home/pi/airiana/RAM/forecast.xml "+loc)
+		pass
 except Exception as err:
 		print "Error getting Forcast from YR.no" #os.system("sudo wget  -q -O forecast.xml http://www.yr.no/sted/Sverige/V%C3%A4stmanland/V%C3%A4ster%C3%A5s-Barkar%C3%B6~2664448/forecast.xml")
 		print err
+		print -1, -1
 		os.system("touch /home/pi/airiana/RAM/forecast.xml")
 		exit()
 class Weather():
@@ -84,8 +86,8 @@ parser.StartElementHandler = start_element
 try:
 	xmldoc = parser.ParseFile(fd)
 except :
-	print "file error,"
-	os.system("rm RAM/forecast.xml")
+	print "file error, unable to parse xml"
+	#os.system("rm -f RAM/forecast.xml")
 	exit()
 #for each in forcasts: print each
 
