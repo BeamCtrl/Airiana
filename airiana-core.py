@@ -1277,8 +1277,8 @@ class Systemair(object):
 		and 	self.extract_ave > self.target + 0.5 	\
 		and 	self.extract_ave - self.supply_ave>0.1 	\
 		and 	self.extract_dt_long >= 0.2)		\
-		or	(self.RH_valid				\
-		and 	numpy.average(self.hum_list)-self.local_humidity >7))\
+		and	self.RH_valid				\
+		or 	(numpy.average(self.hum_list)-self.local_humidity >7))\
 		and not self.shower 				\
 		and not self.inhibit 				\
 		and not self.cool_mode:
