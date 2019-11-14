@@ -374,11 +374,6 @@ class Systemair(object):
 		self.exchanger_speed = 0
 		self.unit_comp =[]
 	def system_setup (self):
-		self.get_heater()
-			# make sure the electric heater is oFF
-		if self.heater <> 0:
-			self.set_heater(0)
-			#setup airflow levels
 		if savecair:
 			req.write_register(1400,16)
 		 	req.write_register(1401,16)
@@ -391,6 +386,11 @@ class Systemair(object):
 		 	req.write_register(1408,100)
 		 	req.write_register(1409,100)
 		else:
+			self.get_heater()
+				# make sure the electric heater is oFF
+			if self.heater <> 0:
+				self.set_heater(0)
+			#setup airflow levels
 			if "VTR300" in self.system_name or "VR400" in self.system_name:
 				req.modbusregister(137,0)
 				if int(req.response) == 1:
@@ -429,14 +429,15 @@ class Systemair(object):
 
 	#set heater status
 	def set_heater(self,heater):
-		req.write_register(200,heater)
+		if not savecair:
+			req.write_register(200,heater)
 
 	#get and set the Unit System name, from system types dict
 	def set_system_name(self):
 		if not savecair:
 			req.modbusregister(500,0)
 			self.system_name = self.system_types[req.response]
-	# calculate a new coef if fanspeed change renders high dt values
+	# calculate a new coef if fanspeed change renders high dt values  //UNused
 	def coef_debug(self):
 		if self.coef_fanspeed <> self.fanspeed and self.inhibit:
 			self.coefdebug = True
@@ -1502,11 +1503,13 @@ class Systemair(object):
 				try:
 					wthr = os.popen("./forcast.py tomorrows-low").read().split(" ")
 					sun = int(os.popen("./forcast.py sun").readlines()[0].split(":")[0])
+					comp = float(wthr[0])-(float(wthr[2])/8) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/8
 				except ValueError:
 					sun = 7
-					wtrh = [self.prev_static_temp, 0, 0]
-				finally:
+					os.write(ferr, "Unable set weather or sunrise "+" "+str(time.ctime()) +"\n")
+					wthr = [self.prev_static_temp, 0, 0]
 					comp = float(wthr[0])-(float(wthr[2])/8) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/8
+	
 			else:
 				sun  = 7
 				comp = 0
@@ -1538,7 +1541,8 @@ class Systemair(object):
 					if type == 15 or type == 9 or type == 10: # zero if fog etc.
 						self.kinetic_compensation = 0
 				  except:
-					pass
+					os.write(ferr, "Unable to update morning low with weather "+" "+str(time.ctime()) +"\n")
+
 				#self.prev_static_temp -= self.kinetic_compensation
 				self.kinetic_compensation = 0
 				fd = os.open("RAM/latest_static",os.O_WRONLY | os.O_CREAT| os.O_TRUNC)
