@@ -56,17 +56,24 @@ class Request:
         delta = self.iter - self.error_time
         self.error_time = self.iter
         if delta != 0:
-            rate = float(self.connect_errors + self.checksum_errors + self.write_errors + self.multi_errors) / delta
+            rate = float(self.connect_errors +
+                         self.checksum_errors +
+                         self.write_errors +
+                         self.multi_errors) / delta
         else:
             rate = 0.5
         if rate >= 0.9:
             os.read(self.bus, 1000)
             time.sleep(1)
             fd = os.open("RAM/err", os.O_WRONLY)
-            os.write(fd, "read error high rate, possible no comms with unit error rate over 90%\n")
+            os.write(fd, """read error high rate,
+            possible no comms with unit error rate over 90%\n""")
             os.close(fd)
             raise IOError
-        os.system("echo " + str(rate) + " " + str(self.wait_time) + " > RAM/error_rate")
+        os.system("echo " + str(rate)
+                  + " "
+                  + str(self.wait_time)
+                  + " > RAM/error_rate")
         self.connect_errors = 0
         self.checksum_errors = 0
         self.write_errors = 0
@@ -83,7 +90,8 @@ class Request:
         try:
             self.response = "no data"
             self.buff += os.read(self.bus, 20)  # bus purge
-            self.response = self.client.read_register(address, decimals, signed=True)
+            self.response = self.client.read_register(
+                                  address, decimals, signed=True)
         except IOError:
             self.connect_errors += 1
             if self.connect_errors > 100:
@@ -123,5 +131,7 @@ class Request:
             self.write_register(reg, value, tries=tries - 1)
         if tries == 0:
             fd = os.open("RAM/err", os.O_WRONLY)
-            os.write(fd, "Write error, no tries left on register:" + str(reg) + "\n")
+            os.write(fd,
+                     "Write error, no tries left on register:"
+                     + str(reg) + "\n")
             os.close(fd)
