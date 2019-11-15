@@ -25,17 +25,12 @@ class Request(object):
 		self.iter += 1
 		try:
 			self.response= "no data"
-			try:
-				pass#os.write(bus,"\0x01")
-			except: pass
 			self.response = self.client.read_registers(start,count)
 			if signed:
 				for each in self.response:
 					if each & 0x8000: each -= 0xFFFF
 		except ValueError as error:
 			#print "multi, checksum error,retry:",self.checksum_errors,error.message,";"
-			#os.write(ferr,"read many: "+str(error)+"\n")
-			#print error.message.find("\x01\x83\x02\xc0\xf1")
 			if  error.message.find("\x01\x83\x02\xc0\xf1")<>-1:
 				print "multi, address out of range;"
 				#exit()
@@ -45,8 +40,6 @@ class Request(object):
 			self.connect_errors += 1
 			if self.connect_errors > 100 or self.multi_errors >100:
 				self.error_review()
-				#os.write(ferr,"read many: "+str(error)+"\n")
-			#if self.connect_errors > 200: exit_callback(self,None)
 			if self.rate < 0.9:
 				self.modbusregisters(start,count)
 		self.client.precalculate_read_size=False

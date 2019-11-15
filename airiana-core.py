@@ -907,7 +907,7 @@ class Systemair(object):
 					self.status_field[0] += 1
 					os.write(ferr,"Engaged Shower mode "+str(time.ctime())+"\n")
 
-		if numpy.average(self.extract_dt_list)*60 < 0.5		\
+		if numpy.average(self.extract_dt_list)*60 < 0.25	\
 			and self.shower==True 				\
 			and self.shower_initial - time.time()<-60:
 			state = False
@@ -931,6 +931,10 @@ class Systemair(object):
 				else:
 					self.set_fanspeed(self.initial_fanspeed)
 
+	    	# SHOWER MODEwTIMEOUT #
+	    	if self.shower == True and self.shower_initial -time.time() < -45*60:
+			self.shower = False
+			os.write(ferr, "Shower mode ended on timeout at: "+str(time.ctime()) +"\n")
 
 	# PRINT OUTPUT
 	def print_xchanger(self):
@@ -1364,10 +1368,6 @@ class Systemair(object):
 			self.msg  +="Dynamic fanspeed 2 with long dt\n"
 		        os.write(ferr, "Dynamic fanspeed 2 with long dt "+str(time.ctime()) +"\n")
 
-	    # SHOWER MODEwTIMEOUT #
-	    if self.shower == True and self.shower_initial -time.time() < -45*60:
-		self.shower = False
-		os.write(ferr, "Shower mode ended on timeout at: "+str(time.ctime()) +"\n")
 
 	    #Dynamic pressure control
 	    if not self.shower:
@@ -1534,8 +1534,8 @@ class Systemair(object):
 					weather = os.popen("./forcast.py -f now ").read().split(" ")
 					type = int(weather[-2])
 					wind = int(weather[-5].split(".")[0])
-					if type >=3: # do an offset if there is cloudcover
-						self.kinetic_compensation += 1
+					#if type >=3: # do an offset if there is cloudcover
+					#	self.kinetic_compensation += 1
 					if wind >2: #compensate for windy conditions
 						self.kinetic_compensation += wind /8
 					if type == 15 or type == 9 or type == 10: # zero if fog etc.
