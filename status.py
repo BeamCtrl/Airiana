@@ -53,6 +53,7 @@ while True:
 			<th>Supply</th>
 			<th>Exhaust</th>
 			<th>P.diff</th>
+			<th>detLimit</th>
 			</tr>"""
 		flag = "unknown"
 		files = os.listdir("./public/local_links/")

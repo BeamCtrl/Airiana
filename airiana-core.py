@@ -324,6 +324,7 @@ class Systemair(object):
 		self.extract_dt = 0.0
 		self.update_airdata_instance()
 		self.shower =False
+		self.det_limit = 0
 		self.dyn_coef = 0
 		self.msg = ""
 		self.inside =0
@@ -369,7 +370,7 @@ class Systemair(object):
 		self.set_system_name()
 		self.RH_valid = 0
 		self.hum_list = []
-		self.status_field = [-1,self.exchanger_mode,0,self.system_name,vers,os.popen("git log --pretty=format:'%h' -n 1").read(),0,self.inlet_ave,self.extract_ave,self.ef,self.new_humidity,0,self.cool_mode,self.supply_ave,self.exhaust_ave,self.pressure_diff]
+		self.status_field = [-1,self.exchanger_mode,0,self.system_name,vers,os.popen("git log --pretty=format:'%h' -n 1").read(),0,self.inlet_ave,self.extract_ave,self.ef,self.new_humidity,0,self.cool_mode,self.supply_ave,self.exhaust_ave,self.pressure_diff,self.det_limit]
 		self.heater = 0
 		self.exchanger_speed = 0
 		self.unit_comp =[]
@@ -894,7 +895,7 @@ class Systemair(object):
 			# SHOWER derivative CONTROLER
 			lim = 0.08
 			if self.ef >50: lim = 0.10
-			if self.extract_dt > lim and self.inhibit == 0 and numpy.average(self.extract_dt_list)*60>1.60:
+			if self.extract_dt > lim +float(self.det_limit)/100 and self.inhibit == 0 and numpy.average(self.extract_dt_list)*60>1.60:
 				self.msg = "Shower mode engaged\n"
 				if self.shower==False:
 					self.shower = True
@@ -911,6 +912,7 @@ class Systemair(object):
 			and self.shower==True 				\
 			and self.shower_initial - time.time()<-60:
 			state = False
+			self.det_limit +=1
 			if  self.RH_valid==False and self.extract_ave<=(self.initial_temp+0.3) or self.shower_initial -time.time() < -45*60:
 				state = True
 			if self.RH_valid and self.showerRH+5  > self.new_humidity or self.shower_initial - time.time() < -45*60:
@@ -1712,6 +1714,7 @@ if __name__  ==  "__main__":
 				device.status_field[13]= round(device.supply_ave,2)
 				device.status_field[14]= round(device.exhaust_ave,2)
 				device.status_field[15]= round(device.pressure_diff,2)
+				device.status_field[16]= round(device.det_limit,0)
 
 				report_alive()
 			if "humidity" in sys.argv:
