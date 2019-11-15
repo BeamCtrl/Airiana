@@ -91,7 +91,8 @@ class Request:
             self.response = "no data"
             self.buff += os.read(self.bus, 20)  # bus purge
             self.response = self.client.read_register(
-                                  address, decimals, signed=True)
+                address, decimals,
+                signed=True)
         except IOError:
             self.connect_errors += 1
             if self.connect_errors > 100:
