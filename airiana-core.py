@@ -910,6 +910,7 @@ class Systemair(object):
 
 		if numpy.average(self.extract_dt_list)*60 < 0.25	\
 			and self.shower==True 				\
+			and not self.RH_valid \
 			and self.shower_initial - time.time()<-60:
 			state = False
 			self.det_limit +=1
