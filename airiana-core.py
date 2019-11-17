@@ -1179,7 +1179,6 @@ class Systemair(object):
 		if self.extract_ave < self.target-1 		\
 			and self.exchanger_mode <> 5 		\
 			and not self.cool_mode :
-
 				self.cycle_exchanger(5)
 				self.modetoken=time.time()
 			        os.write(ferr, "1.Exchange set to 5. extract is less than target-1C "+str(time.ctime()) +"\n")
