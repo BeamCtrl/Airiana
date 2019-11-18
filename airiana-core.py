@@ -912,10 +912,9 @@ class Systemair(object):
 			and self.shower==True 				\
 			and not self.RH_valid \
 			and self.shower_initial - time.time()<-60:
-			state = False
-			self.det_limit +=1
 			if  self.RH_valid==False and self.extract_ave<=(self.initial_temp+0.3) or self.shower_initial -time.time() < -45*60:
 				state = True
+				state = False
 			if self.RH_valid and self.showerRH+5  > self.new_humidity or self.shower_initial - time.time() < -45*60:
 				if "debug" in sys.argv:
 					self.msg+= "RH after shower now OK\n"
@@ -925,10 +924,12 @@ class Systemair(object):
 			if state == True:
 				self.shower=False
 				self.shower_initial = 0
+				if self.shower_initial -time.time()<-120:
+	                            self.det_limit +=1
 				try:
 					os.write(ferr,"Leaving Shower mode "+str(time.ctime())+"\n")
 					self.msg ="Shower mode off, returning to "+str(self.speeds[self.initial_fanspeed]+"\n")
-				except KeyError: pass
+				except IOError: pass
 				if savecair:
 					req.write_register(1161,2)
 				else:
