@@ -6,7 +6,7 @@ import os, traceback, time, sys, signal
 from request import Request
 #from mail import *
 #############################
-vers = "9.v"
+vers = "9.w"
 Running =True
 savecair=False
 # Register cleanup
@@ -912,9 +912,9 @@ class Systemair(object):
 			and self.shower==True 				\
 			and not self.RH_valid \
 			and self.shower_initial - time.time()<-60:
+			state = False
 			if  self.RH_valid==False and self.extract_ave<=(self.initial_temp+0.3) or self.shower_initial -time.time() < -45*60:
 				state = True
-				state = False
 			if self.RH_valid and self.showerRH+5  > self.new_humidity or self.shower_initial - time.time() < -45*60:
 				if "debug" in sys.argv:
 					self.msg+= "RH after shower now OK\n"
