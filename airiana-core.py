@@ -1079,7 +1079,7 @@ class Systemair(object):
 	    def set_val(val):
 		try:
 			#self.msg += "\nwriting mode "+str(val)+"\n"
-                        req.write_register(206,val,functioncode=6)
+                        req.write_register(206,val)
 			return 1
 		except: return 0
 	    def get_val():
@@ -1099,13 +1099,15 @@ class Systemair(object):
 				#self.msg += "\nwrite error"
 				time.sleep(0.2)	#set summer mode
 				i+=1
-				if i>10: break
+				if i>10:
+					os.write(ferr,"Exchanger write failed\n")
 		else:
 			while set_val(5) == False:
 				#self.msg +="\nwrite error"
 				time.sleep(0.2)	#set winter mode
 				i+=1
-				if i>10: break
+				if i>10:
+					os.write(ferr,"Exchanger write failed\n")
 		self.modetoken=time.time()
 		self.inhibit= time.time()  # set inhibit time to prevent derivatives sensing when returning
 	    except:
