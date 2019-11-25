@@ -5,7 +5,7 @@ airdata_inst = airdata.Energy()
 extract = float(sys.argv[1])
 def get_humidity():
 		global airdata_inst,extract
-                day = 60*18
+                day = 60*22
                 templist = []
                 data = os.popen("tail -n "+str(int(day))+" ./RAM/data.log")
 		try:
@@ -39,5 +39,5 @@ def get_humidity():
 
 try:
 	get_humidity()
-except: print -1, -1
+except: print -60, -1
 ##############

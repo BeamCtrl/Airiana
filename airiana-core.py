@@ -6,7 +6,7 @@ import os, traceback, time, sys, signal
 from request import Request
 #from mail import *
 #############################
-vers = "9.x"
+vers = "9.z"
 Running =True
 savecair=False
 # Register cleanup
@@ -924,7 +924,7 @@ class Systemair(object):
 			if state == True:
 				self.shower=False
 				self.shower_initial = 0
-				if self.shower_initial -time.time()<-120:
+				if self.shower_initial -time.time()>-120:
 	                            self.det_limit +=1
 				try:
 					os.write(ferr,"Leaving Shower mode "+str(time.ctime())+"\n")
