@@ -1498,6 +1498,7 @@ class Systemair(object):
 
 			out = os.popen("./humid.py "+str(self.extract_ave)).readline()
 			tmp = out.split(" ")
+			wthr= [-1,-1]
 			try:
 				temp = float(tmp[1])
 			except:
