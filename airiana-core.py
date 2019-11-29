@@ -6,7 +6,7 @@ import os, traceback, time, sys, signal
 from request import Request
 #from mail import *
 #############################
-vers = "9.z"
+vers = "9.wg"
 Running =True
 savecair=False
 # Register cleanup
@@ -893,9 +893,9 @@ class Systemair(object):
 			except IndexError: pass
 		elif not self.shower and not self.RH_valid:
 			# SHOWER derivative CONTROLER
-			lim = 0.08
-			if self.ef >50: lim = 0.10
-			if self.extract_dt > lim +float(self.det_limit)/100 and self.inhibit == 0 and numpy.average(self.extract_dt_list)*60>1.60:
+			lim = 0.07
+			if self.ef >50: lim = 0.07
+			if self.extract_dt > lim + float(self.det_limit)/100 and self.inhibit == 0 and numpy.average(self.extract_dt_list)*60>1.40:
 				self.msg = "Shower mode engaged\n"
 				if self.shower==False:
 					self.shower = True
@@ -922,14 +922,14 @@ class Systemair(object):
 
 				state = True
 			if state == True:
-				self.shower=False
-				self.shower_initial = 0
 				if self.shower_initial -time.time()>-120:
 	                            self.det_limit +=1
 				try:
 					os.write(ferr,"Leaving Shower mode "+str(time.ctime())+"\n")
 					self.msg ="Shower mode off, returning to "+str(self.speeds[self.initial_fanspeed]+"\n")
 				except IOError: pass
+				self.shower=False
+				self.shower_initial = 0
 				if savecair:
 					req.write_register(1161,2)
 				else:
