@@ -902,7 +902,7 @@ class Systemair(object):
 					self.initial_temp = self.extract_ave
 					self.initial_fanspeed= self.fanspeed
 					self.set_fanspeed(3)
-					self.new_humidity += 15
+					self.new_humidity += 30
 					self.inhibit=time.time()
 					self.shower_initial=self.inhibit
 					self.status_field[0] += 1
@@ -1530,7 +1530,7 @@ class Systemair(object):
 				#self.prev_static_temp = self.inlet_ave+self.kinetic_compensation
 				self.kinetic_compensation = self.kinetic_compensation * 0.98
 			if "debug" in sys.argv:
-				self.msg += "Comp set to: " +str(round(comp,4))+" Calc RH%: "+str(self.local_humidity)+"% prev_static: " + str(self.prev_static_temp)+"C 24h-low: "+str(temp)+"C tomorrows low: "+wthr[0]+"c\n"
+				self.msg += "Comp set to: " +str(round(comp,4))+" Calc RH%: "+str(self.local_humidity)+"% prev_static: " + str(self.prev_static_temp)+"C 24h-low: "+str(temp)+"C tomorrows low: "+str(wthr[0])+"c\n"
 			if time.localtime().tm_hour == sun and time.localtime().tm_min < 5 or self.prev_static_temp == 8:
 				self.prev_static_temp = temp
 				self.kinetic_compensation = 0
