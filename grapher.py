@@ -37,6 +37,9 @@ supply_humid=[]
 outside = []
 cond_comp=[]
 inside_hum=[]
+moist_in=[]
+moist_out=[]
+humdiff=[]
 #data.pop(0)
 #print "Processing line: ",
 try:
@@ -68,14 +71,26 @@ try:
 		supply_humid.append(float(tmp[8]))
 		outside.append(float(tmp[9]))
 		cond_comp.append(float(tmp[10]))
-		inside_hum.append(float(tmp[11]))
+		try:
+			inside_hum.append(float(tmp[11]))
+		except IndexError:
+			inside_hum.append(0)
+		except ValueError:
+			inside_hum.append(0)
+		moist_in.append(float(tmp[12]))
+		moist_out.append(float(tmp[13]))
+		humdiff.append(float(tmp[14]))
+
 	    except IndexError as error:
-		inside_hum.append(0)
-		print error
+		moist_in.append(0)
+		moist_out.append(0)
+		humdiff.append(0)
+		pass #print error
 	    except ValueError as error:
+		moist_in.append(0)
+		moist_out.append(0)
+		humdiff.append(0)
 		print error
-		inside_hum.append(0)
-		pass#print tmp[0]
 	    except: traceback.print_exc() 	
 except:traceback.print_exc()
 red_hum = []
@@ -141,6 +156,27 @@ if "debug" in sys.argv or "hasRH" in sys.argv:
 	subplot(211)
 	lgd =legend(bbox_to_anchor=(0.5, -0.3), loc=0, ncol=2, mode="expand", borderaxespad=.0)
 
+if "moisture" in sys.argv:
+	s3=subplot(312)
+	s3.set_title("Moistures (Pa)")
+	plot(time,moist_in,'-',linewidth=1,label="Indoor H20 part.press")
+	plot(time,moist_out, '-', linewidth=1,label="Outdoor H20 part.press")
+	plot(time,humdiff, '-', linewidth=1,label="Differential H20 part.press")
+	subplots_adjust( hspace=1.75 )
+	ax = gca()
+	ax.set_ylim(round(min(humdiff),-2)-100, round(max(moist_in),-2)+100)
+	low,high = ax.get_ylim()
+	ax.yaxis.set_ticks(np.arange(low,high,200))
+	ax.set_xlim(min(time[-day:-1]),max(time[-day:-1]))
+
+	ax.xaxis.set_ticks(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600+1,4*3600))
+	ax.set_xticklabels(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600+1,4*3600))
+	ax.invert_xaxis()
+
+	#fig.canvas.draw()
+	#subplot(312)
+	lgd =legend(bbox_to_anchor=(0.5, -0.5), loc=1, ncol=2, mode="expand", borderaxespad=.0)
+
 #s2.set_position([0.1,0.8, 0.5, 0.5])
 labels = [item.get_text() for item in s1.get_xticklabels()]
 for i in range(len(labels)):
@@ -151,6 +187,9 @@ for i in range(len(labels)):
 	except:pass#print "label error"
 s1.set_xticklabels(labels)
 setp(s1.get_xticklabels(), rotation=45)
+grid(True)
+s3.set_xticklabels(labels)
+setp(s3.get_xticklabels(), rotation=45)
 
 if "debug" in sys.argv or "hasRH" in sys.argv:
 	subplot(212)

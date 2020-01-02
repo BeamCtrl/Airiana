@@ -202,7 +202,10 @@ def logger ():
 		+str(device.inside)		\
 		+":"				\
 		+str(round(numpy.average(device.cond_data),1))\
-		+":"+str(device.inside_humid)
+		+":"+str(device.inside_humid)\
+		+":"+str(device.moist_in)\
+		+":"+str(device.moist_out)\
+		+":"+str(device.humdiff)
 		fdo.write(cmd+"\n")
 		fdo.close()
 	except:traceback.print_exc()
@@ -317,6 +320,7 @@ class Systemair(object):
 		self.current_mode=0
 		self.extract_humidity=0.40 # relative humidity
 		self.extract_humidity_comp=0.00 # relative humidity re compensated
+		self.humdiff= 0
 		self.condensate_compensation =0
 		self.filter_remaining = 0
 		self.cond_eff = 1
@@ -366,6 +370,8 @@ class Systemair(object):
 		self.target = 22
 		self.energy_diff=0
 		self.new_humidity=40.0
+		self.moist_in = 0
+		self.moist_out = 0
 		self.div =0
 		self.set_system_name()
 		self.RH_valid = 0
@@ -824,6 +830,9 @@ class Systemair(object):
 	    self.status_field[1] = self.exchanger_mode
 
 	def moisture_calcs(self,data="None"):## calculate moisure/humidities
+		self.moist_in = 1000 * self.airdata_inst.sat_vapor_press(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave))
+		self.moist_out  = 1000 * self.airdata_inst.sat_vapor_press(self.airdata_inst.dew_point(self.local_humidity,self.extract_ave))
+		self.humdiff   = self.moist_in - self.moist_out
 		self.cond_eff=1.0 #  1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
 		######### SAT MOIST UPDATE ############
 		if self.energy_diff > 0 and self.rotor_active=="Yes":
@@ -990,10 +999,7 @@ class Systemair(object):
 				tmp += "Long dt: "+str(self.extract_dt_long)+"\n"
 				tmp += "Coef calculated: " + str(self.coef_new)+"\n"
 			except: pass
-			tmp += "diff. humidity partial pressure in-out: "+str(\
-					1000*(self.airdata_inst.sat_vapor_press(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave))\
-					- self.airdata_inst.sat_vapor_press(self.airdata_inst.dew_point(self.local_humidity,self.extract_ave)) \
-					))+"Pa\n"
+			tmp += "diff. humidity partial pressure in-out: "+str(self.humdiff)+"Pa\n"
 
 		if "humidity" in sys.argv:
 			tmp+= "Pressure limit: "+str(round(self.indoor_dewpoint,2))+"C\n"
@@ -1281,14 +1287,13 @@ class Systemair(object):
 				req.write_register(1406,90)
 
 	    #DYNAMIC FANSPEED CONTROL
-
 	    if self.fanspeed == 1 				\
 		and 	((self.extract_ave > self.target 	\
 		and 	self.extract_ave > self.target + 0.5 	\
 		and 	self.extract_ave - self.supply_ave>0.1 	\
 		and 	self.extract_dt_long >= 0.2)		\
 		and	self.RH_valid				\
-		or 	(numpy.average(self.hum_list)-self.local_humidity >7))\
+		or 	(self.humdiff > 400))			\
 		and not self.shower 				\
 		and not self.inhibit 				\
 		and not self.cool_mode:
@@ -1301,7 +1306,7 @@ class Systemair(object):
 		and self.extract_ave < self.target + 0.6 	\
 		and self.extract_ave - self.supply_ave > 0.1 	\
 		and (self.RH_valid				\
-			and numpy.average(self.hum_list)-self.local_humidity <5) 	\
+			and self.humdiff < 250)		 	\
 		and not self.shower 				\
 		and not self.inhibit 				\
 		and not self.cool_mode:
@@ -1703,7 +1708,7 @@ if __name__  ==  "__main__":
 			if "debug" in sys.argv:
 				os.system("echo \"563\" >./RAM/exec_tree")
 			device.update_airdata_instance()
-			if "debug" in sys.argv:os.system("nice ./grapher.py debug & >>/dev/null")
+			if "debug" in sys.argv:os.system("nice ./grapher.py debug moisture & >>/dev/null")
 			elif device.has_RH_sensor:
 				os.system("nice ./grapher.py hasRH & >> /dev/null")
 			else :

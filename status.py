@@ -2,6 +2,7 @@
 
 import os, time
 import mail
+import sys
 mailer = mail.Smtp()
 if  not os.path.lexists("/home/pi/airiana/RAM/status.html"):
 	os.system("touch /home/pi/airiana/RAM/status.html" )
@@ -20,11 +21,29 @@ def init():
 		mail_sent[each] = False
 init()
 os.chdir("/home/pi/airiana")
-os.system("./alive_logger.py &")
+#os.system("./alive_logger.py &")
 files = os.listdir("./public/local_links/")
 
 #for each in users.keys():
 #	print each, ": ",users[each]
+stat_dict = {}
+def analyse_stat(status,user):
+	if "debug" in sys.argv:
+		print "Analyze", status, users[user]
+	# Store Warnings in the stat_dict as {"user-MAC":{"alarmType":INT}}
+	# check if winter mode is on and exhaust is higher than supply
+	print status[1] == 5,status[14]>status[13],status[7]<15
+	if status[1]==5 and status[14]>status[13] and status[7]< 15:
+		print users[user], "Exchanger problem\n"
+		try:
+			stat_dict[user]={"ExchangerProblem":True}
+		except: print "there is en error in dictsetting"
+		print stat_dict[user]
+	# TODO: check exhaust is higher than extract while inlet is lower than extract
+
+	# TODO: 
+
+starttime = time.time()
 while True:
     try:
 		users_prev = users
@@ -63,23 +82,26 @@ while True:
 				content = os.popen("cat ./public/local_links/"+each).read()
 				content = content.replace("nan", " -1 ")
 				stat_field = content.split("status:")[-1]
+				user =str(each.split(".")[0])
 				try:
 					#print stat_field
 					if content.find("status")!=-1 :exec  ("lis ="+stat_field.split("\n")[0])
 					else: lis =[]
 				except:
 					lis=["data error"]
+				if int(time.time()-starttime)%1 == 0:
+					analyse_stat(lis,user)
 				#print status[str(each.split(".")[0])], each
 				if (time.time()-mod)/3600>status[str(each.split(".")[0])]:
 					status[str(each.split(".")[0])] = round((time.time()-mod)/3600,2)
 				status[str(each.split(".")[0])] =status[str(each.split(".")[0])]*0.99
 				if (time.time()-mod)/3600<3:
 					flag = "<font color=\"green\"> Alive </font>"
-					if  mail_sent[each.split(".")[0]]:
+					if  mail_sent[each.split(".")[0]] == True:
                                                 mail_sent[each.split(".")[0]] = False
                                                 mailer.setup ("daniel.halling@outlook.com","airiana@abiding.se","Airiana user: "+str(users[str(each.split(".")[0])])+" has checked in and is now alive.")
                                                 mailer.send()
-				else: 
+				else:
 					flag = "<font color=\"red\"> Inactive </font>"
 					if not mail_sent[each.split(".")[0]]:
 						mail_sent[each.split(".")[0]] = True
@@ -92,7 +114,12 @@ while True:
 					+each+"\">"+users[str(each.split(".")[0])]\
 					+"</a></td><td>"+time.ctime(mod)+"</td><td>"+flag\
 					+" "+str(round(status[str(each.split(".")[0])],2))+"</td><td> "\
-					+status_table+" </td></tr>\n"
+					+status_table
+				try:
+					html += " " +str(stat_dict[user])
+				except KeyError: pass
+				html += " </td></tr>\n"
+
 			except KeyError:
  				html += "<tr><td><a href=\"/local_links/"+each+"\">"+each+"</a></td><td>"+time.ctime(mod)+"</td><td>"+flag+" </td></tr>\n" 
 
@@ -102,5 +129,4 @@ while True:
 		file.close()
 		time.sleep(10)
     except KeyboardInterrupt: break 
-
 
