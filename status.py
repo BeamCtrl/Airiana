@@ -90,7 +90,9 @@ while True:
 				except:
 					lis=["data error"]
 				if int(time.time()-starttime)%1 == 0:
-					analyse_stat(lis,user)
+					try:
+						analyse_stat(lis,user)
+					except: print "analysis error"
 				#print status[str(each.split(".")[0])], each
 				if (time.time()-mod)/3600>status[str(each.split(".")[0])]:
 					status[str(each.split(".")[0])] = round((time.time()-mod)/3600,2)

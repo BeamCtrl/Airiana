@@ -188,8 +188,9 @@ for i in range(len(labels)):
 s1.set_xticklabels(labels)
 setp(s1.get_xticklabels(), rotation=45)
 grid(True)
-s3.set_xticklabels(labels)
-setp(s3.get_xticklabels(), rotation=45)
+if "moisture" in sys.argv:
+	s3.set_xticklabels(labels)
+	setp(s3.get_xticklabels(), rotation=45)
 
 if "debug" in sys.argv or "hasRH" in sys.argv:
 	subplot(212)

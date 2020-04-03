@@ -33,6 +33,9 @@ outside = []
 cond_comp=[]
 inside_hum=[]
 diff = []
+mdP =[]
+cdP =[]
+
 try:
 	#i=0
 	if len(sys.argv)>1:
@@ -79,6 +82,8 @@ try:
 		outside.append(float(tmp[9]))
 		cond_comp.append(float(tmp[10]))
 		inside_hum.append(int(tmp[11]))
+		cdP.append(float(tmp[13]))
+		mdP.append(float(tmp[12]))
 		x.append (calc_hum[-1])
 		y.append (supply_humid[-1])
 		diff.append (round(calc_hum[-1]-supply_humid[-1] ,3)) 
@@ -105,4 +110,13 @@ print "Calculated:"
 print "Mean:",ave,"Stddev:",stddev
 print "Correlation coeficient",stat.correlation(x,y)
 print "Z test", stat.z_test(x,y)
+print "Partial pressures"
+print "Measured:"
+ave, stddev = stat.stddev(mdP)
+print "Mean:",ave,"Stddev:",stddev
+ave, stddev = stat.stddev(cdP)
+print "Calculated:"
+print "Mean:",ave,"Stddev:",stddev
+print "Correlation coeficient",stat.correlation(mdP,cdP)
+print "Z test", stat.z_test(mdP,cdP)
 print "End: " + tm.ctime(float(-time[-1]+tm.time()))+"\n"
