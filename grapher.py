@@ -164,7 +164,7 @@ if "moisture" in sys.argv:
 	plot(time,humdiff, '-', linewidth=1,label="Differential H20 part.press")
 	subplots_adjust( hspace=1.75 )
 	ax = gca()
-	ax.set_ylim(round(min(humdiff),-2)-100, round(max(moist_in),-2)+100)
+	ax.set_ylim(round(min(humdiff),-2)-100, round(max(moist_in+moist_out),-2)+100)
 	low,high = ax.get_ylim()
 	ax.yaxis.set_ticks(np.arange(low,high,200))
 	ax.set_xlim(min(time[-day:-1]),max(time[-day:-1]))

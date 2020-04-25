@@ -19,16 +19,8 @@ os.system("apt-get update")
 #MAKE RAM DRIVE IN FSTAB#
 fstab_comment = "#temp filesystem only in RAM for use on Airiana tempfiles.\n"
 fstab_cmd = "tmpfs /home/pi/airiana/RAM tmpfs defaults,noatime,nosuid,mode=0755,size=50m 0 0\n"
-#########DEPRECATED#####
-#os.system("mkdir airiana")
-#os.chdir("./airiana")
-#os.system("mkdir RAM public systemfiles")
-#os.system("chmod 766 RAM public systemfiles")
-#os.system("wget -O update http://lappy.asuscomm.com:443/update")
-#os.system("chmod 755 update")
-#os.system("./update")
-########################
-
+# MAKE RAM DRIve for linux logs var/logs
+fstab_cmd += "tmpfs /var/log tmpfs defaults,noatime,mode=0755,size=75m 0 0/n" 
 # INSTALL DEPS#
 os.system("apt-get -y install python-matplotlib")
 os.system("pip install  minimalmodbus")

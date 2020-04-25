@@ -335,7 +335,7 @@ class Systemair(object):
 		self.msg = ""
 		self.inside =0
 		self.inside_humid=0
-		self.exchanger_mode=5
+		self.exchanger_mode=-1
 		self.rotor_state = 0
 		self.rotor_active = "Yes"
 		self.inhibit = time.time()
@@ -384,12 +384,18 @@ class Systemair(object):
 		self.heater = 0
 		self.exchanger_speed = 0
 		self.unit_comp =[]
-		self.coef_dict = {1:{},2:{},3:{}}
-		self.coef_test_bool = 0
+		self.coef_dict = {0:{},1:{},2:{},3:{}}
+		self.coef_test_bool = False
+		self.coef_inhibit = 0
 	def system_setup (self):
-		if os.path.isfile("coeficients.dat"):
-			self.coef_dict = pickle.load(open("coeficients.dat"))
 
+		if os.path.isfile("coeficients.dat"):
+			try:
+				self.coef_dict = pickle.load(open("coeficients.dat"))
+			except:
+				f = open("coeficients.dat",'w')
+				pickle.dump(self.coef_dict, f)
+				f.close()
 		if savecair:
 			req.write_register(1400,16)
 		 	req.write_register(1401,16)
@@ -464,29 +470,36 @@ class Systemair(object):
 
 	# calculate a new coef if fanspeed change renders high dt values  //UNused
 	def coef_debug(self):
-		if self.fanspeed == 3 and not self.coef_test_bool and self.inhibit and not self.shower and self.rotor_active == "Yes":
+		if self.fanspeed == 3 and not self.coef_test_bool and self.inhibit and not self.shower:
+			fd=open("coeficients.dat","a+")
+			self.coef_dict =pickle.load(fd)
 			self.coef_test_bool = True
 			self.coef_prev_temp = 0
 			for each in self.rawdata:
-				self.coef_prev_temp += float(each[3])/10
+				self.coef_prev_temp += float(each[1])/10
 			self.coef_prev_temp = self.coef_prev_temp /len(self.rawdata)
-			self.coef_prev_supply = self.supply_ave
+			self.coef_prev_inlet = self.inlet_ave
 		if (self.inhibit == 0 or self.fanspeed == 2) and self.coef_test_bool == True:
 			temp = 0
 			for each in self.rawdata:
-				temp += float(each[3])/10
+				temp += float(each[1])/10
 			temp = temp /len(self.rawdata)
-			temp_diff=(self.extract_ave-self.coef_prev_supply)
+			temp_diff=(float((self.rawdata[-1][1])/10)-self.coef_prev_inlet)
 			delta  =( self.coef_prev_temp - temp )
 			new_coef =delta / temp_diff
-			os.system("echo \"newCoef:"+str(new_coef)+"\nAmbientDiff:"+str(temp_diff)+"\n\" >> newCoef.txt")
-			os.system("echo \"delta:"+str(delta)+"\ntemp:"+str(temp)+" prev_tmp:"+str(self.coef_prev_temp)+"\n\" >> newCoef.txt")
-			if int (temp_diff) not in self.coef_dict[self.get_coef_mode()].keys():
+			os.system("echo \"newCoef:"+str(new_coef)+"\nAmbientDiff:"+str(temp_diff)+"\" >> newCoef.txt")
+			os.system("echo \"delta:"+str(delta)+" list:"+str(self.get_coef_mode())+"\ntemp:"+str(temp)+" prev_tmp:"+str(self.coef_prev_temp)+"\n\" >> newCoef.txt")
+			try:
+				keys =  self.coef_dict[self.get_coef_mode()].keys()
+			except KeyError:
+				keys = []
+			if int (temp_diff) not in keys:
 				self.coef_dict[self.get_coef_mode()][int(temp_diff)] = new_coef
 			else:
 				self.coef_dict[self.get_coef_mode()] [int(temp_diff)] += (new_coef - self.coef_dict[self.get_coef_mode()][int(temp_diff)]) * 0.1 # add 10% of diff from new coef to dict
 			pickle.dump(self.coef_dict, open("coeficients.dat","w"))
 			self.coef_test_bool = False
+			self.set_fanspeed(1)
 
 	#Get relative humidity from internal sensor, valid units in self.has_RH_sensor tuple
 	def get_RH (self):
@@ -571,7 +584,9 @@ class Systemair(object):
 		self.time.insert(0,time.time())
 		if len(self.time) > self.averagelimit: self.time.pop(-1)
 
-
+		# NEGATYIVE VAL sign bit twos complement
+		if req.response[4]>6000:
+			req.response[4] -= 0xFFFF
 		if req.response[2]>6000:
 			req.response[2] -=0xFFFF
 
@@ -579,13 +594,13 @@ class Systemair(object):
 		self.rawdata.insert(0,self.temps)
 		if len(self.rawdata)>self.averagelimit:self.rawdata.pop(-1)
 
-		# NEGATYIVE VAL sign bit twos complement
-		if req.response[4]>6000:
-			req.response[4] -= 0xFFFF
 
-		#req.response[1] #EXTRACTreq.BBresponse[2] #EXHAUST req.response[0] #Supply pre elec heater
-		#req.response[3] #Supply post electric heater req.response[4] Inlet
-		if self.system_name=="VR400":
+		#req.response[1] #EXTRACT
+		#req.response[2] #EXHAUST
+		#req.response[0] #Supply pre elec heater
+		#req.response[3] #Supply post electric heater
+		#req.response[4] Inlet
+		"""if self.system_name=="VR400":
 			if self.rotor_active == "No" and self.coef <> 0.10:
 				if self.coef-0.10>0:self.coef -= 0.0001
                         	else: self.coef += 0.0001
@@ -595,22 +610,23 @@ class Systemair(object):
 				else: self.coef += 0.0001
 				self.coef=round(self.coef,5)
 			self.dyn_coef = self.fanspeed * 2
-			"""if self.inhibit and self.extract_dt>0.1 and not self.shower:
+			if self.inhibit and self.extract_dt>0.1 and not self.shower:
 					self.dyn_coef +=0.1
 			if self.inhibit and self.extract_dt<-0.1 and not self.shower:
 					self.dyn_coef -=0.1
 			if abs(self.dyn_coef) > 10:
-				self.dyn_coef = self.dyn_coef/2"""
+				self.dyn_coef = self.dyn_coef/2
 			if self.sf <> 0:
 				self.tcomp= ((req.response[1]-req.response[4])*self.coef)-self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
 			else:
 				self.tcomp = 0
 			if self.rotor_active =="No"  and self.inlet_coef <0.14:self.inlet_coef+= 0.0001 #OFF
 			if self.rotor_active =="Yes" and self.inlet_coef >0.07:self.inlet_coef-= 0.0001 # ON
-
+		"""
 		#update [4] with inlet coef
 		req.response[4]  -= (req.response[1]-req.response[4])*self.inlet_coef #inlet compensation exchanger OFF/ON
 		#update [1] with tcomp, after calc of [4]
+		self.tcomp = 10 *  self.get_tcomp(float(req.response[1])/10, float(req.response[4])/10)
 		req.response[1] += self.tcomp
 
 		#DO CALC FOR REQ[2] exhaust temp expectancy for VR300 machines as they have no exhust temp sensor:
@@ -644,23 +660,15 @@ class Systemair(object):
 		supply = req.response
 		req.modbusregister(12101,1)
 		inlet = req.response
-		self.rawdata.insert(0,(0,inlet*10,supply*10,extract*10))
+		#req.response[1] #EXTRACT
+		#req.response[2] #EXHAUST
+		#req.response[0] #Supply pre elec heater
+		#req.response[3] #Supply post electric heater
+		#req.response[4] Inlet
+		self.rawdata.insert(0,(0,extract*10,0,supply*10,inlet*10))
 		if len(self.rawdata)>self.averagelimit:
 			self.rawdata.pop(-1)
-		try:
-			diff = extract - supply
-			dyn_coef =0
-			try:
-				dyn_coef = self.coef_dict[self.get_coef_mode()][int(diff)]
-			except KeyError: pass
-			if self.fanspeed == 3: dyn_coef = 0
-			if dyn_coef <> self.coef:
-				self.new_coef += 0.001 * (dyn_coef - self.new_coef)
-				if abs(dyn_coef-self.coef) < 0.0001:
-					self.coef=dyn_coef
-			self.tcomp = (diff) * -self.new_coef * float(1)/(self.fanspeed)   #self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
-		except ZeroDivisionError : pass
-
+		self.tcomp = self.get_tcomp(extract, inlet)
 		self.extract.insert(0,float(extract+self.tcomp))
 		## SUPPLY
 		self.supply.insert(0,float(supply))
@@ -686,6 +694,27 @@ class Systemair(object):
 		self.eff = 100
 	    self.eff_ave.insert(0,self.eff)
 	    if len(self.eff_ave) >self.averagelimit: self.eff_ave.pop(-1)
+
+	#Return the Tcomp temperature offset for extraction temps
+	def get_tcomp(self,extract, inlet):
+		tcomp = 0
+		try:
+			diff = extract - inlet
+			dyn_coef =0
+			try:
+				dyn_coef = self.coef_dict[self.get_coef_mode()][int(diff)]
+			except KeyError:
+				dyn_coef = numpy.average(self.coef_dict[self.get_coef_mode()].values())
+				if numpy.isnan(dyn_coef):
+					dyn_coef = 0
+			if dyn_coef <> self.new_coef and dyn_coef <> 0:
+				self.new_coef += 0.0005 * (dyn_coef - self.new_coef)
+				if abs(dyn_coef-self.new_coef) < 0.001:
+					self.new_coef=dyn_coef
+			if self.fanspeed == 3: self.new_coef = 0
+			tcomp = (diff) * -self.new_coef * float(1)/(self.fanspeed)   #self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
+		except ZeroDivisionError : pass
+		return tcomp
 
 	def flow_calcs(self):
 		extr_vol = self.ef
@@ -727,6 +756,7 @@ class Systemair(object):
 
 	def set_fanspeed(self,target):
 		self.inhibit = time.time()
+		self.coef_inhibit = time.time()
 		if target <> self.fanspeed:  # add one to bucket
 			self.status_field[0] += 1
 		#print actual,"->",target
@@ -865,7 +895,9 @@ class Systemair(object):
 		req.modbusregister(2140,0)
 		if req.response:
 			self.rotor_active = "Yes"
+			self.exchanger_mode = 5
                 else:
+			self.exchanger_mode = 0
 			self.rotor_active = "No"
 		self.rotor_state = 0
 		self.exchanger_speed = req.response
@@ -1010,12 +1042,14 @@ class Systemair(object):
 			tmp += "\nExtract: <b>"+str("%.2f" % self.extract_ave)+"C</b>\tExhaust: "+str("%.2f" % self.exhaust_ave)+"C\td_out: "+str(round(self.extract_ave,2)-round(self.exhaust_ave,2))+"C\n"
 			tmp += "Extract dT/dt: "+str(round(self.extract_dt,3))+"degC/min dT/dt: "+str(round(numpy.average(self.extract_dt_list)*60,3))+"degC/hr\n\n"
 			if "debug" in sys.argv:
-				tmp += "Tcomp:" + str(self.tcomp) + " at T1:"+str(self.rawdata[0][3])+" coef:"+str(round(self.coef,4))+" inlet coef:"+str(self.inlet_coef)+" dyn:"+str(self.new_coef)+"\n"
-				if not savecair:
-					tmp +="Extract:"+str(self.rawdata[0][3])+ "\tInlet:"+str(self.rawdata[0][1])+"\tExhaust:"+str(self.temps[2])+"\tSupply,pre:"+str(self.temps[0])+"\tSupply,post:"+str(self.temps[3])+"\n"
-				else:
-					tmp +="Extract:"+str(self.rawdata[0][3])+ "\tInlet:"+str(self.rawdata[0][1])+"\tSupply,post:"+str(self.rawdata[0][2])+"\n"
+				tmp += "Tcomp:" + str(self.tcomp) + " at T1:"+str(self.rawdata[0][1])+" coef:"+str(round(self.coef,4))+" inlet coef:"+str(self.inlet_coef)+" dyn:"+str(self.new_coef)+"\n"
+				tmp +="Extract:"+str(self.rawdata[0][1])+ "\tInlet:"+str(self.rawdata[0][4])+"\tExhaust:"+str(self.rawdata[0][2])+"\tSupply,pre:"+str(self.rawdata[0][0])+"\tSupply,post:"+str(self.rawdata[0][3])+"\n"
 		except:pass
+		#req.response[1] #EXTRACT
+		#req.response[2] #EXHAUST
+		#req.response[0] #Supply pre elec heater
+		#req.response[3] #Supply post electric heater
+		#req.response[4] Inlet
 		if not savecair:
 			tmp += "Exchanger Setting: "+str(self.exchanger_mode)+" State: "+self.rotor_states[self.rotor_state]+", Rotor Active: "+self.rotor_active+"\n"
 		else:
@@ -1031,7 +1065,7 @@ class Systemair(object):
 				if self.RH_valid:
 					tmp+= "Humidity d/dt:"+str(self.hum_list[0]-self.hum_list[-1])+"%\n"
 			if self.RH_valid:
-				tmp += "Relative humidity: "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave),2))+"C\n"
+				tmp += "Relative humidity: "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,float(self.rawdata[0][3])/10),2))+"C\n"
 		if "sensors" in sys.argv:
 				tmp += "Outdoor Sensor:\t "+str(self.sensor_temp)+"C "+str(self.sensor_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.sensor_humid,self.sensor_temp),2))+"C\n"
 				tmp += "Indoor Sensor:\t "+str(self.inside)+"C "+str(self.inside_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.inside_humid,self.inside),2))+"C\n"
@@ -1040,7 +1074,7 @@ class Systemair(object):
 				tmp += "Fanspeed level: "+str(self.fanspeed)+"\n"
 				tmp += "Long dt: "+str(self.extract_dt_long)+"\n"
 				tmp += "Current Coef: "+ str(self.get_coef_mode()) + str(self.coef_dict[self.get_coef_mode()])+"\n"
-				tmp += "In Test: " + str(self.coef_test_bool)+"\n"
+				tmp += "In Test: " + str(self.coef_test_bool)+" "+str(time.ctime(self.coef_inhibit+3600))+"\n"
 
 			except: pass
 			tmp += "diff. humidity partial pressure in-out: "+str(self.humdiff)+"Pa\n"
@@ -1186,6 +1220,7 @@ class Systemair(object):
 			else:
 				req.write_register(2000,120)
 				self.exchanger_mode = 0
+	  self.coef_inhibit = time.time()  # set inhibit time to prevent derivatives sensing when returning
 
 	#clear flags as timeouts occur
 	def check_flags(self):
@@ -1195,6 +1230,7 @@ class Systemair(object):
 	    if self.inhibit < now-(60*10):self.inhibit = 0
     	    if self.modetoken < now-(60*60): self.modetoken=0
 	    if self.press_inhibit < now-(60*30):self.press_inhibit = 0
+	    if self.coef_inhibit < now-(60*60):self.coef_inhibit = 0
 	    if self.flowOffset[1]-time.time() < -3600 \
 				and self.flowOffset[0]>0 \
 				and numpy.average(self.hum_list)-self.local_humidity <7:
@@ -1205,8 +1241,12 @@ class Systemair(object):
 	def monitor(self):
 	  if "VTR400" in self.system_name :
 	    #### FAN RPM MONITORING
-	    if self.sf_rpm <1550 and self.fanspeed == 2 : self.inhibit = time.time()
-	    if self.sf_rpm <1000 and self.fanspeed == 1 : self.inhibit = time.time()
+	    if self.sf_rpm <1550 and self.fanspeed == 2 :
+		self.inhibit = time.time()
+		self.coef_inhibit = time.time()
+	    if self.sf_rpm <1000 and self.fanspeed == 1 : 
+		self.coef_inhibit = time.time()
+		self.inhibit = time.time()
 	  if True:
 	    #### EXCHANGER CONTROL
 	    self.house_heat_limit = 7  # daily low limit on cooling
@@ -1505,6 +1545,7 @@ class Systemair(object):
                 req.write_register(105,target) # nominal extract flow
 
                 if req.response == target:
+                        self.coef_inhibit = time.time()
                         self.press_inhibit = time.time()
                 if "debug" in sys.argv: self.msg += "change completed\n"
 		self.update_airflow()
@@ -1612,10 +1653,12 @@ class Systemair(object):
 	def check_coef (self):
 		""" CHECK IF COEF IS AVAILIBLE AND IF NOT in inhibit and current fans are at 1 ,
 			 run a set of max speed fans to generate new coef data"""
-		try: self.coef_dict[int(self.get_coef_mode())][int(self.extract_ave-self.supply_ave)]
+		try: self.coef_dict[int(self.get_coef_mode())][int(self.extract_ave-self.inlet_ave)]
 		except KeyError:
-			if self.get_fanspeed() == 1 and not self.inhibit:
+			if self.get_fanspeed() == 1 and not self.inhibit and not self.coef_inhibit and self.monitor:
+				os.write(ferr, "Starting coefAI test @  "+str(int(self.extract_ave-self.supply_ave))+"C "+str(time.ctime())+"\n")
 				self.set_fanspeed(3)
+				self.coef_debug()
 ## Init base class ##
 if __name__  ==  "__main__":
 	print "Reporting system start;"
@@ -1737,6 +1780,7 @@ if __name__  ==  "__main__":
 			if "debug" in sys.argv:
 				update_sensors()
 				device.get_temp_status()
+			if device.coef_test_bool: 
 				device.coef_debug()
 			device.check_flow_offset()
 			if "daemon" in sys.argv :device.print_xchanger() # PRint to screen
@@ -1826,7 +1870,7 @@ if __name__  ==  "__main__":
 					sender = sock[1]
 				except: pass
 				try:
-					device.msg += "Network command recieved: Processing... "+str(data)+"\n"
+					device.msg += "\nNetwork command recieved: Processing... "+str(data)+"\n"
 					log = "echo \"" + str(time.ctime()) +":" +str(sender) +":" +str(data) +"\" >> netlog.log &"
 					os.write(ferr,log+'\n')
 					os.system(log)
@@ -1849,6 +1893,7 @@ if __name__  ==  "__main__":
 					monitoring = not monitoring # Toggle monitoring on / off
 					device.inhibit = 0
 					device.press_inhibit = 0
+					device.coef_inhibit = 0
 					device.modetoken = 0
 					device.shower_mode = 0
 				if data == 2:
@@ -1930,6 +1975,7 @@ if __name__  ==  "__main__":
 					device.msg += "Fanspeed to Norm\n"
 				if data == 99:
 					device.set_fanspeed(3)
+					device.coef_debug()
 					device.msg += "fanspeed to High\n"
 
 				if data == 11:
