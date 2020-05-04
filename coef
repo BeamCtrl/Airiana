@@ -1,0 +1,43 @@
+#!/usr/bin/python
+import pickle
+import sys
+import numpy
+try:
+	a= pickle.load(open("coeficients.dat"))
+except:
+	a= {0:{},1:{},2:{},3:{}}
+try:
+	if "-r" in sys.argv:
+		a[int(sys.argv[-2])].pop(int(sys.argv[-1]))
+	if "-i" in sys.argv:
+		a[int(sys.argv[-3])][int(sys.argv[-2])] = float(sys.argv[-1])
+except KeyError:
+	a[int(sys.argv[-3])] = {}
+print "temp:\t\t0:\t\t1:\t\t2:\t\t3:"
+max_index = numpy.nan
+min_index = numpy.nan
+for each in (a[0],a[1],a[2],a[3]):
+	try:
+		tmp= each.keys()
+		tmp.append (max_index)
+		tmp.append (min_index)
+		max_index = max(tmp)
+		min_index = min(tmp)
+	except :pass
+for i in range(min_index,max_index+1):
+	try:
+		print i,"C\t\t", round(float(a[0][i]),2)," \t\t",
+	except: print "\t\t",
+	try:
+		print round(float(a[1][i]),2),"\t\t",
+	except: print "\t\t",
+	try:
+		print round(float(a[2][i]),2),"\t\t",
+	except: print "\t\t",
+	try:
+		print round(float(a[3][i]),2),"\t\t"
+	except: print "\t\t"
+
+#WRITE TO FILE
+if "-r" in sys.argv or  "-i" in sys.argv:
+	pickle.dump(a,open("coeficients.dat","w"))

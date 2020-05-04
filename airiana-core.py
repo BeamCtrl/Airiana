@@ -388,11 +388,12 @@ class Systemair(object):
 		self.coef_test_bool = False
 		self.coef_inhibit = 0
 	def system_setup (self):
-
-		if os.path.isfile("coeficients.dat"):
-			try:
+		try:
+			if os.path.isfile("coeficients.dat"):
 				self.coef_dict = pickle.load(open("coeficients.dat"))
-			except:
+			else: 
+				raise IOError
+		except:
 				f = open("coeficients.dat",'w')
 				pickle.dump(self.coef_dict, f)
 				f.close()
@@ -715,6 +716,8 @@ class Systemair(object):
 			if self.fanspeed == 3: self.new_coef = 0
 			tcomp = (diff) * -self.new_coef * float(1)/(self.fanspeed)   #self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
 		except ZeroDivisionError : pass
+		if numpy.isnan(tcomp):
+			return 0
 		return tcomp
 
 	def flow_calcs(self):
@@ -970,7 +973,8 @@ class Systemair(object):
 					if self.RH_valid:
 						self.showerRH = self.hum_list[-1]
                                         self.inhibit=time.time()
-                                        self.shower_initial=self.inhibit
+        				self.coef_inhibit=time.time()
+                                	self.shower_initial=self.inhibit
 					self.msg = "Shower mode engaged\n"
 					os.write(ferr,"Engaged Shower mode "+str(time.ctime())+"\n")
 					self.status_field[0] += 1
@@ -988,6 +992,7 @@ class Systemair(object):
 					self.set_fanspeed(3)
 					self.new_humidity += 30
 					self.inhibit=time.time()
+					self.coef_inhibit=time.time()
 					self.shower_initial=self.inhibit
 					self.status_field[0] += 1
 					os.write(ferr,"Engaged Shower mode "+str(time.ctime())+"\n")
