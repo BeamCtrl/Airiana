@@ -462,7 +462,7 @@ class Systemair(object):
 	#get the coef mode, for dict matching
 	def get_coef_mode (self):
 		mode = 0
-		if self.exchanger_mode == 5:
+		if self.exchanger_mode == 5 and self.exchanger_speed == 100:
 			mode += 1
 		if self.sf <> self.ef:
 			mode += 2
@@ -702,7 +702,8 @@ class Systemair(object):
 			diff = extract - inlet
 			dyn_coef =0
 			try:
-				dyn_coef = self.coef_dict[self.get_coef_mode()][int(diff)]
+				#dyn_coef = self.coef_dict[self.get_coef_mode()][int(diff)]
+				dyn_coef = numpy.median(self.coef_dict[self.get_coef_mode()].values())
 			except KeyError:
 				dyn_coef = numpy.average(self.coef_dict[self.get_coef_mode()].values())
 				if numpy.isnan(dyn_coef):
@@ -1065,7 +1066,7 @@ class Systemair(object):
 				if self.RH_valid:
 					tmp+= "Humidity d/dt:"+str(self.hum_list[0]-self.hum_list[-1])+"%\n"
 			if self.RH_valid:
-				tmp += "Relative humidity: "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,float(self.rawdata[0][3])/10),2))+"C\n"
+				tmp += "Relative humidity: "+ str(round (self.new_humidity,2))+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.new_humidity,float(self.rawdata[0][1])/10),2))+"C\n"
 		if "sensors" in sys.argv:
 				tmp += "Outdoor Sensor:\t "+str(self.sensor_temp)+"C "+str(self.sensor_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.sensor_humid,self.sensor_temp),2))+"C\n"
 				tmp += "Indoor Sensor:\t "+str(self.inside)+"C "+str(self.inside_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.inside_humid,self.inside),2))+"C\n"
@@ -1498,6 +1499,7 @@ class Systemair(object):
 	#set the fan pressure diff
 	def set_differential(self, percent):
 	    os.write(ferr, "Pressure difference set to:  "+str(percent)+"% "+str(time.ctime()) +"\n")
+            self.coef_inhibit = time.time()
 	    self.pressure_diff  = percent
 	    if not savecair and not self.shower:
 		if "debug" in sys.argv: self.msg += "start pressure change " +str( percent)+"\n"
@@ -1545,7 +1547,6 @@ class Systemair(object):
                 req.write_register(105,target) # nominal extract flow
 
                 if req.response == target:
-                        self.coef_inhibit = time.time()
                         self.press_inhibit = time.time()
                 if "debug" in sys.argv: self.msg += "change completed\n"
 		self.update_airflow()
@@ -1656,7 +1657,7 @@ class Systemair(object):
 		try: self.coef_dict[int(self.get_coef_mode())][int(self.extract_ave-self.inlet_ave)]
 		except KeyError:
 			if self.get_fanspeed() == 1 and not self.inhibit and not self.coef_inhibit and self.monitor:
-				os.write(ferr, "Starting coefAI test @  "+str(int(self.extract_ave-self.supply_ave))+"C "+str(time.ctime())+"\n")
+				os.write(ferr, "Starting coefAI test @  "+str(int(self.extract_ave-self.inlet_ave))+"C "+str(time.ctime())+"\n")
 				self.set_fanspeed(3)
 				self.coef_debug()
 ## Init base class ##
