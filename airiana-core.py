@@ -472,7 +472,7 @@ class Systemair(object):
 	# calculate a new coef if fanspeed change renders high dt values  //UNused
 	def coef_debug(self):
 		if self.fanspeed == 3 and not self.coef_test_bool and self.inhibit and not self.shower:
-			self.pressure_inhibit = time.time()
+			self.press_inhibit = time.time()
 			self.modetoken = time.time()-3000
 			fd=open("coeficients.dat","a+")
 			self.coef_dict =pickle.load(fd)
