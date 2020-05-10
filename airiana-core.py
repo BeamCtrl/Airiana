@@ -895,7 +895,9 @@ class Systemair(object):
 	        self.exchanger_mode= req.response
 		req.modbusregisters(350,2)
                 self.rotor_state = req.response[0]
-                if req.response[1]:self.rotor_active = "Yes"
+                if req.response[1]:
+			self.rotor_active = "Yes"
+			self.exchanger_speed= 100
                 else: self.rotor_active = "No"
 	    else:
 		req.modbusregister(2140,0)
