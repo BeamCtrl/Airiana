@@ -1083,8 +1083,9 @@ class Systemair(object):
 			try:
 				tmp += "Fanspeed level: "+str(self.fanspeed)+"\n"
 				tmp += "Long dt: "+str(self.extract_dt_long)+"\n"
-				tmp += "Current Coef: "+ str(self.get_coef_mode()) + str(self.coef_dict[self.get_coef_mode()])+"\n"
-				tmp += "In Test: " + str(self.coef_test_bool)+" "+str(time.ctime(self.coef_inhibit+3600))+"\n"
+				#tmp += "Current Coef: "+ str(self.get_coef_mode()) + str(self.coef_dict[self.get_coef_mode()])+"\n"
+				if self.coef_inhibit:
+					tmp += "In Test:"+str(time.ctime(self.coef_inhibit+3600))+"\n"
 
 			except: pass
 			tmp += "diff. humidity partial pressure in-out: "+str(self.humdiff)+"Pa\n"
@@ -1381,96 +1382,68 @@ class Systemair(object):
 				req.write_register(1406,90)
 
 	    #DYNAMIC FANSPEED CONTROL
-	    if self.fanspeed == 1 				\
-		and 	((self.extract_ave > self.target 	\
-		and 	self.extract_ave > self.target + 0.5 	\
-		and 	self.extract_ave - self.supply_ave>0.1 	\
-		and 	self.extract_dt_long >= 0.2)		\
-		and	self.RH_valid				\
-		or 	(self.humdiff > 400))			\
-		and not self.shower 				\
-		and not self.inhibit 				\
-		and not self.cool_mode:
-		 	self.set_fanspeed(2)
-		 	self.msg += "Dynamic fanspeed 2\n"
-		        os.write(ferr, "Dynamic fanspeed 2 with RH "+str(time.ctime()) +"\n")
-			self.flowOffset = [self.flowOffset[0]+5,time.time()]
+	    if not self.inhibit and not self.shower and not self.cool_mode:
+		#dynamic with RHsensor
+		if self.RH_valid:
+		    if self.fanspeed == 1 					\
+			and 	(self.extract_ave > self.target 		\
+			    and 	self.extract_ave > self.target + 0.6 	\
+			    and 	self.extract_ave - self.supply_ave>0.1 	\
+			    and 	self.extract_dt_long >= 0.2)		\
+			or 	self.humdiff > 400:			
+			 	self.set_fanspeed(2)
+			 	self.msg += "Dynamic fanspeed 2\n"
+				os.write(ferr, "Dynamic fanspeed 2 with RH "+str(time.ctime()) +"\n")
+				self.flowOffset = [self.flowOffset[0]+5,time.time()]
 
-	    if self.fanspeed == 2 				\
-		and self.extract_ave < self.target + 0.6 	\
-		and self.extract_ave - self.supply_ave > 0.1 	\
-		and (self.RH_valid				\
-			and self.humdiff < 250)		 	\
-		and not self.shower 				\
-		and not self.inhibit 				\
-		and not self.cool_mode:
-		 	self.set_fanspeed(1)
-		 	self.msg += "Dynamic fanspeed 1, Air quality Good\n"
-		        os.write(ferr, "Dynamic fanspeed 1 with RH "+str(time.ctime()) +"\n")
-	    #dynamic2 without Rhsensor
-	    if self.fanspeed == 2 				\
-		and self.extract_ave < self.target + 0.5 	\
-		and self.extract_ave - self.supply_ave > 0.1 	\
-		and not self.RH_valid				\
-		and not self.shower 				\
-		and not self.inhibit 				\
-		and not self.cool_mode:
-		 	self.set_fanspeed(1)
-		 	self.msg += "Dynamic fanspeed 1\n"
-		        os.write(ferr, "Dynamic fanspeed 1 without RH "+str(time.ctime()) +"\n")
+		    if self.fanspeed == 2 					\
+			and (self.extract_ave < self.target + 0.5 		\
+			    and self.extract_ave - self.supply_ave > 0.1 	\
+			    and self.humdiff < 400) 				\
+			or self.humdiff < 250:		 	
+				self.set_fanspeed(1)
+				self.msg += "Dynamic fanspeed 1, Air quality Good\n"
+				os.write(ferr, "Dynamic fanspeed 1 with RH "+str(time.ctime()) +"\n")
+		#dynamic without Rhsensor
+		else:			 
+			if self.fanspeed == 2 				\
+			and self.extract_ave < self.target + 0.5 	\
+			and self.extract_ave - self.supply_ave > 0.1:
+			 	self.set_fanspeed(1)
+			 	self.msg += "Dynamic fanspeed 1\n"
+				os.write(ferr, "Dynamic fanspeed 1 without RH "+str(time.ctime()) +"\n")
 
-	    if self.fanspeed <> 3 							\
+			if self.fanspeed == 1				 \
+			and (self.extract_ave > self.target + 0.6 	 \
+			    and self.extract_ave - self.supply_ave > 0.1):
+					self.set_fanspeed(2)
+					self.msg += "Dynamic fanspeed 2\n"
+					os.write(ferr, "Dynamic fanspeed 2 extr > target +0.5C without RH"+str(time.ctime()) +"\n")
+	        # dynamic 3 if temp is climbing and exchanger is off, and extract is above target +1.2C
+		if self.fanspeed <> 3 							\
 		and self.extract_ave-0.1 > self.supply_ave 				\
 		and (self.extract_ave >= self.target+1.2				\
-			or (self.extract_dt_long >=0.7) and self.inlet_ave > 5 )	\
+			or (self.extract_dt_long >=0.7 and self.inlet_ave > 5 ))	\
 		and self.exchanger_mode <> 5 						\
-		and not self.extract_dt_long < -0.2 					\
-		and not self.inhibit 							\
-		and not self.cool_mode 							\
-		and not self.shower:
+		and not self.extract_dt_long < -0.2:
 			self.set_fanspeed(3)
 			self.msg += "Dynamic fanspeed 3\n"
-		        os.write(ferr, "Dynamic fanspeed 3 target+1.2C or dt long > 0.7C/h ("+str(self.extract_dt_long)+") "+str(time.ctime()) +"\n")
+			os.write(ferr, "Dynamic fanspeed 3 target+1.2C or dt long > 0.7C/h ("+str(self.extract_dt_long)+") "+str(time.ctime()) +"\n")
 
-	    if self.fanspeed <> 1				\
-		and ((self.extract_ave < self.target		\
-		and not self.inhibit				\
-		and not self.cool_mode	 			\
-		and not self.shower				\
-		and not self.RH_valid)				\
-		or (self.extract_ave < self.target + 0.5 	\
-		and self.extract_dt_long < -0.5		 	\
-		and not self.inhibit				\
-		and not self.RH_valid				\
-		and not self.cool_mode				\
-		and not self.shower)) :
-			self.set_fanspeed(1)
-			self.msg += "Dynamic fanspeed 1\n"
-		        os.write(ferr, "Dynamic fanspeed 1 extr < target "+str(time.ctime()) +"\n")
-
-	    if self.extract_ave < self.supply_ave 	\
-		and self.fanspeed <> 1 			\
-		and not self.cool_mode	 		\
-		and not self.inhibit			\
-		and not self.shower:
+	    
+	    	if self.extract_ave < self.supply_ave and self.fanspeed <> 1: 			
 			self.set_fanspeed(1)
 			self.msg += "Dynamic fanspeed, recover cool air\n"
-		        os.write(ferr, "Dynamic fanspeed 1 recover cool air "+str(time.ctime()) +"\n"+str(self.extract_ave)+' '+str(self.supply_ave)+'\n')
+			os.write(ferr, "Dynamic fanspeed 1 recover cool air "+str(time.ctime()) +"\n"+str(self.extract_ave)+' '+str(self.supply_ave)+'\n')
 
-	    if (self.fanspeed== 3			\
- 		and self.extract_ave < self.target + 0.8 	\
-		and not self.extract_dt_long > 0.7
-		and not self.shower			\
-		and not self.inhibit			\
-		and not self.cool_mode)		 	\
-		or  (self.supply_ave < 12		\
-		and self.extract_dt_long < -0.5 	\
-		and not self.cool_mode 			\
-		and not self.inhibit 			\
-		and not self.shower):
+	    	if (self.fanspeed== 3				\
+ 		    and self.extract_ave < self.target + 0.8 	\
+		    and not self.extract_dt_long > 0.7)		\
+		or  (self.supply_ave < 12			\
+		    and self.extract_dt_long < -0.5):
 			self.set_fanspeed(2)
 			self.msg  +="Dynamic fanspeed 2 with long dt\n"
-		        os.write(ferr, "Dynamic fanspeed 2 with long dt "+str(time.ctime()) +"\n")
+			os.write(ferr, "Dynamic fanspeed 2 with long dt "+str(time.ctime()) +"\n")
 
 
 	    #Dynamic pressure control
