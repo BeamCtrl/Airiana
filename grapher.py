@@ -129,8 +129,8 @@ ax.set_ylim(int(min(inlet))-1, int(max(extract+inlet+exhaust+supply+outside))+2)
 low, high = ax.get_ylim()
 ax.yaxis.set_ticks(np.arange(int(low),int(high+1),1))
 ax.set_xlim(min(time[-day:-1]),max(time[-day:-1]))
-ax.xaxis.set_ticks(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,4*3600))
-ax.set_xticklabels(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,4*3600))
+ax.xaxis.set_ticks(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,day/24*4))
+ax.set_xticklabels(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,day/24*4))
 ax.invert_xaxis()
 if "debug" in sys.argv or "hasRH" in sys.argv:
 	s2=subplot(212)
@@ -150,8 +150,10 @@ if "debug" in sys.argv or "hasRH" in sys.argv:
 	ax.yaxis.set_ticks(np.arange(low,high,10))
 	ax.set_xlim(min(time[-day:-1]),max(time[-day:-1]))
 
-	ax.xaxis.set_ticks(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600+1,4*3600))
-	ax.set_xticklabels(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600+1,4*3600))
+	ax.xaxis.set_ticks(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,day/24*4))
+	ax.set_xticklabels(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,day/24*4))
+	#ax.xaxis.set_ticks(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600+1,4*3600))
+	#ax.set_xticklabels(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600+1,4*3600))
 	#fig.canvas.draw()
 	subplot(211)
 	lgd =legend(bbox_to_anchor=(0.5, -0.3), loc=0, ncol=2, mode="expand", borderaxespad=.0)
@@ -168,9 +170,12 @@ if "moisture" in sys.argv:
 	low,high = ax.get_ylim()
 	ax.yaxis.set_ticks(np.arange(low,high,200))
 	ax.set_xlim(min(time[-day:-1]),max(time[-day:-1]))
+	
+	ax.xaxis.set_ticks(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,day/24*4))
+	ax.set_xticklabels(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,day/24*4))
 
-	ax.xaxis.set_ticks(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600+1,4*3600))
-	ax.set_xticklabels(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600+1,4*3600))
+	#ax.xaxis.set_ticks(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600+1,4*3600))
+	#ax.set_xticklabels(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600+1,4*3600))
 	ax.invert_xaxis()
 
 	#fig.canvas.draw()

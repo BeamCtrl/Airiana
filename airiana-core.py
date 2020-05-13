@@ -1399,8 +1399,8 @@ class Systemair(object):
 		    if self.fanspeed == 2 					\
 			and (self.extract_ave < self.target + 0.5 		\
 			    and self.extract_ave - self.supply_ave > 0.1 	\
-			    and self.humdiff < 400) 				\
-			or self.humdiff < 250:		 	
+			    and self.humdiff < 400 				\
+			or self.humdiff < 250):
 				self.set_fanspeed(1)
 				self.msg += "Dynamic fanspeed 1, Air quality Good\n"
 				os.write(ferr, "Dynamic fanspeed 1 with RH "+str(time.ctime()) +"\n")
