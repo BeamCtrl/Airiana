@@ -24,7 +24,6 @@ else:
 	fil = os.popen("tail -n "+str(day/5)+" ./RAM/data.log")
 	data = fil.readlines()
 
-#print data[-1], tm.time()
 sen_hum = []
 sen_temp = []
 extract =[]
@@ -106,11 +105,9 @@ for each in calc_hum:
 		except:pass
 		#print len(red_time) ,len(red_hum), i
 			
-
-#fig, ax = subplots()
-#print fig.properties()
+#create figure
 fig=figure(1,figsize=(7,15),dpi=100)
-
+#add subplot 211 Temps to figure
 s1=subplot(211)
 s1.set_title("Temperatures")
 plot(time[-day:-1],extract[-day:-1], '-', linewidth=1,label="extract temperature")
@@ -132,6 +129,7 @@ ax.set_xticklabels(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,day/24*4))
 ax.invert_xaxis()
 lgd = legend(bbox_to_anchor=(0.5, -0.3), loc=1, ncol=2, mode="expand", borderaxespad=.0)
 
+#add subplot 212 humidity to figure
 if "debug" in sys.argv or "hasRH" in sys.argv:
 	s2=subplot(212)
 	s2.set_title("Humidity")
@@ -152,10 +150,9 @@ if "debug" in sys.argv or "hasRH" in sys.argv:
 	ax.xaxis.set_ticks(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,day/24*4))
 	ax.set_xticklabels(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,day/24*4))
 	ax.invert_xaxis()
-	#ax3 = subplot(211)
-	ax3 = gca()
 	lgd =legend(bbox_to_anchor=(0.5, -0.3), loc=2, ncol=2, mode="expand", borderaxespad=.0)
 
+# add subplot 213 moisture to figure
 if "moisture" in sys.argv:
 	s3=subplot(312)
 	grid(True)
@@ -181,21 +178,22 @@ for i in range(len(labels)):
         	if not tm.localtime().tm_isdst: labels[i]=tm.strftime("%H:%M - %a",tm.gmtime(tm.time() -(float(labels[i]))-(tm.altzone)-3600))
         	else:labels[i]=tm.strftime("%d/%m %H:%M",tm.gmtime(tm.time() -(float(labels[i]))-(tm.altzone)))
 	except:pass#print "label error"
+#TEMPS
 s1.set_xticklabels(labels)
 setp(s1.get_xticklabels(), rotation=45)
-
+#Humidities
 if "debug" in sys.argv or "hasRH" in sys.argv:
 	s2.set_xticklabels(labels)
 	setp(s2.get_xticklabels(), rotation=45)
-
+#Partial Pressures
 if "moisture" in sys.argv:
 	s3.set_xticklabels(labels)
 	setp(s3.get_xticklabels(), rotation=45)
 
-
 grid(True)
-
+#move to the right
 fig.subplots_adjust(right=0.90)
-
+#draw the image
 fig.canvas.draw()
+#save to file
 savefig("./RAM/history.png",bbox_extra_artists=(lgd,),bbox_inches='tight')
