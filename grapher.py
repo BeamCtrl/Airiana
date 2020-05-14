@@ -113,12 +113,12 @@ fig=figure(1,figsize=(7,15),dpi=100)
 
 s1=subplot(211)
 s1.set_title("Temperatures")
-if "debug" in sys.argv: plot(time[-day:-1],sen_temp[-day:-1], '-', linewidth=1,label="outdoor sensor temperature")
 plot(time[-day:-1],extract[-day:-1], '-', linewidth=1,label="extract temperature")
 plot(time[-day:-1],inlet[-day:-1], '-', linewidth=1,label="inlet temperature")
 plot(time[-day:-1],exhaust[-day:-1], '-', linewidth=1,label="exhaust temperature")
 plot(time[-day:-1],supply[-day:-1],'-',linewidth=1,label="supply temperature")
 if "debug" in sys.argv:
+	plot(time[-day:-1],sen_temp[-day:-1], '-', linewidth=1,label="outdoor sensor temperature")
 	plot(time[-day:-1],outside[-day:-1],'-',linewidth=1,label="indoor sensor temperature")
 	#axhline( y=float(os.popen("./humid.py 0").read().split(" ")[-1]) )
 	ob=axhline( y=float(os.popen("cat RAM/latest_static").read()) )
@@ -135,13 +135,13 @@ ax.invert_xaxis()
 if "debug" in sys.argv or "hasRH" in sys.argv:
 	s2=subplot(212)
 	s2.set_title("Humidity")
+	grid(True)
+	plot(red_time[-day:-1],red_hum[-day:-1],'-',linewidth=1,label="Relative humidity")
+	plot(time[-day:-1],supply_humid[-day:-1],'-',linewidth=1,label="Calculated outside humidity")
 	if "debug" in sys.argv:
 		plot(time,cond_comp,'-',linewidth=1,label="Condensation power")
 		plot(time,inside_hum, '-', linewidth=1,label="Inside sensor humidity")
-	if "debug" in sys.argv:
-			plot(time[-day:-1],sen_hum[-day:-1], '-', linewidth=1,label="Outdoor sensor humidity")
-	plot(red_time[-day:-1],red_hum[-day:-1],'-',linewidth=1,label="Relative humidity")
-	plot(time[-day:-1],supply_humid[-day:-1],'-',linewidth=1,label="Calculated outside humidity")
+		plot(time[-day:-1],sen_hum[-day:-1], '-', linewidth=1,label="Outdoor sensor humidity")
 	
 	subplots_adjust( hspace=0.75 )
 	ax = gca()
@@ -152,14 +152,13 @@ if "debug" in sys.argv or "hasRH" in sys.argv:
 
 	ax.xaxis.set_ticks(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,day/24*4))
 	ax.set_xticklabels(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,day/24*4))
-	#ax.xaxis.set_ticks(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600+1,4*3600))
-	#ax.set_xticklabels(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600+1,4*3600))
-	#fig.canvas.draw()
-	subplot(211)
+	#ax3 = subplot(211)
+	ax3 = gca()
 	lgd =legend(bbox_to_anchor=(0.5, -0.3), loc=0, ncol=2, mode="expand", borderaxespad=.0)
 
 if "moisture" in sys.argv:
 	s3=subplot(312)
+	grid(True)
 	s3.set_title("Moistures (Pa)")
 	plot(time,moist_in,'-',linewidth=1,label="Indoor H20 part.press")
 	plot(time,moist_out, '-', linewidth=1,label="Outdoor H20 part.press")
@@ -187,7 +186,7 @@ labels = [item.get_text() for item in s1.get_xticklabels()]
 for i in range(len(labels)):
 	try:
         	if not tm.localtime().tm_isdst: labels[i]=tm.strftime("%H:%M - %a",tm.gmtime(tm.time() -(float(labels[i]))-(tm.altzone)-3600))
-        	else:labels[i]=tm.strftime("%H:%M - %a",tm.gmtime(tm.time() -(float(labels[i]))-(tm.altzone)))
+        	else:labels[i]=tm.strftime("%d/%m %H:%M",tm.gmtime(tm.time() -(float(labels[i]))-(tm.altzone)))
 		#print labels[i]
 	except:pass#print "label error"
 s1.set_xticklabels(labels)
@@ -198,7 +197,8 @@ if "moisture" in sys.argv:
 	setp(s3.get_xticklabels(), rotation=45)
 
 if "debug" in sys.argv or "hasRH" in sys.argv:
-	subplot(212)
+	#ax4 = subplot(212)
+	ax4 = gca()
 	#gca().set_xlim(min(time[-day:-1]),max(time[-day:-1])+3600*4)
 	labels = [item.get_text() for item in s2.get_xticklabels()]
 	

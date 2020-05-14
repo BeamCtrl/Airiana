@@ -1399,13 +1399,14 @@ class Systemair(object):
 		    if self.fanspeed == 2 					\
 			and (self.extract_ave < self.target + 0.5 		\
 			    and self.extract_ave - self.supply_ave > 0.1 	\
-			    and self.humdiff < 400 				\
-			or self.humdiff < 250):
+			    and self.humdiff < 400) 				\
+			or (self.humdiff < 250 					\
+			    and not self.extract_ave > self.target+1):
 				self.set_fanspeed(1)
 				self.msg += "Dynamic fanspeed 1, Air quality Good\n"
 				os.write(ferr, "Dynamic fanspeed 1 with RH "+str(time.ctime()) +"\n")
 		#dynamic without Rhsensor
-		else:			 
+		else:
 			if self.fanspeed == 2 				\
 			and self.extract_ave < self.target + 0.5 	\
 			and self.extract_ave - self.supply_ave > 0.1:
@@ -1430,12 +1431,14 @@ class Systemair(object):
 			self.msg += "Dynamic fanspeed 3\n"
 			os.write(ferr, "Dynamic fanspeed 3 target+1.2C or dt long > 0.7C/h ("+str(self.extract_dt_long)+") "+str(time.ctime()) +"\n")
 
-	    
-	    	if self.extract_ave < self.supply_ave and self.fanspeed <> 1: 			
+		#Recover cold air if outside is hotter
+	    	if self.extract_ave < self.supply_ave and self.fanspeed <> 1:
 			self.set_fanspeed(1)
 			self.msg += "Dynamic fanspeed, recover cool air\n"
 			os.write(ferr, "Dynamic fanspeed 1 recover cool air "+str(time.ctime()) +"\n"+str(self.extract_ave)+' '+str(self.supply_ave)+'\n')
 
+		#Lower to fanspeed 2 if long dt is less than -0.5 and outside is less than 12C
+		#also lower from 3 when below target+0.8 and not rising above 0.7C/hr
 	    	if (self.fanspeed== 3				\
  		    and self.extract_ave < self.target + 0.8 	\
 		    and not self.extract_dt_long > 0.7)		\
@@ -1444,7 +1447,6 @@ class Systemair(object):
 			self.set_fanspeed(2)
 			self.msg  +="Dynamic fanspeed 2 with long dt\n"
 			os.write(ferr, "Dynamic fanspeed 2 with long dt "+str(time.ctime()) +"\n")
-
 
 	    #Dynamic pressure control
 	    if not self.shower:
