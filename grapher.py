@@ -120,9 +120,7 @@ plot(time[-day:-1],supply[-day:-1],'-',linewidth=1,label="supply temperature")
 if "debug" in sys.argv:
 	plot(time[-day:-1],sen_temp[-day:-1], '-', linewidth=1,label="outdoor sensor temperature")
 	plot(time[-day:-1],outside[-day:-1],'-',linewidth=1,label="indoor sensor temperature")
-	#axhline( y=float(os.popen("./humid.py 0").read().split(" ")[-1]) )
 	ob=axhline( y=float(os.popen("cat RAM/latest_static").read()) )
-	#print float(os.popen("cat RAM/latest_static").read())
 grid(True)
 ax = gca()
 ax.set_ylim(int(min(inlet))-1, int(max(extract+inlet+exhaust+supply+outside))+2)
@@ -132,6 +130,8 @@ ax.set_xlim(min(time[-day:-1]),max(time[-day:-1]))
 ax.xaxis.set_ticks(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,day/24*4))
 ax.set_xticklabels(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,day/24*4))
 ax.invert_xaxis()
+lgd = legend(bbox_to_anchor=(0.5, -0.3), loc=1, ncol=2, mode="expand", borderaxespad=.0)
+
 if "debug" in sys.argv or "hasRH" in sys.argv:
 	s2=subplot(212)
 	s2.set_title("Humidity")
@@ -141,8 +141,7 @@ if "debug" in sys.argv or "hasRH" in sys.argv:
 	if "debug" in sys.argv:
 		plot(time,cond_comp,'-',linewidth=1,label="Condensation power")
 		plot(time,inside_hum, '-', linewidth=1,label="Inside sensor humidity")
-		plot(time[-day:-1],sen_hum[-day:-1], '-', linewidth=1,label="Outdoor sensor humidity")
-	
+		plot(time[-day:-1],sen_hum[-day:-1], '-', linewidth=1,label="Outdoor sensor humidity")	
 	subplots_adjust( hspace=0.75 )
 	ax = gca()
 	ax.set_ylim(-30, 100 +10)
@@ -152,9 +151,10 @@ if "debug" in sys.argv or "hasRH" in sys.argv:
 
 	ax.xaxis.set_ticks(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,day/24*4))
 	ax.set_xticklabels(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,day/24*4))
+	ax.invert_xaxis()
 	#ax3 = subplot(211)
 	ax3 = gca()
-	lgd =legend(bbox_to_anchor=(0.5, -0.3), loc=0, ncol=2, mode="expand", borderaxespad=.0)
+	lgd =legend(bbox_to_anchor=(0.5, -0.3), loc=2, ncol=2, mode="expand", borderaxespad=.0)
 
 if "moisture" in sys.argv:
 	s3=subplot(312)
@@ -169,55 +169,31 @@ if "moisture" in sys.argv:
 	low,high = ax.get_ylim()
 	ax.yaxis.set_ticks(np.arange(low,high,200))
 	ax.set_xlim(min(time[-day:-1]),max(time[-day:-1]))
-	
 	ax.xaxis.set_ticks(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,day/24*4))
 	ax.set_xticklabels(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600,day/24*4))
-
-	#ax.xaxis.set_ticks(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600+1,4*3600))
-	#ax.set_xticklabels(np.arange(tm.time()%3600,max(time[-day:-1])+4*3600+1,4*3600))
+	lgd =legend(bbox_to_anchor=(0.5, -0.5), loc=0, ncol=2, mode="expand", borderaxespad=.0)
 	ax.invert_xaxis()
 
-	#fig.canvas.draw()
-	#subplot(312)
-	lgd =legend(bbox_to_anchor=(0.5, -0.5), loc=1, ncol=2, mode="expand", borderaxespad=.0)
-
-#s2.set_position([0.1,0.8, 0.5, 0.5])
+#create the pretty labels for the graphs
 labels = [item.get_text() for item in s1.get_xticklabels()]
 for i in range(len(labels)):
 	try:
         	if not tm.localtime().tm_isdst: labels[i]=tm.strftime("%H:%M - %a",tm.gmtime(tm.time() -(float(labels[i]))-(tm.altzone)-3600))
         	else:labels[i]=tm.strftime("%d/%m %H:%M",tm.gmtime(tm.time() -(float(labels[i]))-(tm.altzone)))
-		#print labels[i]
 	except:pass#print "label error"
 s1.set_xticklabels(labels)
 setp(s1.get_xticklabels(), rotation=45)
-grid(True)
+
+if "debug" in sys.argv or "hasRH" in sys.argv:
+	s2.set_xticklabels(labels)
+	setp(s2.get_xticklabels(), rotation=45)
+
 if "moisture" in sys.argv:
 	s3.set_xticklabels(labels)
 	setp(s3.get_xticklabels(), rotation=45)
 
-if "debug" in sys.argv or "hasRH" in sys.argv:
-	#ax4 = subplot(212)
-	ax4 = gca()
-	#gca().set_xlim(min(time[-day:-1]),max(time[-day:-1])+3600*4)
-	labels = [item.get_text() for item in s2.get_xticklabels()]
-	
-	for i in range(len(labels)+1):
-		try:
-			if not tm.localtime().tm_isdst:labels[i]=tm.strftime("%H:%M - %a",tm.gmtime(tm.time() -(float(labels[i]))-(tm.altzone)-3600))	
-			else:labels[i]=tm.strftime("%H:%M - %a",tm.gmtime(tm.time() -(float(labels[i]))-(tm.altzone)))	
-			#print labels[i]
-		except : pass#print "label error"
-		s2.set_xticklabels(labels)
-		setp(s2.get_xticklabels(), rotation=45)
 
-	ax = gca()
-	ax.invert_xaxis()
-	
-lgd = legend(bbox_to_anchor=(0.5, -0.3), loc=1, ncol=2, mode="expand", borderaxespad=.0)
 grid(True)
-	
-
 
 fig.subplots_adjust(right=0.90)
 
