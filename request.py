@@ -104,6 +104,7 @@ class Request:
             self.checksum_errors += 1
             self.modbusregister(address, decimals)
         self.client.precalculate_read_size = False
+	#print "request om address ", address, "returned", self.response
 
     def write_register(self, reg, value, tries=10):
         self.iter += 1

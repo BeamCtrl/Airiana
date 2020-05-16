@@ -28,17 +28,17 @@ files = os.listdir("./public/local_links/")
 #	print each, ": ",users[each]
 stat_dict = {}
 def analyse_stat(status,user):
-	if "debug" in sys.argv:
-		print "Analyze", status, users[user]
+	#if "debug" in sys.argv:
+	#	print "Analyze", status, users[user]
 	# Store Warnings in the stat_dict as {"user-MAC":{"alarmType":INT}}
 	# check if winter mode is on and exhaust is higher than supply
-	print status[1] == 5,status[14]>status[13],status[7]<15
+	#print status[1] == 5,status[14]>status[13],status[7]<15
 	if status[1]==5 and status[14]>status[13] and status[7]< 15:
-		print users[user], "Exchanger problem\n"
+		#print users[user], "Exchanger problem\n"
 		try:
 			stat_dict[user]={"ExchangerProblem":True}
-		except: print "there is en error in dictsetting"
-		print stat_dict[user]
+		except: pass #print "there is en error in dictsetting"
+		#print stat_dict[user]
 	# TODO: check exhaust is higher than extract while inlet is lower than extract
 
 	# TODO: 

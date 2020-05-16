@@ -61,8 +61,11 @@ class Energy(object):
                         low = float(high)
                         high = float(top)
                 volume = float(litres)/1000 #m3
-                mass = volume* self.press*100/self.R * (math.log(self.T+high)-math.log(self.T+low))/(high-low)
-                energy = mass * self.specific_heat*(high-low) * 1000 #kg * J/gK * K = J
+               	try:
+			mass = volume* self.press*100/self.R * (math.log(self.T+high)-math.log(self.T+low))/(high-low)
+                except:
+			mass = 0
+		energy = mass * self.specific_heat*(high-low) * 1000 #kg * J/gK * K = J
                 return energy
 
 	#RETURN MAXIMUM VAPOR CONTENT BY MASS

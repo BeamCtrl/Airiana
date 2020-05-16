@@ -712,7 +712,7 @@ class Systemair(object):
 				if numpy.isnan(dyn_coef):
 					dyn_coef = 0
 			if dyn_coef <> self.new_coef and dyn_coef <> 0:
-				self.new_coef += 0.0005 * (dyn_coef - self.new_coef)
+				self.new_coef += 0.0001 * (dyn_coef - self.new_coef)
 				if abs(dyn_coef-self.new_coef) < 0.001:
 					self.new_coef=dyn_coef
 			if self.fanspeed == 3: self.new_coef = 0
@@ -1084,7 +1084,7 @@ class Systemair(object):
 				tmp += "Fanspeed level: "+str(self.fanspeed)+"\n"
 				tmp += "Long dt: "+str(self.extract_dt_long)+"\n"
 				#tmp += "Current Coef: "+ str(self.get_coef_mode()) + str(self.coef_dict[self.get_coef_mode()])+"\n"
-				if self.coef_inhibit:
+				if self.coef_test_bool:
 					tmp += "In Test:"+str(time.ctime(self.coef_inhibit+3600))+"\n"
 
 			except: pass
@@ -1101,7 +1101,7 @@ class Systemair(object):
 		else:
 			tmp += "Energy Gain: "+str(round(self.loss,1))+"W\n"
 		tmp += "Loss Total: "+str(round(self.totalenergy/1000,3))+"kWh Average:"+str(round((self.totalenergy)/(((time.time()-starttime)/3600)),1))+"W\n"
-		tmp += "Cooling Total: "+str(round(self.cooling/1000,3))+"kWh\n"
+		tmp+= "Cooling Total: "+str(round(self.cooling/1000,3))+"kWh\n"
 		tmp += "Heat Gain Total: "+ str(round(self.gain/1000,3))+"kWh\n"
 		tmp += "Supply:"+str(self.sf)+" l/s,"+str(self.sf_rpm)+"rpm\tExtract:"+str(self.ef)+" l/s,"+str(self.ef_rpm)+"rpm\n"
 		if self.rotor_active == "Yes" or "debug" in sys.argv:
@@ -1386,25 +1386,29 @@ class Systemair(object):
 		#dynamic with RHsensor
 		if self.RH_valid:
 		    if self.fanspeed == 1 					\
-			and 	(self.extract_ave > self.target 		\
-			    and 	self.extract_ave > self.target + 0.6 	\
-			    and 	self.extract_ave - self.supply_ave>0.1 	\
-			    and 	self.extract_dt_long >= 0.2)		\
-			or 	self.humdiff > 400:			
+			and 	((self.extract_ave > self.target+0.6 		\
+			    and 	self.extract_ave - self.supply_ave>0.1)	\
+			or 	self.humdiff > 400):
 			 	self.set_fanspeed(2)
 			 	self.msg += "Dynamic fanspeed 2\n"
-				os.write(ferr, "Dynamic fanspeed 2 with RH "+str(time.ctime()) +"\n")
-				self.flowOffset = [self.flowOffset[0]+5,time.time()]
-
+				if self.humdiff > 400:
+					self.flowOffset = [self.flowOffset[0]+5,time.time()]
+					os.write(ferr, "Dynamic fanspeed 2 with RH "+str(time.ctime()) +"\n")
+				else:
+					os.write(ferr, "Dynamic fanspeed 2 no RH "+str(time.ctime()) +"\n")
 		    if self.fanspeed == 2 					\
-			and (self.extract_ave < self.target + 0.5 		\
+			and ((self.extract_ave < self.target + 0.5 		\
 			    and self.extract_ave - self.supply_ave > 0.1 	\
-			    and self.humdiff < 400) 				\
+			    and self.humdiff < 400 				\
 			or (self.humdiff < 250 					\
-			    and not self.extract_ave > self.target+1):
+			    and not self.extract_ave > self.target+0.5))):
 				self.set_fanspeed(1)
-				self.msg += "Dynamic fanspeed 1, Air quality Good\n"
-				os.write(ferr, "Dynamic fanspeed 1 with RH "+str(time.ctime()) +"\n")
+				if self.humdiff<250:
+					self.msg += "Dynamic fanspeed 1, Air quality Good\n"
+					os.write(ferr, "Dynamic fanspeed 1 with RH "+str(time.ctime()) +"\n")
+				else:
+					self.msg += "Dynamic fanspeed 1\n"
+					os.write(ferr, "Dynamic fanspeed 1 no RH "+str(time.ctime()) +"\n")
 		#dynamic without Rhsensor
 		else:
 			if self.fanspeed == 2 				\
@@ -1421,7 +1425,7 @@ class Systemair(object):
 					self.msg += "Dynamic fanspeed 2\n"
 					os.write(ferr, "Dynamic fanspeed 2 extr > target +0.5C without RH"+str(time.ctime()) +"\n")
 	        # dynamic 3 if temp is climbing and exchanger is off, and extract is above target +1.2C
-		if self.fanspeed <> 3 							\
+		if self.fanspeed == 2 							\
 		and self.extract_ave-0.1 > self.supply_ave 				\
 		and (self.extract_ave >= self.target+1.2				\
 			or (self.extract_dt_long >=0.7 and self.inlet_ave > 5 ))	\
@@ -1446,7 +1450,7 @@ class Systemair(object):
 		    and self.extract_dt_long < -0.5):
 			self.set_fanspeed(2)
 			self.msg  +="Dynamic fanspeed 2 with long dt\n"
-			os.write(ferr, "Dynamic fanspeed 2 with long dt "+str(time.ctime()) +"\n")
+			os.write(ferr, "Dynamic fanspeed 2 with long dt from 3 "+str(time.ctime()) +"\n")
 
 	    #Dynamic pressure control
 	    if not self.shower:
