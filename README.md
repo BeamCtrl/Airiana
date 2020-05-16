@@ -12,6 +12,7 @@ featured special effects:
   Neat RH adaptations for units with RH sensor
   Filter % remaining counter 
   24hr plotter all put on web-page for your convenience
+  Internal AI to map temperature response for acurate home environment control.
   does alot more calculation and spits out more data than you'll ever need.
   
 HW: Rpi + RS485 TxRx module, VR400/VR700/VTR300 or savecair unit from systemair.
