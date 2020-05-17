@@ -1003,16 +1003,14 @@ class Systemair(object):
 
 		if numpy.average(self.extract_dt_list)*60 < 0.25	\
 			and self.shower==True 				\
-			and not self.RH_valid \
 			and self.shower_initial - time.time()<-60:
 			state = False
-			if  self.RH_valid==False and self.extract_ave<=(self.initial_temp+0.3) or self.shower_initial -time.time() < -45*60:
+			if not self.RH_valid and self.extract_ave<=(self.initial_temp+0.3):
 				state = True
-			if self.RH_valid and self.showerRH+5  > self.new_humidity or self.shower_initial - time.time() < -45*60:
+			if self.RH_valid and self.showerRH+5  > self.new_humidity:
 				if "debug" in sys.argv:
 					self.msg+= "RH after shower now OK\n"
 					os.write(ferr,"Shower mode off RH is ok "+str(time.ctime())+"\n")
-
 				state = True
 			if state == True:
 				if self.shower_initial -time.time()>-120:
@@ -1965,8 +1963,7 @@ if __name__  ==  "__main__":
 				if data == 99:
 					device.set_fanspeed(3)
 					device.coef_debug()
-					device.msg += "fanspeed to High\n"
-
+					device.msg += "Fanspeed to High\n"
 				if data == 11:
 					if device.heater ==0:
 						set = 2
