@@ -1259,7 +1259,7 @@ class Systemair(object):
 	  if True:
 	    #### EXCHANGER CONTROL
 	    self.house_heat_limit = 7  # daily low limit on cooling
-	    if self.forcast[0]< 10: self.target = 23
+	    if self.inlet_ave< 13: self.target = 23
 	    else: self.target = 22
 	    if self.modetoken<=0 and self.cool_mode==0 :
 
