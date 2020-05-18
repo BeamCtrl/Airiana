@@ -705,8 +705,8 @@ class Systemair(object):
 			diff = extract - inlet
 			dyn_coef =0
 			try:
-				#dyn_coef = self.coef_dict[self.get_coef_mode()][int(diff)]
-				dyn_coef = numpy.median(self.coef_dict[self.get_coef_mode()].values())
+				dyn_coef = numpy.median(self.coef_dict[self.get_coef_mode()].values())* float(1)/(self.fanspeed)   #self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
+				if self.fanspeed == 3: dyn_coef = 0
 			except KeyError:
 				dyn_coef = numpy.average(self.coef_dict[self.get_coef_mode()].values())
 				if numpy.isnan(dyn_coef):
@@ -715,8 +715,7 @@ class Systemair(object):
 				self.new_coef += 0.0001 * (dyn_coef - self.new_coef)
 				if abs(dyn_coef-self.new_coef) < 0.001:
 					self.new_coef=dyn_coef
-			if self.fanspeed == 3: self.new_coef = 0
-			tcomp = (diff) * -self.new_coef * float(1)/(self.fanspeed)   #self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
+			tcomp = (diff) * -self.new_coef   #self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
 		except ZeroDivisionError : pass
 		if numpy.isnan(tcomp):
 			return 0
@@ -1397,7 +1396,7 @@ class Systemair(object):
 		    if self.fanspeed == 2 					\
 			and ((self.extract_ave < self.target + 0.5 		\
 			    and self.extract_ave - self.supply_ave > 0.1 	\
-			    and self.humdiff < 400 				\
+			    and self.humdiff < 300 				\
 			or (self.humdiff < 250 					\
 			    and not self.extract_ave > self.target+0.5))):
 				self.set_fanspeed(1)
