@@ -1219,7 +1219,7 @@ class Systemair(object):
 			req.write_register(2000,120)
 			self.exchanger_mode = 0
 		if to == 5:
-			req.write_register(2000,220)
+			req.write_register(2000,self.target *10)
 			self.exchanger_mode = 5
 		if to == None:
 			req.modbusregister(2000,1)

@@ -1,15 +1,15 @@
-#!/usr/bin/python
-import SimpleHTTPServer
-import SocketServer,os,socket,struct,ssl
+#!/usr/bin/python3
+import http.server
+import socketserver,os,socket,struct,ssl
 cert = "../keys/public.pem"
 PORT = 80
 dir= "./public/"
 os.chdir(dir)
 
-Handler = SimpleHTTPServer.SimpleHTTPRequestHandler
+Handler = http.server.SimpleHTTPRequestHandler
 Handler.server_version = "Airiana Web Server interface/2.3e"
 
-class myServer(SocketServer.TCPServer):
+class myServer(socketserver.TCPServer):
 	def server_bind(self):
 		while True:
 			try:
@@ -22,7 +22,7 @@ httpd = myServer(("", PORT), Handler)
 
 #httpd.socket = ssl.wrap_socket(httpd.socket,certfile= cert,server_side=True)
 
-print "serving at port", PORT
+print("serving at port", PORT)
 try:
 	httpd.serve_forever()
 except: 
