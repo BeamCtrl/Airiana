@@ -34,7 +34,7 @@ weather_types= {\
 				33:"Light snow and thunder",\
 				14:"Snow and thunder",\
 				34:"Heavy snow and thunder",\
-				15:"Fog",-1:"No weather data"}
+				15:"Fog",0:"No weather data"}
 try:
 	if os.stat("/home/pi/airiana/RAM/forecast.xml").st_ctime -time.time() < -3600 or os.stat("/home/pi/airiana/RAM/forecast.xml").st_size ==0 or "-f" in sys.argv:
 		#print "Downloading updated forcast" 

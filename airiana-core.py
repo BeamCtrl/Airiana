@@ -143,8 +143,9 @@ def report_alive():
 					os.close(fd)
 				#if "debug" in sys.argv: device.msg +=  message + "\n"
 
-		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
+		sock =  socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 		sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
+		sock.close()
 	except:
 		#traceback.print_exc()
 		os.write(ferr, "Error reporting alive at "+str(time.ctime())+"\n")
@@ -152,7 +153,7 @@ def report_alive():
 #READ AVAIL SENSOR DATA
 def update_sensors():
 	try:
-		fd=open ("sensors","r")
+	    with open ("sensors","r") as fd:
 		for each in fd.readlines():
 			unit = each.split(":")
 			id = unit[0]
@@ -179,7 +180,7 @@ def update_sensors():
 #WRITE TO DATA.LOG
 def logger ():
 	try:
-		fdo = open("./RAM/data.log","a+")
+	    with open("./RAM/data.log","a+") as fdo:
 		#+str(device.extract_humidity*100)\
 		cmd = ""   		\
 		+str(time.time()) 		\
@@ -208,7 +209,6 @@ def logger ():
 		+":"+str(device.moist_out)\
 		+":"+str(device.humdiff)
 		fdo.write(cmd+"\n")
-		fdo.close()
 	except:traceback.print_exc()
 	if "homeAss" in sys.argv:
 		os.system("./ha-httpsensor.py -n Indoor -u °C -d temperature -v "+str(round(device.extract_ave,1))+">/dev/null &")
@@ -394,9 +394,8 @@ class Systemair(object):
 			else: 
 				raise IOError
 		except:
-				f = open("coeficients.dat",'w')
-				pickle.dump(self.coef_dict, f)
-				f.close()
+				with open("coeficients.dat",'w') as f:
+					pickle.dump(self.coef_dict, f)
 		if savecair:
 			req.write_register(1400,16)
 		 	req.write_register(1401,16)
@@ -706,12 +705,13 @@ class Systemair(object):
 			dyn_coef =0
 			try:
 				dyn_coef = numpy.median(self.coef_dict[self.get_coef_mode()].values())* float(1)/(self.fanspeed)   #self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
-				if self.fanspeed == 3: dyn_coef = 0
+				if self.fanspeed == 3:
+					dyn_coef = 0
 			except KeyError:
 				dyn_coef = numpy.average(self.coef_dict[self.get_coef_mode()].values())
 				if numpy.isnan(dyn_coef):
 					dyn_coef = 0
-			if dyn_coef <> self.new_coef and dyn_coef <> 0:
+			if dyn_coef <> self.new_coef:
 				self.new_coef += 0.0001 * (dyn_coef - self.new_coef)
 				if abs(dyn_coef-self.new_coef) < 0.001:
 					self.new_coef=dyn_coef
@@ -1182,7 +1182,7 @@ class Systemair(object):
 		except:pass #print "read error"
 	    ### SET FUNCTIONS ####
 	    try:
-		if to == None:
+		if to is None:
 			self.msg+= "manual state change\n"
 			self.current_mode = get_val()
 		i=0
@@ -1824,7 +1824,7 @@ if __name__  ==  "__main__":
 		#restart HTTP SERVER get filterstatus, reset IP on buttons page, update weather forcast
 		if device.iter %(int(3600*2 /device.avg_frame_time))==0:
 			device.get_filter_status()
-			os.system("./http &")
+			#os.system("./http &")
 			os.system("./public/ip-replace.sh &")  # reset ip-addresses on buttons.html
 			os.system("./public/ip-util.sh &")  # reset ip-addresses on buttons.html
 			device.get_forcast()
@@ -1961,7 +1961,7 @@ if __name__  ==  "__main__":
 					device.msg += "Fanspeed to Norm\n"
 				if data == 99:
 					device.set_fanspeed(3)
-					device.coef_debug()
+					#device.coef_debug()
 					device.msg += "Fanspeed to High\n"
 				if data == 11:
 					if device.heater ==0:
