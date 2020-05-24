@@ -217,7 +217,7 @@ def logger ():
 			os.system("./ha-httpsensor.py -n Efficiency -u % -d calculated -v "+str(round(numpy.average(device.eff_ave),2))+">/dev/null &")
 		except:pass
 		os.system("./ha-httpsensor.py -n Humidity -d humidity -u % -v "+str(int(device.new_humidity))+">/dev/null &")
-		os.system("./ha-httpsensor.py -n Extract Fan -d fanspeed -u rpm -v "+str(int(device.ef_rpm))+">/dev/null &")
+		os.system("./ha-ähttpsensor.py -n Extract Fan -d fanspeed -u rpm -v "+str(int(device.ef_rpm))+">/dev/null &")
 #PRINT COMM SETTING
 def display_settings():
         clear_screen()
@@ -412,8 +412,13 @@ class Systemair(object):
 				# make sure the electric heater is oFF
 			if self.heater <> 0:
 				self.set_heater(0)
+			# check if there is an RH sensor availible even though its not listed
+			self.get_RH()
+			if self.RH_valid and self.system_name not in self.has_RH_sensor:
+				self.has_RH_sensor += (self.system_name)
+
 			#setup airflow levels
-			if "VTR300" in self.system_name or "VR400" in self.system_name:
+			if  self.system_name in ("VR400","VTR300","VSR300"):
 				req.modbusregister(137,0)
 				if int(req.response) == 1:
 					req.write_register(137,0)
@@ -596,49 +601,17 @@ class Systemair(object):
 		self.rawdata.insert(0,self.temps)
 		if len(self.rawdata)>self.averagelimit:self.rawdata.pop(-1)
 
-
 		#req.response[1] #EXTRACT
 		#req.response[2] #EXHAUST
 		#req.response[0] #Supply pre elec heater
 		#req.response[3] #Supply post electric heater
 		#req.response[4] Inlet
-		"""if self.system_name=="VR400":
-			if self.rotor_active == "No" and self.coef <> 0.10:
-				if self.coef-0.10>0:self.coef -= 0.0001
-                        	else: self.coef += 0.0001
-				self.coef=round(self.coef,5)
-			if self.rotor_active == "Yes" and self.coef <> 0.10:
-				if self.coef-0.10>0:self.coef -= 0.0001
-				else: self.coef += 0.0001
-				self.coef=round(self.coef,5)
-			self.dyn_coef = self.fanspeed * 2
-			if self.inhibit and self.extract_dt>0.1 and not self.shower:
-					self.dyn_coef +=0.1
-			if self.inhibit and self.extract_dt<-0.1 and not self.shower:
-					self.dyn_coef -=0.1
-			if abs(self.dyn_coef) > 10:
-				self.dyn_coef = self.dyn_coef/2
-			if self.sf <> 0:
-				self.tcomp= ((req.response[1]-req.response[4])*self.coef)-self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
-			else:
-				self.tcomp = 0
-			if self.rotor_active =="No"  and self.inlet_coef <0.14:self.inlet_coef+= 0.0001 #OFF
-			if self.rotor_active =="Yes" and self.inlet_coef >0.07:self.inlet_coef-= 0.0001 # ON
-		"""
+
 		#update [4] with inlet coef
 		req.response[4]  -= (req.response[1]-req.response[4])*self.inlet_coef #inlet compensation exchanger OFF/ON
 		#update [1] with tcomp, after calc of [4]
 		self.tcomp = 10 *  self.get_tcomp(float(req.response[1])/10, float(req.response[4])/10)
 		req.response[1] += self.tcomp
-
-		#DO CALC FOR REQ[2] exhaust temp expectancy for VR300 machines as they have no exhust temp sensor:
-		#########
-		###########################################
-		#if self.system_name=="VTR300":
-		#	req.response[4]	= req.response[4]+10
-		#if self.rotor_active =="No" :
-		#	req.response[2]  -= (req.response[1]-req.response[4])*0.01  #exhaust compensation exch off
-		#else : 	req.response[2]  -= (req.response[1]-req.response[4])*0.06  #exhaust compensation exch ON
 
 		self.extract.insert(0, float(req.response[1])/10)
 		self.exhaust.insert(0, float(req.response[2])/10)
@@ -785,7 +758,11 @@ class Systemair(object):
 		req.modbusregisters(110,2)
 		self.sf_rpm,self.ef_rpm=req.response[0],req.response[1]
 		try:
-			self.electric_power= (self.ef_rpm/(100/(float(float(self.ef_rpm)/1381)**1.89))+self.sf_rpm/(100/(float(float(self.sf_rpm)/1381)**1.89)))
+			if self.system_name in ("VR400"):
+				self.electric_power= (self.ef_rpm/(100/(float(float(self.ef_rpm)/1381)**1.89))+self.sf_rpm/(100/(float(float(self.sf_rpm)/1381)**1.89)))
+			if self.system_name in ("VSR300"):
+				self.electric_power=0.2* (self.ef_rpm/(100/(float(float(self.ef_rpm)/1381)**1.89))+self.sf_rpm/(100/(float(float(self.sf_rpm)/1381)**1.89)))
+
 		except ZeroDivisionError:self.electric_power=0
 		if "Yes" in self.rotor_active :self.electric_power +=10 # rotor motor 10Watts
 		self.electric_power+=5#controller power
@@ -1260,6 +1237,8 @@ class Systemair(object):
 	    self.house_heat_limit = 7  # daily low limit on cooling
 	    if self.inlet_ave< 13: self.target = 23
 	    else: self.target = 22
+	    if self.cool_mode:
+		self.target = 20.7
 	    if self.modetoken<=0 and self.cool_mode==0 :
 
 		if self.extract_ave >self.target 		\
@@ -1341,7 +1320,7 @@ class Systemair(object):
 			self.cycle_exchanger(5)
 			self.modetoken = 0
 			self.inhibit = time.time()-9*60-30 # prevent more than one reset per 30s
-	    elif self.exchanger_mode ==5 and self.supply_ave > self.inlet_ave and savecair and self.cool_mode:
+	    elif self.exchanger_mode ==5 and self.supply_ave > self.inlet_ave and self.supply_ave >17 and savecair and self.cool_mode:
 		self.cycle_exchanger(0)
 		self.modetoken = 0
 
@@ -1507,6 +1486,8 @@ class Systemair(object):
 		req.write_register(106,int(high_flow)) # reset high extract
 		#raw_input(" diff set done")
 		if "debug" in sys.argv: self.msg += "change completed\n"
+		self.press_inhibit = time.time()
+
 	    elif savecair and not self.shower:
 		self.press_inhibit = time.time()
 
@@ -1737,7 +1718,7 @@ if __name__  ==  "__main__":
 			if "debug" in sys.argv:
 				os.system("echo \"3\" >./RAM/exec_tree")
 			device.check_flags()
-			if device.system_name == "VTR300":
+			if device.system_name == "VTR300" or device.system_name == "VSR300":
 				device.calc_exhaust()
 		# update moisture
 		if device.iter%5==0:
@@ -1824,7 +1805,7 @@ if __name__  ==  "__main__":
 		#restart HTTP SERVER get filterstatus, reset IP on buttons page, update weather forcast
 		if device.iter %(int(3600*2 /device.avg_frame_time))==0:
 			device.get_filter_status()
-			#os.system("./http &")
+			os.system("./http &")
 			os.system("./public/ip-replace.sh &")  # reset ip-addresses on buttons.html
 			os.system("./public/ip-util.sh &")  # reset ip-addresses on buttons.html
 			device.get_forcast()
