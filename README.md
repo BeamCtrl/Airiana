@@ -15,5 +15,13 @@ featured special effects:
   Internal AI to map temperature response for acurate home environment control.
   does alot more calculation and spits out more data than you'll ever need.
   
-HW: Rpi + RS485 TxRx module, VR400/VR700/VTR300 or savecair unit from systemair.
-  
+HW: Rpi + RS485 TxRx module, VR400/VR700/VTR300/VSR300 or savecair unit from systemair.
+
+
+Installation:
+Install an Rs485 hat on your pi.
+Connect A and B to your ventilation units Modbus connector.
+Set comms to 19200baud no pairity. 
+Clone this repo.
+Run  "sudo ./install.py"
+Update the location file with your current position for YR.no  
