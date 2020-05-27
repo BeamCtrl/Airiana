@@ -114,8 +114,8 @@ while True:
 					status_table += str(item) +"</td><td>"
 				html += "<tr><td><a href=\"/local_links/"\
 					+each+"\">"+users[str(each.split(".")[0])]\
-					+"</a></td><td>"+time.ctime(mod)+"</td><td>"+flag\
-					+" "+str(round(status[str(each.split(".")[0])],2))+"</td><td> "\
+					+"</a></td><td>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td>"+flag\
+					+"</td><td> "\
 					+status_table
 				try:
 					html += " " +str(stat_dict[user])

@@ -13,8 +13,9 @@ class myServer(socketserver.TCPServer):
 	def server_bind(self):
 		while True:
 			try:
+				#self.socket.settimeout(1)
 				self.socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
-				self.socket.setsockopt(socket.SOL_SOCKET,socket.SO_LINGER,struct.pack('ii', 1, 2))
+				#self.socket.setsockopt(socket.SOL_SOCKET,socket.SO_LINGER,struct.pack('ii', 1, 2))
 				self.socket.bind(self.server_address)
 				break
 			except: os.system("sleep 1")
