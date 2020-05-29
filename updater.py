@@ -14,6 +14,6 @@ if "debug" in sys.argv:
 	print vers, "->", ver, "will update", vers not in ver[0]
 if vers not in ver[0] and "Valid" in ver[1]:
 	print "Updating Airiana system software to",ver[0]
-        if "debug" in sys.argv:
+        if "debug" not in sys.argv:
 		os.system("./update&")  
 
