@@ -11,8 +11,9 @@ for each in tmp:
 		vers = temp[-1][2:-2]
 
 if "debug" in sys.argv:
-	print vers, "->", ver
+	print vers, "->", ver, "will update", vers not in ver[0]
 if vers not in ver[0] and "Valid" in ver[1]:
 	print "Updating Airiana system software to",ver[0]
-        os.system("./update&")  
+        if "debug" in sys.argv:
+		os.system("./update&")  
 
