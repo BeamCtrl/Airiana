@@ -21,7 +21,7 @@ def init():
 		mail_sent[each] = False
 init()
 os.chdir("/home/pi/airiana")
-os.system("./alive_logger.py &")
+os.system("./alive_logger.py & > /dev/null")
 files = os.listdir("./public/local_links/")
 
 #for each in users.keys():

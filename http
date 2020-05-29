@@ -1,4 +1,4 @@
 #!/bin/bash
 sudo pkill -9 httpsrv.py
-sudo nohup ./public/httpsrv.py &> /dev/null &
- 
+sudo python3 ./public/httpsrv.py &> /dev/null &
+disown
