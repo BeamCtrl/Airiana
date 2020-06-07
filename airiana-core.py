@@ -684,10 +684,12 @@ class Systemair(object):
 				dyn_coef = numpy.average(self.coef_dict[self.get_coef_mode()].values())
 				if numpy.isnan(dyn_coef):
 					dyn_coef = 0
-			if dyn_coef <> self.new_coef:
-				self.new_coef += 0.0001 * (dyn_coef - self.new_coef)
-				if abs(dyn_coef-self.new_coef) < 0.001:
-					self.new_coef=dyn_coef
+			try:
+				if dyn_coef <> self.new_coef:
+					self.new_coef += 0.0001 * (dyn_coef - self.new_coef)
+					if abs(dyn_coef-self.new_coef) < 0.001:
+						self.new_coef=dyn_coef
+			except: pass
 			tcomp = (diff) * -self.new_coef   #self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
 		except ZeroDivisionError : pass
 		if numpy.isnan(tcomp):
@@ -992,7 +994,7 @@ class Systemair(object):
 				if self.shower_initial -time.time()>-120:
 	                            self.det_limit +=1
 				try:
-					os.write(ferr,"Leaving Shower mode "+str(time.ctime())+"\n")
+					os.write(ferr,"Leaving Shower mode max:"+str(numpy.max(self.extract))+" "+str(time.ctime())+"\n")
 					self.msg ="Shower mode off, returning to "+str(self.speeds[self.initial_fanspeed]+"\n")
 				except IOError: pass
 				self.shower=False
@@ -1197,6 +1199,11 @@ class Systemair(object):
 		if to == 5:
 			req.write_register(2000,self.target *10)
 			self.exchanger_mode = 5
+			if not self.cool_mode:
+				req.write_register(2000,self.target*10)
+			else:
+				req.write_register(2000,300)
+
 		if to == None:
 			req.modbusregister(2000,1)
 			if req.response <20:

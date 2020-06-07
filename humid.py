@@ -23,11 +23,16 @@ def get_humidity():
 			 except: print "error"
 		#print templist
                 if len(templist)>0:inlet_min = numpy.average(templist)
-		else: raise IndexError
+		else:
+			try:
+				inlet_min = int(open("RAM/latest_static",'r').read())
+			except:
+				raise IndexError
 		airdata_inst.vapor_max(extract)
 		bottom = airdata_inst.pw
 		airdata_inst.vapor_max(inlet_min)
 		top = airdata_inst.pw
+
 		# adjustmet to closer match RHwmo below zero saturations
 		if inlet_min < 0:
 			top  = airdata_inst.pw + bottom*(float(inlet_min*-0.9)/100)
@@ -39,5 +44,7 @@ def get_humidity():
 
 try:
 	get_humidity()
-except: print -60, -1
+except:
+	print -60, -1
+
 ##############
