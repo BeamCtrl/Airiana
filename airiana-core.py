@@ -994,7 +994,7 @@ class Systemair(object):
 				if self.shower_initial -time.time()>-120:
 	                            self.det_limit +=1
 				try:
-					os.write(ferr,"Leaving Shower mode max:"+str(numpy.max(self.extract))+" "+str(time.ctime())+"\n")
+					os.write(ferr,"Leaving Shower mode dT:"+str(numpy.max(self.extract)-numpy.min(self.extract))+" "+str(time.ctime())+"\n")
 					self.msg ="Shower mode off, returning to "+str(self.speeds[self.initial_fanspeed]+"\n")
 				except IOError: pass
 				self.shower=False
@@ -1340,7 +1340,7 @@ class Systemair(object):
 		if self.fanspeed == 3 and (self.supply_ave < 12 and self.extract_ave < 22):
 			self.set_fanspeed(2)
 			self.msg += "Cooling reduced\n"
-		        os.write(ferr, "Cooling reduced to medium, supply bemow 12C "+str(time.ctime()) +"\n")
+		        os.write(ferr, "Cooling reduced to medium, supply below 12C "+str(time.ctime()) +"\n")
 
 		if self.fanspeed == 2 and self.supply_ave > 13:
 			self.set_fanspeed(3)

@@ -3,6 +3,7 @@ import os
 import sys
 if "airiana-core.py" in sys.argv:
 	os.system("sudo systemctl stop airiana.service")
+	os.system("sudo pkill --signal 2 airiana-core.py")
 if "controller" in sys.argv:
 	os.system("sudo systemctl stop controller.service")
 
