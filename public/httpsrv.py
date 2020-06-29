@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import sys
+import sys,os
 version = sys.version_info[0:2]
 print ("running on version",version)
 if version[0]==3 and version[1]<7:
