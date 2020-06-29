@@ -7,7 +7,7 @@ import pickle
 from request import Request
 #from mail import *
 #############################
-vers = "10.10"
+vers = "10.12"
 Running =True
 savecair=False
 # Register cleanup
