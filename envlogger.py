@@ -32,8 +32,10 @@ def update_sensors():
 				dat = sensor.split(";")
 				tmp[dat[0]] = dat[1]
 			sensor_dict[id] = tmp
-		device.sensor_temp =float(sensor_dict[log]["temperature"])
-		device.sensor_humid =int(sensor_dict[log]["humidity"])
+		try:
+			device.sensor_temp =float(sensor_dict[log]["temperature"])
+			device.sensor_humid =int(sensor_dict[log]["humidity"])
+		except: pass
 		if device.sensor_temp<>0.0 and device.sensor_humid <>0:
 			temp.append(device.sensor_temp)
 			humid.append(device.sensor_humid)
@@ -84,7 +86,7 @@ while True:
 	#low, high = ax.get_ylim()
 	low, high = -20,100
 	ax.yaxis.set_ticks(np.arange(int(low),int(high+1),5))
-	gca().set_autoscalex_on(False)
+	gca().set_autoscalex_on(True)
 	gca().set_xlim(min(time),max(time))
 	hum_line=plot(time,humid,"-")[0]
 	temp_line=plot(time,temp,"-")[0]
@@ -108,5 +110,6 @@ while True:
 	draw()
 
 	savefig("./RAM/"+str(log)+".png")
-	tm.sleep((60*60*12)+rndm.randint(0,30))
+	#tm.sleep((60*60*12)+rndm.randint(0,30))
+	tm.sleep(120)
 	sys.stdout.flush()

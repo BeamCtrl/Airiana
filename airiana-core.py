@@ -173,6 +173,9 @@ def update_sensors():
 			device.inside_humid =int(sensor_dict["92"]["humidity"])+5
 			device.inside_humid += (75-device.inside_humid)/10
 		except KeyError: pass#device.msg +="\nerror on sensor 92"
+		try:
+			device.sensor_exhaust =float(sensor_dict["94"]["temperature"])
+		except KeyError: pass#device.msg +="\nerror on sensor 94"
 
 	except IndexError:
 		device.msg += "\nnew sensor data error"
@@ -387,6 +390,7 @@ class Systemair(object):
 		self.coef_dict = {0:{},1:{},2:{},3:{}}
 		self.coef_test_bool = False
 		self.coef_inhibit = 0
+		self.sensor_exhaust = -60
 	def system_setup (self):
 		try:
 			if os.path.isfile("coeficients.dat"):
@@ -859,14 +863,17 @@ class Systemair(object):
 			if len(self.cond_data)> self.averagelimit+5000:self.cond_data.pop(0)
 	# For units whithout exhaust temp sensor calc expected exhaust temp based on transfered energy in supply
 	def calc_exhaust(self):
-		try:
-			if self.supply_power and self.ef:
-				if self.supply_ave > self.inlet_ave:
-					exhaust = self.extract_ave- self.airdata_inst.temp_diff(self.supply_power,self.extract_ave,self.ef)
-				else:
-					exhaust = self.extract_ave+ self.airdata_inst.temp_diff(-1*self.supply_power,self.extract_ave,self.ef)
-				self.exhaust_ave=exhaust
-		except: pass
+		if "sensors" in sys.argv and "exhaust" in sys.argv:
+			self.exhaust_ave =  self.sensor_exhaust
+		else:
+			try:
+				if self.supply_power and self.ef:
+					if self.supply_ave > self.inlet_ave:
+						exhaust = self.extract_ave- self.airdata_inst.temp_diff(self.supply_power,self.extract_ave,self.ef)
+					else:
+						exhaust = self.extract_ave+ self.airdata_inst.temp_diff(-1*self.supply_power,self.extract_ave,self.ef)
+					self.exhaust_ave=exhaust
+			except: pass
 	def get_rotor_state(self):
 	    if not savecair:
 		req.modbusregister(206,0)
@@ -938,6 +945,11 @@ class Systemair(object):
 
 	# decect if shower is on
 	def shower_detect(self):
+		def turnoff(self):
+				if savecair:
+					req.write_register(1161,2)
+				else:
+					self.set_fanspeed(self.initial_fanspeed)
 		if "debug" in sys.argv and self.shower and self.RH_valid:
 			self.msg="Shower wait state, "+str(round(self.extract_ave,2))+"C "+str(round(self.initial_temp+0.3,2))+"C RH: "+str(self.showerRH+5)+"\n"
 		if self.RH_valid == 1 and not self.shower: # Shower humidity sensor control
@@ -999,15 +1011,12 @@ class Systemair(object):
 				except IOError: pass
 				self.shower=False
 				self.shower_initial = 0
-				if savecair:
-					req.write_register(1161,2)
-				else:
-					self.set_fanspeed(self.initial_fanspeed)
-
+				turnoff(self)
 	    	# SHOWER MODEwTIMEOUT #
 	    	if self.shower == True and self.shower_initial -time.time() < -45*60:
 			self.shower = False
 			os.write(ferr, "Shower mode ended on timeout at: "+str(time.ctime()) +"\n")
+			turnoff(self)
 
 	# PRINT OUTPUT
 	def print_xchanger(self):
@@ -1187,17 +1196,10 @@ class Systemair(object):
 	    finally:
 		self.exchanger_mode=get_val()
 	  else:
-	    	def get_val():
-			try:
-				req.modbusregister(2000,1)
-	        	       	self.current_mode = req.response
-				return self.current_mode
-			except:pass #print "read error"
 		if to == 0:
 			req.write_register(2000,120)
 			self.exchanger_mode = 0
 		if to == 5:
-			req.write_register(2000,self.target *10)
 			self.exchanger_mode = 5
 			if not self.cool_mode:
 				req.write_register(2000,self.target*10)
@@ -1205,9 +1207,12 @@ class Systemair(object):
 				req.write_register(2000,300)
 
 		if to == None:
-			req.modbusregister(2000,1)
-			if req.response <20:
-				req.write_register(2000,self.target*10)
+			req.modbusregister(2000,0)
+			if int(req.response) == 120:
+				if not self.cool_mode:
+                                	req.write_register(2000,self.target*10)
+                        	else:
+                                	req.write_register(2000,300)
 				self.exchanger_mode = 5
 			else:
 				req.write_register(2000,120)
@@ -1293,7 +1298,8 @@ class Systemair(object):
 		if self.forcast[0] > 16 and int(os.popen("./forcast.py tomorrows-low").read().split(" ")[0]) > self.house_heat_limit	\
 			and self.forcast[1] < 4 				\
 			and self.cool_mode == False 				\
-			and self.extract_ave>20.7:
+			and self.extract_ave>20.7\
+			or self.inlet_ave >25.0 and not self.cool_mode :
 				self.msg += "Predictive Cooling enaged\n"
 				if self.pressure_diff <> 0 :
 					self.set_differential(0)
@@ -1308,28 +1314,29 @@ class Systemair(object):
 
 	    except: os.write(ferr, "Forcast cooling error "+str(time.ctime()) +"\n")
 	    # SAVECAIR COOL reCover cheat
-	    if self.exchanger_mode<>5\
-		and self.fanspeed == 1\
-		and savecair\
-		and self.supply_ave < self.inlet_ave:
-			os.write(ferr,"Outside is to warm will force heat exchanger "+ str(time.ctime())+ "\n")
-			self.cycle_exchanger(5)
-			self.modetoken = 0
+	    if savecair and not self.inhibit and not self.shower:
+		    if self.exchanger_mode<>5\
+			and self.fanspeed == 1\
+			and self.supply_ave < self.inlet_ave\
+			and self.supply_ave < 29:
+				os.write(ferr,"Outside is to warm will force heat exchanger "+ str(time.ctime())+ "\n")
+				self.cycle_exchanger(5)
+				self.modetoken = 0
 
-	    if self.exchanger_mode==5 \
-		and self.fanspeed == 1 \
-		and self.exchanger_speed < 95 \
-		and savecair \
-		and not self.inhibit\
-		and self.supply_ave<self.inlet_ave:
+		    if self.exchanger_mode==5 \
+			and self.fanspeed == 1 \
+			and self.exchanger_speed < 95 \
+			and self.supply_ave<self.inlet_ave\
+			and self.supply_ave<29:
+				self.cycle_exchanger(0)
+				time.sleep(2)
+				self.cycle_exchanger(5)
+				self.modetoken = 0
+				self.inhibit = time.time()-9*60-30 # prevent more than one reset per 30s
+		    elif self.exchanger_mode ==5 and self.supply_ave > 29 and self.supply_ave > self.inlet_ave and self.supply_ave >17 and savecair and self.cool_mode:
 			self.cycle_exchanger(0)
-			time.sleep(2)
-			self.cycle_exchanger(5)
 			self.modetoken = 0
-			self.inhibit = time.time()-9*60-30 # prevent more than one reset per 30s
-	    elif self.exchanger_mode ==5 and self.supply_ave > self.inlet_ave and self.supply_ave >17 and savecair and self.cool_mode:
-		self.cycle_exchanger(0)
-		self.modetoken = 0
+			os.write(ferr,"Stoped forcing heat exchanger "+ str(time.ctime())+ "\n")
 
 	    if self.cool_mode and not self.inhibit and not self.shower:
 		if (self.extract_ave <20.7 ) and self.fanspeed <> 1 :
@@ -1357,7 +1364,7 @@ class Systemair(object):
 			self.msg += "No cooling posible due to temperature conditions\n"
 		        os.write(ferr, "Cooling will wait, will try to recycle cold air by low fanspeed "+str(time.ctime()) +"\n")
 
-		if (self.forcast[0] <= 16 or self.forcast[1]>=4) and time.localtime().tm_hour >12:
+		if (self.forcast[0] <= 16 or self.forcast[1]>=4) and time.localtime().tm_hour >12 and self.inlet_ave < 24.9:
 			self.cool_mode=False
 		        os.write(ferr, "Cooling mode turned off "+str(time.ctime()) +"\n")
 			if savecair and self.ef==100:
@@ -1406,7 +1413,7 @@ class Systemair(object):
 			    and self.extract_ave - self.supply_ave > 0.1):
 					self.set_fanspeed(2)
 					self.msg += "Dynamic fanspeed 2\n"
-					os.write(ferr, "Dynamic fanspeed 2 extr > target +0.5C without RH"+str(time.ctime()) +"\n")
+					os.write(ferr, "Dynamic fanspeed 2 extr > target +0.5C without RH "+str(time.ctime()) +"\n")
 	        # dynamic 3 if temp is climbing and exchanger is off, and extract is above target +1.2C
 		if self.fanspeed == 2 							\
 		and self.extract_ave-0.1 > self.supply_ave 				\
@@ -1529,7 +1536,7 @@ class Systemair(object):
 			if self.flowOffset[0] > 20: # Maximum offset allowed
 				self.flowOffset[0] = 20
 			base = self.ef_base+self.pressure_diff
-			if self.fanspeed == 1 and self.ef <> base+self.flowOffset[0] and not self.shower:
+			if self.fanspeed == 1 and self.ef <> base+self.flowOffset[0] and not self.shower and not self.cool_mode:
 				req.write_register(1403,base+self.flowOffset[0])
 				req.write_register(1402,self.sf_base+self.flowOffset[0])
 		 	        os.write(ferr, "Updated extract flow offset to: "+str(self.flowOffset[0])+" "+str(time.ctime()) +"\n")
@@ -1629,7 +1636,7 @@ class Systemair(object):
 			 run a set of max speed fans to generate new coef data"""
 		try: self.coef_dict[int(self.get_coef_mode())][int(self.extract_ave-self.inlet_ave)]
 		except KeyError:
-			if self.get_fanspeed() == 1 and not self.inhibit and not self.coef_inhibit and self.monitor:
+			if self.get_fanspeed() == 1 and not self.inhibit and not self.coef_inhibit and self.monitor and not self.cool_mode:
 				os.write(ferr, "Starting coefAI test @  "+str(int(self.extract_ave-self.inlet_ave))+"C "+str(time.ctime())+"\n")
 				self.set_fanspeed(3)
 				self.coef_debug()

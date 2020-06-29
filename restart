@@ -23,6 +23,7 @@ if "envlogger.py" in sys.argv:
 	os.system("sudo ./envlogger.py 91 > /dev/null &")
 	os.system("sudo ./envlogger.py 92 > /dev/null &")
 	os.system("sudo ./envlogger.py 93 > /dev/null &")
+	os.system("sudo ./envlogger.py 94 > /dev/null &")
 
 if "alive_logger.py" in sys.argv:
 	os.system("sudo pkill --signal 15 alive_logger.py")

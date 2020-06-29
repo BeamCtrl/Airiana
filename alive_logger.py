@@ -39,4 +39,7 @@ while True:
 		#print "filename:",filename
 		#print for_file
 		for_file.replace("\n","<br>##")
-		open(filename,"w+").write(for_file)
+		try:
+			open(filename,"w+").write(for_file)
+		except IOError:
+			print "file missing"
