@@ -10,7 +10,7 @@ Handler = SimpleHTTPServer.SimpleHTTPRequestHandler
 Handler.server_version = "Airiana Web Server interface/2.3e"
 
 class myServer(SocketServer.TCPServer):
- 	def server_bind(self):
+	def server_bind(self):
 		while True:
 			try:
 				self.socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)

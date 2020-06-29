@@ -16,7 +16,8 @@ if "envlogger.py" in sys.argv:
 if "alive_logger.py" in sys.argv:
 	os.system("sudo pkill --signal 15 alive_logger.py")
 if "http" in sys.argv:
-	os.system("sudo pkill --signal 15 httpsrv.py")
+	os.system("sudo pkill -f httpsrv.py")
+	os.system("sudo pkill -f public/httpsrv2.py")
 
 
 

@@ -3,7 +3,7 @@ import sys,os
 version = sys.version_info[0:2]
 print ("running on version",version)
 if version[0]==3 and version[1]<7:
-	os.system("public/httpsrv2.py&")
+	os.system("python2.7 public/httpsrv2.py&")
 	exit()
 import http.server
 import socketserver,os,socket,struct,ssl
