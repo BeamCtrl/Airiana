@@ -220,7 +220,7 @@ def logger ():
 			os.system("./ha-httpsensor.py -n Efficiency -u % -d calculated -v "+str(round(numpy.average(device.eff_ave),2))+">/dev/null &")
 		except:pass
 		os.system("./ha-httpsensor.py -n Humidity -d humidity -u % -v "+str(int(device.new_humidity))+">/dev/null &")
-		os.system("./ha-ähttpsensor.py -n Extract Fan -d fanspeed -u rpm -v "+str(int(device.ef_rpm))+">/dev/null &")
+		os.system("./ha-httpsensor.py -n Extract Fan -d fanspeed -u rpm -v "+str(int(device.ef_rpm))+">/dev/null &")
 #PRINT COMM SETTING
 def display_settings():
         clear_screen()
