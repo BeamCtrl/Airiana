@@ -21,7 +21,7 @@ import random as rndm
 #tm.sleep(rndm.randint(90,300))
 def update_sensors():
 	global device
-	try: 
+	try:
 		fd=open ("sensors")
 		for each in fd.readlines():
 			unit = each.split(":")
