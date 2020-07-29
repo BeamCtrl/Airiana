@@ -57,7 +57,7 @@ fd = open(str(log)+".log","a+")
 fd.seek(0)
 for each in fd.readlines():
 	data = each.split(":")
-	if float(data[0]) > tm.time()-3600*24*100:
+	if float(data[0]) > tm.time()-3600*24*1000:
 		#print data
 		time.append(float(data[0]))
 		temp.append(float(data[1]))

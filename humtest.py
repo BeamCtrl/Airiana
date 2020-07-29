@@ -3,6 +3,7 @@ import numpy as np
 import os, traceback, sys
 import time as tm
 import statistics as stat
+import progressbar
 os.chdir("/home/pi/airiana/")
 if len(sys.argv)==1:
 	fil = os.popen("cat ./RAM/data.log")
@@ -53,11 +54,13 @@ try:
 	x=[]
 	y=[]
 	l=len(data)
-	for each in data:
+	widgets = [progressbar.Bar('>'), ' ', progressbar.ETA(), ' ', progressbar.ReverseBar('<')]
+	pbar =progressbar.ProgressBar(widgets=widgets)
+	for each in pbar(data):
 	    i+=1
-	    if round(float(i)/l*100,3)%1==0 and day <> 60*60*24:
-		print "loading-"+str(int(float(i)/l*100))+"%"+str(int(float(i)/l*40)*"-"),
-		print(chr(27)+"["+str(14+int(float(i)/l*40))+"D"),
+	    #if round(float(i)/l*100,3)%1==0 and day <> 60*60*24:
+		#print "loading-"+str(int(float(i)/l*100))+"%"+str(int(float(i)/l*40)*"-"),
+		#print(chr(27)+"["+str(14+int(float(i)/l*40))+"D"),
 
 	    try: 
 	     #i+=1
@@ -102,21 +105,34 @@ tmp = "Differential stddev: "+"+-"+ str(round(stddev,2))+ "% Differential mean:"
 #tmp = "stddev: "+u"\u00B1"+ str(round(stddev,2))+ "% ave:"+str(round(ave,2))+"%"
 tmp +=  "Last: "+ str(calc_hum[-1]-supply_humid[-1])+'%'
 print tmp
+print "\nRelative Humidity (%)"
 print "Measured:"
-ave, stddev = stat.stddev(x)
-print "Mean:",ave,"Stddev:",stddev
+mave, mstddev = stat.stddev(x)
+print "Mean:",mave,"Stddev:",mstddev
 ave, stddev = stat.stddev(y)
+rmsError =  stat.rmsError(x,y)
+mae = stat.meanAbsError(x,y)
 print "Calculated:"
 print "Mean:",ave,"Stddev:",stddev
-print "Correlation coeficient",stat.correlation(x,y)
-print "Z test", stat.z_test(x,y)
-print "Partial pressures"
+print "\nCorrelation coeficient",stat.correlation(x,y)
+#print "MeanErrorSquared", stat.meanErrorSq(x,y)
+print "RootMeanSquaredError",rmsError, round(rmsError/mstddev,2),"stdDev"
+print "MeanAbsoluteError",mae, round(mae/mstddev,2),"stdDev"
+#print "Z test", stat.z_test(x,y)
+#print "chi2test", stat.chi2test(x,y)
+print "\nPartial pressures (Pa)"
 print "Measured:"
-ave, stddev = stat.stddev(mdP)
-print "Mean:",ave,"Stddev:",stddev
+mave, mstddev = stat.stddev(mdP)
+print "Mean:",mave,"Stddev:",mstddev
 ave, stddev = stat.stddev(cdP)
+rmsError =  stat.rmsError(mdP,cdP)
+mae = stat.meanAbsError(mdP,cdP)
 print "Calculated:"
 print "Mean:",ave,"Stddev:",stddev
-print "Correlation coeficient",stat.correlation(mdP,cdP)
-print "Z test", stat.z_test(mdP,cdP)
+print "\nCorrelation coeficient",stat.correlation(mdP,cdP)
+#print "MeanErrorSquared", stat.meanErrorSq(mdP,cdP)
+print "RootMeanSquaredError",rmsError, round(rmsError/mstddev,2),"stdDev"
+print "MeanAbsoluteError",mae, round(mae/mstddev,2),"stdDev"
+#print "Z test", stat.z_test(mdP,cdP)
+#print "chi2test", stat.chi2test(mdP,cdP)
 print "End: " + tm.ctime(float(-time[-1]+tm.time()))+"\n"

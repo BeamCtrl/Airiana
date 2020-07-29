@@ -136,7 +136,9 @@ def report_alive():
 						os.write(ferr,temp)
 						os.fsync(ferr)
 					temp = temp.replace("\n","<br>")
-					message += temp + "\n"
+					message += temp + "<br>"
+					message += os.popen("df |grep RAM").read()+"<br>"
+					message +=  os.popen("df |grep var").read()+"<br>"
 				except :
 					os.write(ferr, "Ping error "+traceback.print_exc() +"\n")
 					print "ERROR IN PING ",traceback.print_exc()
