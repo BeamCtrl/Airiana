@@ -21,7 +21,7 @@ HW: Rpi + RS485 TxRx module, VR400/VR700/VTR300/VSR300 or savecair unit from sys
 Installation:
 Install an Rs485 hat on your pi.
 Connect A and B to your ventilation units Modbus connector.
-Set comms to 19200baud no pairity. 
+Set comms on Ventilation unit to 19200baud no pairity 1 stopbit. 
 Clone this repo.
-Run  "sudo ./install.py"
+Run  "sudo python ./install.py"
 Update the location file with your current position for YR.no  
