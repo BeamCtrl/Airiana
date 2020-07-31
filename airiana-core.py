@@ -60,7 +60,10 @@ if "daemon" in sys.argv:
 	os.lseek(ferr,0, os.SEEK_END)
 
 # Setup serial, RS 485 to machine
-if os.path.lexists("/dev/serial0"):
+if os.path.lexists("/dev/ttyUSB0"):
+	print "Communication started on device ttyUSB0;"
+	unit = "/dev/serial0"
+elif os.path.lexists("/dev/serial0"):
 	print "Communication started on device Serial0;"
 	unit = "/dev/serial0"
 	#os.system("sleep 2")
