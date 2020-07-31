@@ -15,10 +15,10 @@
 import os, sys
 print "Installing the AirianaCores"
 os.system("apt-get update")
-
+dir = os.getcwd()
 #MAKE RAM DRIVE IN FSTAB#
 fstab_comment = "#temp filesystem only in RAM for use on Airiana tempfiles.\n"
-fstab_cmd = "tmpfs /home/pi/airiana/RAM tmpfs defaults,noatime,nosuid,mode=0755,size=50m 0 0\n"
+fstab_cmd = "tmpfs "+dir+"/RAM tmpfs defaults,noatime,nosuid,mode=0755,size=50m 0 0\n"
 # MAKE RAM DRIve for linux logs var/logs
 fstab_cmd += "tmpfs /var/log tmpfs defaults,noatime,mode=0755,size=75m 0 0/n" 
 # INSTALL DEPS#
@@ -40,7 +40,7 @@ else:
 
 fstab_file = open("/etc/fstab","rw+")
 lines=fstab_file.readlines()
-if fstab_cmd in lines: print "fstab installed" 
+if fstab_comment in lines: print "fstab installed" 
 else:
 	 print "Setting up Ram drive"
 	 fstab_file.write(fstab_comment)
@@ -72,8 +72,8 @@ os.system("chown pi:pi ../RAM/")
 os.system("chown pi:pi ../RAM/*")
 # setup updater.py for auto update
 tmp  =os.popen("crontab -l").read()
-os.system("echo \"" + tmp+ "0 */4 * * * sudo /usr/bin/python /home/pi/airiana/updater.py\"|crontab -u pi -")
+os.system("echo \"" + tmp+ "0 */4 * * * sudo /usr/bin/python "+dir+"/updater.py\"|crontab -u pi -")
 
 print "Installation completed, reboot in 15 sec"
-os.system("sleep 15")
-os.system("reboot")
+#os.system("sleep 15")
+#os.system("reboot")
