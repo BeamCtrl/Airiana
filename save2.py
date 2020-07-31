@@ -1,20 +1,49 @@
-#!/usr/bin/python 
+#!/usr/bin/python
 import minimalmodbus,traceback,time,serial
-unit = "/dev/serial0"
+import sys
+for each in sys.argv:
+		if not each.find("dev")==-1:
+			print "Using: " + each
+			unit = each
+try:
+	if not unit:pass
+except:
+	print "using default: serial0"
+	unit = "/dev/serial0"
 i=0
 target =None
 speeds = (1200,2400,4800,9600,19200,28800,38400,57600,115200)
 #print speeds[i]
+#12100,12101,12102,12103,12104,12105,12106,12107,12108,12109
+import sys
+if "test"in sys.argv:
+	import minimalmodbus
+	addrs=1333
+	for speed in speeds:
+	  try:
+		minimalmodbus.BAUDRATE = speed
+		minimalmodbus.PARITY   = serial.PARITY_NONE
+		minimalmodbus.BYTESIZE = 8
+		minimalmodbus.STOPBITS = 1
+		minimalmodbus.CLOSE_PORT_AFTER_EACH_CALL=True
+		client = minimalmodbus.Instrument(unit,1)
+		client.serial.baudrate=speed
+		client.debug=False
+		client.precalculate_read_size=True
+		res= client.read_register(addrs,0,signed=True)
+		print addrs,":",res, "@",speed
+		sys.stdout.flush()
+	  except:print "break at ", speed
+	exit()
 minimalmodbus.BAUDRATE =19200 # speeds[i]
 minimalmodbus.PARITY   = serial.PARITY_NONE
 minimalmodbus.BYTESIZE = 8
-minimalmodbus.STOPBITS = 1		
+minimalmodbus.STOPBITS = 1
 minimalmodbus.CLOSE_PORT_AFTER_EACH_CALL=True
 client = minimalmodbus.Instrument(unit,1)
 client.debug=False
 client.precalculate_read_size=True
-#12100,12101,12102,12103,12104,12105,12106,12107,12108,12109
-import sys
+
 if "list" in sys.argv:
 	for each in range(1000,21000):
 		res= client.read_register(each,0,signed=True)
