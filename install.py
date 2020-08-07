@@ -25,6 +25,8 @@ fstab_cmd += "tmpfs /var/log tmpfs defaults,noatime,mode=0755,size=75m 0 0/n"
 os.system("apt-get -y install python-matplotlib")
 os.system("pip install  minimalmodbus")
 os.system("pip install  progressbar")
+os.system("pip install requests")
+os.system("pip install pyModbusTCP")
 os.system("apt-get -y install ntp")
 # NEED TO SET LOCALE
 os.system("cp ./systemfiles/timezone /etc/")
