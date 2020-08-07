@@ -1,13 +1,14 @@
 #!/usr/bin/python
 import requests
 import sys
-
+import os
 value=  	sys.argv[sys.argv.index("-v")+1]
 unit =  	sys.argv[sys.argv.index("-u")+1]
 sensor_name = 	sys.argv[sys.argv.index("-n")+1]
 device_class =	sys.argv[sys.argv.index("-d")+1]
 url = "http://127.0.0.1:8123/api/states/sensor."+sensor_name
-bearer= "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI3Y2I3ZjhiMWU3NjU0ZjczOWRlYzgwZDUyN2E3YzFjMyIsImV4cCI6MTg2MTU2NTU3MCwiaWF0IjoxNTQ2MjA1NTcwfQ.a7r2UjyzbA43N6RHJn3tV5SGc4CXMeABrPFrbG8MOhE"
+bearer = open("ha-token", "r").read()
+#bearer= "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI3Y2I3ZjhiMWU3NjU0ZjczOWRlYzgwZDUyN2E3YzFjMyIsImV4cCI6MTg2MTU2NTU3MCwiaWF0IjoxNTQ2MjA1NTcwfQ.a7r2UjyzbA43N6RHJn3tV5SGc4CXMeABrPFrbG8MOhE"
 
 
 try:
