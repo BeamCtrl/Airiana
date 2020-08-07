@@ -2,7 +2,10 @@
 # -*- coding: utf-8 -*-
 import time
 import os
-import pyModbusTCP.client
+try:
+	import pyModbusTCP.client
+except:
+	pass
 """#######Request object for doing modbus coms##
 """
 IP = "localhost"

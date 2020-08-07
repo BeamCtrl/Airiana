@@ -8,6 +8,7 @@ if "controller" in sys.argv:
 	os.system("sudo systemctl stop controller.service")
 
 if "status.py" in sys.argv:
+	os.system("sudo systemctl stop status.service")
 	os.system("sudo pkill --signal 15 status.py")
 	os.system("sudo pkill --signal 15 alive_logger.py")
 
