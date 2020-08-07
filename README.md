@@ -25,3 +25,7 @@ Set comms on Ventilation unit to 19200baud no pairity 1 stopbit.
 Clone this repo.
 Run  "sudo python ./install.py"
 Update the location file with your current position for YR.no  
+
+To enable HomeAssitant integration:
+edit the ha-token file, add your server port and bearer token.
+edit /etc/systemd/system/airiana.service, add "homeAss" to commandline option
