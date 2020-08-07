@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 import time
 import os
-
+import pyModbusTCP.client
 """#######Request object for doing modbus coms##
 """
-
-
+IP = "localhost"
+PORT = "505"
 class Request:
     connect_errors = 0
     checksum_errors = 0
@@ -22,10 +22,17 @@ class Request:
     bus = 0
     client = ""
     response = ""
-
-    def __init__(self, bus, client):
+    mode = "RTU"
+    def __init__(self, bus, client, mode):
         self.client = client
         self.bus = bus
+	self.mode = mode
+	if self.mode == "TCP":
+		print "using TCP backend"
+		# TCP auto connect on first modbus request
+		cli = pyModbusTCP.client.ModbusClient(host=IP, port=PORT, auto_open=True)
+	else:
+		print "using RTU backend"
         print "request object created"
 
     def modbusregisters(self, start, count, signed=False):
@@ -84,56 +91,65 @@ class Request:
 
         :type self: request Object for modbus comm
         """
-        self.iter += 1
-        self.client.precalculate_read_size = True
+        if self.mode == "RTU":
+	    self.iter += 1
+            self.client.precalculate_read_size = True
 
-        try:
-            self.response = "no data"
-            self.buff += os.read(self.bus, 20)  # bus purge
-            self.response = self.client.read_register(
-                address, decimals,
-                signed=True)
-        except IOError:
-            self.connect_errors += 1
-            if self.connect_errors > 100:
-                self.error_review()
-            self.buff += os.read(self.bus, 20)  # bus purge
-            self.modbusregister(address, decimals)
-        except ValueError:
-            self.buff += os.read(self.bus, 20)  # bus purge
-            self.checksum_errors += 1
-            self.modbusregister(address, decimals)
-        self.client.precalculate_read_size = False
-	#print "request om address ", address, "returned", self.response
-
+            try:
+        	self.response = "no data"
+        	self.buff += os.read(self.bus, 20)  # bus purge
+        	self.response = self.client.read_register(
+        	        address, decimals,
+        	        signed=True)
+       	    except IOError:
+        	self.connect_errors += 1
+            	if self.connect_errors > 100:
+                	self.error_review()
+            	self.buff += os.read(self.bus, 20)  # bus purge
+            	self.modbusregister(address, decimals)
+            except ValueError:
+            	self.buff += os.read(self.bus, 20)  # bus purge
+            	self.checksum_errors += 1
+            	self.modbusregister(address, decimals)
+        	self.client.precalculate_read_size = False
+		#print "request om address ", address, "returned", self.response
+	else:
+		try:
+			req = c.read_input_registers(address, 1)
+		except: print "TCP read error on addrs:",address
     def write_register(self, reg, value, tries=10):
-        self.iter += 1
-        self.client.precalculate_read_size = True
+	if self.mode == "RTU":
+	        self.iter += 1
+	        self.client.precalculate_read_size = True
 
-        try:
+	        try:
 
-            if tries > 0:
-                self.client.write_register(reg, value, 0, 6)
+	            if tries > 0:
+	                self.client.write_register(reg, value, 0, 6)
 
-        except IOError:
+	        except IOError:
 
-            self.write_errors += 1
-            if tries > 0:
-                self.write_register(reg, value, tries=tries - 1)
-            pass
-        except ValueError:
+	            self.write_errors += 1
+	            if tries > 0:
+	                self.write_register(reg, value, tries=tries - 1)
+	            pass
+	        except ValueError:
 
-            self.write_errors += 1
-            if tries > 0:
-                self.write_register(reg, value, tries=tries - 1)
+	            self.write_errors += 1
+	            if tries > 0:
+	                self.write_register(reg, value, tries=tries - 1)
 
-            pass
-        self.modbusregister(reg, 0)
-        if value != self.response and tries > 0:
-            self.write_register(reg, value, tries=tries - 1)
-        if tries == 0:
-            fd = os.open("RAM/err", os.O_WRONLY)
-            os.write(fd,
-                     "Write error, no tries left on register:"
-                     + str(reg) + "\n")
-            os.close(fd)
+	            pass
+	        self.modbusregister(reg, 0)
+	        if value != self.response and tries > 0:
+	            self.write_register(reg, value, tries=tries - 1)
+	        if tries == 0:
+	            fd = os.open("RAM/err", os.O_WRONLY)
+	            os.write(fd,
+	                     "Write error, no tries left on register:"
+	                     + str(reg) + "\n")
+	            os.close(fd)
+	else:
+		try:
+			req = c.write_input_registers(address, 1)
+		except: print "TCP write error on addrs:",address

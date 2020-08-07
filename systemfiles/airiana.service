@@ -4,8 +4,8 @@ After=network-online.target
 Type=idle
 
 [Service]
-ExecStart=/usr/bin/python /home/pi/airiana/airiana-core.py daemon ping humidity
-
+ExecStart=/usr/bin/python /home/pi/airiana/airiana-core.py daemon ping humidity 
+#cmdl.options: debug humidity moisture sensors exhaust ping temperatur.nu keep-log homeAss 
 Restart=always
 User=root
 KillSignal = SIGKILL

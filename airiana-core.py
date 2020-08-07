@@ -10,6 +10,9 @@ from request import Request
 vers = "10.14"
 Running =True
 savecair=False
+mode = "RTU"
+if "TCP" in sys.argv:
+	mode = "TCP"
 # Register cleanup
 def exit_callback(self, arg):
 		print "Gracefull shutdown\nexiting on signal",self
@@ -243,7 +246,7 @@ def clear_screen():
 #################################################################################
 start = time.time() # START TIME
 # init request class for communication
-req = Request(bus,client)
+req = Request(bus,client,mode)
 ############DEVICE CLASS FOR SYSTEMAIR VR400DCV#############################
 class Systemair(object):
 	def __init__(self):
@@ -1813,7 +1816,7 @@ if __name__  ==  "__main__":
 			if "humidity" in sys.argv:
 				device.get_local()
 			if "temperatur.nu" in sys.argv:
-		                os.system("wget -q -O temperatur.nu  http://www.temperatur.nu/rapportera.php?hash=42bc157ea497be87b86e8269d8dc2d42\\&t="+str(round(device.inlet_ave,1))+" &")
+		                os.system("wget -q -O ./RAM/temperatur.nu  http://www.temperatur.nu/rapportera.php?hash=42bc157ea497be87b86e8269d8dc2d42\\&t="+str(round(device.inlet_ave,1))+" &")
 
 		#check for updates
 		if device.iter % int(3600/0.2)==0:

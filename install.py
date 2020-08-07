@@ -47,14 +47,15 @@ else:
 	 fstab_file.write(fstab_cmd)
 	 fstab_file.close()
 #install system services for airaina and controller
-os.system("cp ./systemfiles/airiana.service /etc/systemd/system/")
-os.system("cp ./systemfiles/controller.service /etc/systemd/system/")
+if not os.path.lexist("/etc/systemd/system/airiana.service"):
+	os.system("cp ./systemfiles/airiana.service /etc/systemd/system/")
+if not os.path.lexist("/etc/systemd/system/controller.service"):
+	os.system("cp ./systemfiles/controller.service /etc/systemd/system/")
 
 os.system("systemctl enable airiana.service")
 os.system("systemctl enable controller.service")
 # redir console from uart
 boot_cmd= "dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait"
-
 os.system("echo " +boot_cmd+"> /boot/cmdline.txt" )
 ##
 ## setup airiana as host#
