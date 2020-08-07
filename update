@@ -4,13 +4,16 @@ sudo systemctl stop airiana.service controller.service
 cp data.log ../
 cp location ../
 cp data.save ../
+cp ha-token ../
 #git pull origin
 git fetch origin
 git reset --hard origin/master
 sudo cp ../data.log ./
 sudo cp ../location ./
 sudo cp ../data.save ./
+sudo cp ../ha-token ./
 rm  -f ../data.log
 rm  -f ../data.save
 rm  -f ../location
+rm  -f ../ha-token
 sudo systemctl start airiana.service controller.service
