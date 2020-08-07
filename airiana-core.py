@@ -222,13 +222,13 @@ def logger ():
 		fdo.write(cmd+"\n")
 	except:traceback.print_exc()
 	if "homeAss" in sys.argv:
-		os.system("./ha-httpsensor.py -n Indoor -u °C -d temperature -v "+str(round(device.extract_ave,1))+">/dev/null &")
-		os.system("./ha-httpsensor.py -n Outside -u °C -d temperature -v "+str(round(device.inlet_ave,1))+">/dev/null &")
+		os.system("./ha-httpsensor.py -n ftx_Indoor -u °C -d temperature -v "+str(round(device.extract_ave,1))+">/dev/null &")
+		os.system("./ha-httpsensor.py -n ftx_Outside -u °C -d temperature -v "+str(round(device.inlet_ave,1))+">/dev/null &")
 		try:
-			os.system("./ha-httpsensor.py -n Efficiency -u % -d calculated -v "+str(round(numpy.average(device.eff_ave),2))+">/dev/null &")
+			os.system("./ha-httpsensor.py -n ftx_Efficiency -u % -d calculated -v "+str(round(numpy.average(device.eff_ave),2))+">/dev/null &")
 		except:pass
-		os.system("./ha-httpsensor.py -n Humidity -d humidity -u % -v "+str(int(device.new_humidity))+">/dev/null &")
-		os.system("./ha-httpsensor.py -n Extract Fan -d fanspeed -u rpm -v "+str(int(device.ef_rpm))+">/dev/null &")
+		os.system("./ha-httpsensor.py -n ftx_Humidity -d humidity -u % -v "+str(int(device.new_humidity))+">/dev/null &")
+		os.system("./ha-httpsensor.py -n ftx_ExtractFan -d fanspeed -u rpm -v "+str(int(device.ef_rpm))+">/dev/null &")
 #PRINT COMM SETTING
 def display_settings():
         clear_screen()
