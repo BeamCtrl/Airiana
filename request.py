@@ -123,7 +123,7 @@ class Request:
 		#print "request om address ", address, "returned", self.response
 	else:
 		try:
-			req = self.client.read_input_registers(address, 1)
+			self.response = self.client.read_input_registers(address, 1)
 		except: print "TCP read error on addrs:",address
     def write_register(self, reg, value, tries=10):
 	if self.mode == "RTU":
@@ -159,5 +159,5 @@ class Request:
 	            os.close(fd)
 	else:
 		try:
-			req = self.client.write_input_registers(address, 1)
+			self.response = self.client.write_input_registers(address, 1)
 		except: print "TCP write error on addrs:",address
