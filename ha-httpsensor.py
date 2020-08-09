@@ -22,5 +22,5 @@ try:
 	data= "{\"state\":"+ value+", \"attributes\": {\"unit_of_measurement\":\"" + unit+"\", \"friendly_name\": \""+sensor_name+"\",\"device_class\":\""+device_class+"\",\"default_visibility\":\"visible\"}}"
 	response = requests.request('POST', url, data=data,headers=headers)
 	print(data,response.text)
-except IOError:pass
+except :pass
 
