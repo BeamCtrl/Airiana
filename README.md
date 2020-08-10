@@ -112,6 +112,10 @@ System control and monitoring is done via a web-page at http://airana.local. fro
 
 Tips and Tricks: if you want to run fans at low on a timer set forced and then manually set low speed. the timer inhibits the automation for 2 hrs
 
+#### HomeAssistant http-sensor:
+If configured the ha-token file can contain the ip, port and token of your runnning homeAssistant server. Airiana will then send temperature/humidity and extract fan rpm as http sensors and they śhould pop up in you HomeAssistant.
+
+
 ### Tools:
  
 Restart: "./restart" restarts the airiana core service.
