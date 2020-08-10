@@ -25,36 +25,39 @@ featured special effects:
   does alot more calculation and spits out more data than you'll ever need.
  
  
+ 
 HW recomendation: Rpi + RS485 TxRx module, VR400/VR700/VTR300/VSR300 or savecair unit from systemair.
+
 
 
 Installation:
 
-Install an Rs485 hat on your pi.
+  Install an Rs485 hat on your pi.
 
-Connect A and B to your ventilation units Modbus connector.
+  Connect A and B to your ventilation units Modbus connector.
 
-Set comms on Ventilation unit to 19200baud no pairity 1 stopbit. 
+  Set comms on Ventilation unit to 19200baud no pairity 1 stopbit. 
 
-Clone this repo.
+  Clone this repo.
 
-Run  "sudo python ./install.py"
+  Run  "sudo python ./install.py"
 
-Update the location file with your current position for YR.no  
+  Update the location file with your current position for YR.no  
 
 
 To enable HomeAssitant integration:
 
-edit the ha-token file, add your server port and bearer token.
+  edit the ha-token file, add your server port and bearer token.
 
-edit /etc/systemd/system/airiana.service, add "homeAss" to commandline option
+  edit /etc/systemd/system/airiana.service, add "homeAss" to commandline option
 
 
 To run it against an Systemair Internet Access Module, 
 
-edit /etc/systemd/system/airiana.service, add "TCP" to commandline option.
+  edit /etc/systemd/system/airiana.service, add "TCP" to commandline option.
 
-edit the ip-config file.
+  edit the ip-config file.
+  
 
 Feature details.
 
