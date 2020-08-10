@@ -41,7 +41,7 @@ class Request:
 			self.client = pyModbusTCP.client.ModbusClient(host=IP, port=PORT, auto_open=True)
 	else:
 		print "using RTU backend"
-        print "request object created"
+        print "request object created",self.mode
 
     def modbusregisters(self, start, count, signed=False):
         self.client.precalculate_read_size = True
