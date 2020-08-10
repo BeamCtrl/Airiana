@@ -14,7 +14,7 @@ subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 
-The sofware is not distributed in a commercial context without prior permission from the copyright holder.
+The software is not distributed in a commercial context without prior permission from the copyright holder.
 No part or derivative of this software is utilized in a commercial context without permission from the copyright holder.
 
 
