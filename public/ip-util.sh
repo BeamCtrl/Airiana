@@ -1,6 +1,6 @@
 #!/bin/bash
 HOST_IP_ADDRESS=$(hostname -I | cut -f1 -d' ')
-YRLOCATION_xml=$(cat ../location)
+YRLOCATION_xml=$(cat location)
 YRLOCATION=${YRLOCATION_xml%%forecast.xml}
 #echo  $YRLOCATION
 cd /home/pi/airiana/public/

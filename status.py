@@ -23,7 +23,6 @@ init()
 os.chdir("/home/pi/airiana")
 os.system("./alive_logger.py & > /dev/null")
 files = os.listdir("./public/local_links/")
-
 #for each in users.keys():
 #	print each, ": ",users[each]
 stat_dict = {}
@@ -76,6 +75,8 @@ while True:
 			</tr>"""
 		flag = "unknown"
 		files = os.listdir("./public/local_links/")
+		html2 = ""
+
 		for each in files:
 			try:
 				mod = os.stat(str("./public/local_links/"+each)).st_mtime
@@ -123,8 +124,17 @@ while True:
 				html += " </td></tr>\n"
 
 			except KeyError:
- 				html += "<tr><td><a href=\"/local_links/"+each+"\">"+each+"</a></td><td>"+time.ctime(mod)+"</td><td>"+flag+" </td></tr>\n" 
+				status_table= ""
+				for item in lis:
+					status_table += str(item) +"</td><td>"
+				html2 += "<tr><td><a href=\"/local_links/"\
+					+each+"\">"+str(each.split(".")[0])\
+					+"</a></td><td>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td>"+flag\
+					+"</td><td> "\
+					+status_table
+ 				#html2 += "<tr><td><a href=\"/local_links/"+each+"\">"+each+"</a></td><td>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td>"+flag+" </td></tr>\n" 
 
+		html += html2
 		html +="<br></table></html>"
 		file = open("/home/pi/airiana/RAM/status.html","w+")
 		file.write(html)

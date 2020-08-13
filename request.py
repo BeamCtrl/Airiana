@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import time
 import os
+
 try:
 	import pyModbusTCP.client
 except:
@@ -33,10 +34,14 @@ class Request:
 	if self.mode == "TCP":
 		print "using TCP backend"
 		# TCP auto connect on first modbus request
-		cli = pyModbusTCP.client.ModbusClient(host=IP, port=PORT, auto_open=True)
+		try:
+			config = eval (open("ipconfig","r").read())
+			self.client = pyModbusTCP.client.ModbusClient(host=config["ip"], port=config["port"], auto_open=True)
+		except:
+			self.client = pyModbusTCP.client.ModbusClient(host=IP, port=PORT, auto_open=True)
 	else:
 		print "using RTU backend"
-        print "request object created"
+        print "request object created",self.mode
 
     def modbusregisters(self, start, count, signed=False):
         self.client.precalculate_read_size = True
@@ -118,7 +123,7 @@ class Request:
 		#print "request om address ", address, "returned", self.response
 	else:
 		try:
-			req = c.read_input_registers(address, 1)
+			self.response = self.client.read_input_registers(address, 1)
 		except: print "TCP read error on addrs:",address
     def write_register(self, reg, value, tries=10):
 	if self.mode == "RTU":
@@ -154,5 +159,5 @@ class Request:
 	            os.close(fd)
 	else:
 		try:
-			req = c.write_input_registers(address, 1)
+			self.response = self.client.write_input_registers(address, 1)
 		except: print "TCP write error on addrs:",address
