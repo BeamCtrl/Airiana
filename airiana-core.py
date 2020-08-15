@@ -5,8 +5,15 @@ import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal
 import pickle
 from request import Request
+
+try:
+	import pyModbusTCP.client
+except:
+	pass
 #from mail import *
 #############################
+IP = "192.168.0.8"
+PORT = "502"
 vers = "10.14"
 Running =True
 savecair=False
@@ -73,17 +80,29 @@ elif os.path.lexists("/dev/serial0"):
 else :
 	print "Communication started on device ttyAMA0;"
 	unit = "/dev/ttyAMA0"
-minimalmodbus.BAUDRATE = 19200
-minimalmodbus.PARITY = serial.PARITY_NONE
-minimalmodbus.BYTESIZE = 8
-minimalmodbus.STOPBITS=1
-client = minimalmodbus.Instrument(unit,1)
-client.debug=False
-client.precalculate_read_size=True
-client.timeout= 0.05
-#############################################
-wait_time = 0.00
-bus=os.open(unit,os.O_RDONLY)
+if mode=="RTU":
+  minimalmodbus.BAUDRATE = 19200
+  minimalmodbus.PARITY = serial.PARITY_NONE
+  minimalmodbus.BYTESIZE = 8
+  minimalmodbus.STOPBITS=1
+  client = minimalmodbus.Instrument(unit,1)
+  client.debug=False
+  client.precalculate_read_size=True
+  client.timeout= 0.05
+  #############################################
+  wait_time = 0.00
+  bus=os.open(unit,os.O_RDONLY)
+else:
+  print "using TCP backend"
+	# TCP auto connect on first modbus request
+  try:
+    config = eval (open("ipconfig","r").read())
+    print config
+    x = input("Kaj")
+    client = pyModbusTCP.client.ModbusClient(host=config["ip"], port=config["port"], auto_open=True)
+  except:
+    client = pyModbusTCP.client.ModbusClient(IP, port=PORT, auto_open=True)
+  bus=""
 ################################# command socket setup
 import socket
 hostname =os.popen("hostname").read()[:-1]
@@ -1658,12 +1677,20 @@ if __name__  ==  "__main__":
 	device = Systemair()
 
 	try:
-		if device.system_name =="VR400" and client.read_register(12543,0):
-			savecair=True
-			device.system_name="VTR300"
-			conversion_table ={}
-			device.status_field[3]="VTR300/savecair"
-			device.averagelimit=3400
+		if mode=="RTU":
+			if device.system_name =="VR400" and client.read_register(12543,0):
+				savecair=True
+				device.system_name="VTR300"
+				conversion_table ={}
+				device.status_field[3]="VTR300/savecair"
+				device.averagelimit=3400
+		else:
+			if device.system_name =="VR400" and client.read_holding_registers(12543, 1)[0]:
+				savecair=True
+				device.system_name="VTR300"
+				conversion_table ={}
+				device.status_field[3]="VTR300/savecair"
+				device.averagelimit=3400
 	except:pass
 ################
 ###################################################
