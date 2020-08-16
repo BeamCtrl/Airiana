@@ -125,17 +125,19 @@ class Energy(object):
 			diff = reference - self.sat_vapor_press(T)
 			T = T - 0.1
 		return T+0.1
-			
+
 # Abs_hum  = C * Pw/T  C = 2.16679 gK/J Pw vapor press T temp in Kelvin
 #Pw = A*10^(mT/T+Tn)  -->A=6.116441 m=7.591386 Tn=240.7263   vl -20C ->+50C
 #ref Vaisala.comhumidity conversion formulas
 if  "__main__" in __name__:
 	air =Energy()
-	each = 23
+	if len (sys.argv)> 1:
+		each = float(sys.argv[-1])
+	else: each = 23
 	for RH in range(1,101,1):
 		print each,"C",
-		print  RH,"% Dew:",round(air.dew_point(RH,each),1),"C ",1000*air.sat_vapor_press(each),"Pa" , 1000*air.sat_vapor_press(air.dew_point(RH,each))
-	print ""	
+		print  RH,"% Dew:",round(air.dew_point(RH,each),1),"C ",round(1000*air.sat_vapor_press(each),0),"Pa" ,round( 1000*air.sat_vapor_press(air.dew_point(RH,each)),0)
+	print ""
 	#air.a = 16.500
 	print each,"C",
 	"""for RH in range(1,100,8):

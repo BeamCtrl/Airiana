@@ -31,11 +31,21 @@ class Request:
     def __init__(self, bus, client, mode):
         self.client = client
         self.bus = bus
-        self.mode = mode
-        if self.mode == "TCP":
-            print "using TCP backend"
-        else:
-            print "using RTU backend"
+
+	self.mode = mode
+	if self.mode == "TCP":
+		print "using TCP backend"
+		# TCP auto connect on first modbus request
+		try:
+			config = open("ipconfig","r").readline()
+			print "Reading ip configuration file for IAM access", config
+			config = eval(config)
+			self.client = pyModbusTCP.client.ModbusClient(host=config["ip"], port=config["port"], auto_open=True)
+		except:
+			print "Fallback localhost:505 server there may be a problem with formating the ipconfig file or it may not exist"
+			self.client = pyModbusTCP.client.ModbusClient(host=IP, port=PORT, auto_open=True)
+	else:
+		print "using RTU backend"
         print "request object created",self.mode
 
     def modbusregisters(self, start, count, signed=False):
