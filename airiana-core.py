@@ -97,8 +97,6 @@ else:
 	# TCP auto connect on first modbus request
   try:
     config = eval (open("ipconfig","r").read())
-    print config
-    x = input("Kaj")
     client = pyModbusTCP.client.ModbusClient(host=config["ip"], port=config["port"], auto_open=True)
   except:
     client = pyModbusTCP.client.ModbusClient(IP, port=PORT, auto_open=True)
