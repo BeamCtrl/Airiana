@@ -22,15 +22,15 @@ while True:
 	 	#print incomming_msg.find("ether")
 
 		if incomming_msg.find("ether") > 0:
-			print "ether"
+			#print "ether"
 			ip = incomming_msg[61:75]
 			mac =incomming_msg[14:31]
 		else:
-			print "hwadddr"
+			#print "hwadddr"
 			mac =incomming_msg[38:55]
 			ip = incomming_msg[58:72]
 		print time.ctime(), "MAC:", mac, "From:",addr
-		print "active IP:",ip
+		#print "active IP:",ip
 		for_file= html.replace("[IP]",ip)
 		for_file= html.replace("[DA]",incomming_msg)
 		#for_file += "\n"+incomming_msg
@@ -43,4 +43,4 @@ while True:
 			if len(mac)!=0:
 				open(filename,"w+").write(for_file)
 		except IOError:
-			print "file missing"
+			print "file missing",filename

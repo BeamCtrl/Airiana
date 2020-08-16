@@ -290,6 +290,7 @@ class Systemair(object):
 				14:"Snow and thunder",\
 				34:"Heavy snow and thunder",\
 				15:"Fog",-1:"No weather data"}
+		self.AC_energy = 0
 		self.avg_frame_time = 1
 		self.coef_new = 0
 		self.coef_prev_supply = 0
@@ -775,7 +776,7 @@ class Systemair(object):
 			if self.system_name in ("VR400"):
 				self.electric_power= (self.ef_rpm/(100/(float(float(self.ef_rpm)/1381)**1.89))+self.sf_rpm/(100/(float(float(self.sf_rpm)/1381)**1.89)))
 			if self.system_name in ("VSR300"):
-				self.electric_power=0.2* (self.ef_rpm/(100/(float(float(self.ef_rpm)/1381)**1.89))+self.sf_rpm/(100/(float(float(self.sf_rpm)/1381)**1.89)))
+				self.electric_power=0.2 *  (self.ef_rpm/(100/(float(float(self.ef_rpm)/1381)**1.89))+self.sf_rpm/(100/(float(float(self.sf_rpm)/1381)**1.89)))
 
 		except ZeroDivisionError:self.electric_power=0
 		if "Yes" in self.rotor_active :self.electric_power +=10 # rotor motor 10Watts
@@ -787,7 +788,7 @@ class Systemair(object):
 		req.modbusregister(12401,0)
 		self.ef_rpm = req.response
 		try:
-			self.electric_power= (self.ef_rpm/(100/(float(float(self.ef_rpm)/1381)**1.89))+self.sf_rpm/(100/(float(float(self.sf_rpm)/1381)**1.89)))
+			self.electric_power= 0.6 * (self.ef_rpm/(100/(float(float(self.ef_rpm)/1381)**1.89))+self.sf_rpm/(100/(float(float(self.sf_rpm)/1381)**1.89)))
 		except ZeroDivisionError:self.electric_power=0
 
 	def update_fanspeed(self):
@@ -862,16 +863,21 @@ class Systemair(object):
 			if len(self.i_diff) > 15: self.i_diff.pop(0)
 			try:
 				self.dur = self.time[0]-self.time[1]
-				if self.rotor_active =="Yes": self.totalenergy+=(self.loss*self.dur)/3600
-				elif self.extract_ave > self.supply_ave: self.cooling += (self.loss*self.dur)/3600
-				else: self.gain += (self.loss*self.dur)/3600
+				if self.rotor_active =="Yes":
+					self.totalenergy+=(self.loss*self.dur)/3600
+				elif self.extract_ave > self.supply_ave:
+					self.cooling += (self.loss*self.dur)/3600
+				elif self.exhaust_ave > self.extract_ave and self.exhaust_ave > self.inlet_ave:
+					self.AC_energy += ((self.loss*self.dur)/3600)
+				else:
+					self.gain += (self.loss*self.dur)/3600
 			except: pass
 
 			self.cond_data.append(self.energy_diff)
 			if len(self.cond_data)> self.averagelimit+5000:self.cond_data.pop(0)
 	# For units whithout exhaust temp sensor calc expected exhaust temp based on transfered energy in supply
 	def calc_exhaust(self):
-		if "sensors" in sys.argv and "exhaust" in sys.argv:
+		if "sensors" in sys.argv and "exhaust" in sys.argv or self.sensor_exhaust > 30 : # use external exhaust sensor if it measures more 30C, airCond mode.
 			self.exhaust_ave =  self.sensor_exhaust
 		else:
 			try:
@@ -1097,6 +1103,8 @@ class Systemair(object):
 		tmp+= "Cooling Total: "+str(round(self.cooling/1000,3))+"kWh\n"
 		tmp += "Heat Gain Total: "+ str(round(self.gain/1000,3))+"kWh\n"
 		tmp += "Supply:"+str(self.sf)+" l/s,"+str(self.sf_rpm)+"rpm\tExtract:"+str(self.ef)+" l/s,"+str(self.ef_rpm)+"rpm\n"
+		if self.AC_energy:
+			tmp += "AC-energy: "+str(round(self.AC_energy/1000,3))+"kWh\n"
 		if self.rotor_active == "Yes" or "debug" in sys.argv:
 			tmp += "Temperature Efficiency: "+str(round(numpy.average(self.eff_ave),2))+"%\n"
 		tmp += "Filter has been installed for "+ str(self.filter)+" days ,"+str(self.filter_remaining)+"% remaining. \n\n"
@@ -1322,7 +1330,7 @@ class Systemair(object):
 
 	    except: os.write(ferr, "Forcast cooling error "+str(time.ctime()) +"\n")
 	    # SAVECAIR COOL reCover cheat
-	    if savecair and not self.inhibit and not self.shower:
+	    """if savecair and not self.inhibit and not self.shower:
 		    if self.exchanger_mode<>5\
 			and self.fanspeed == 1\
 			and self.supply_ave < self.inlet_ave\
@@ -1345,7 +1353,7 @@ class Systemair(object):
 			self.cycle_exchanger(0)
 			self.modetoken = 0
 			os.write(ferr,"Stoped forcing heat exchanger "+ str(time.ctime())+ "\n")
-
+	§  """
 	    if self.cool_mode and not self.inhibit and not self.shower:
 		if (self.extract_ave <20.7 ) and self.fanspeed <> 1 :
 			self.set_fanspeed(1)

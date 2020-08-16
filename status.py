@@ -4,7 +4,7 @@ import os, time
 import mail
 import sys
 mailer = mail.Smtp()
-if  not os.path.lexists("/home/pi/airiana/RAM/status.html"):
+if not os.path.lexists("/home/pi/airiana/RAM/status.html"):
 	os.system("touch /home/pi/airiana/RAM/status.html" )
 def init():
 	from users import users
@@ -21,8 +21,12 @@ def init():
 		mail_sent[each] = False
 init()
 os.chdir("/home/pi/airiana")
-os.system("./alive_logger.py & > /dev/null")
+os.system("./alive_logger.py > /dev/null &")
 files = os.listdir("./public/local_links/")
+data = dict(enumerate(["token","exchanger","exectime","name","version","hash","uptime","inlet","extract","extractflow","rh","auto","cooling","supply","exhaust","pdiff","detlimit"]))
+data = {value : key for (key, value) in data.items()}
+
+print data
 #for each in users.keys():
 #	print each, ": ",users[each]
 stat_dict = {}
@@ -31,16 +35,15 @@ def analyse_stat(status,user):
 	#	print "Analyze", status, users[user]
 	# Store Warnings in the stat_dict as {"user-MAC":{"alarmType":INT}}
 	# check if winter mode is on and exhaust is higher than supply
-	#print status[1] == 5,status[14]>status[13],status[7]<15
-	if status[1]==5 and status[14]>status[13] and status[7]< 15:
-		#print users[user], "Exchanger problem\n"
-		try:
-			stat_dict[user]={"ExchangerProblem":True}
-		except: pass #print "there is en error in dictsetting"
-		#print stat_dict[user]
-	# TODO: check exhaust is higher than extract while inlet is lower than extract
-
-	# TODO: 
+	if len(status) > 1:
+		#print status[data["exchanger"]],status[data["exhaust"]], status[data["supply"] ]
+		if int(status[data["exchanger"]])==5 and float(status[data["exhaust"]])>float(status[data["supply"]]) and float(status[data["intlet"]])< 10:
+			#print users[user], "Exchanger problem\n"
+			try:
+				stat_dict[user]={"ExchangerProblem":True}
+			except: pass #print "there is en error in dictsetting"
+			#print stat_dict[user]
+		# TODO: check exhaust is higher than extract while inlet is lower than extract
 
 starttime = time.time()
 while True:
@@ -51,7 +54,7 @@ while True:
 			init()
 		html = """<html>STATUS VIEW AIRIANA SYSTEMS<br>
 			<meta http-equiv="refresh" content="5">
-			<table><tr>
+			<table style="width: 100%;"><tr>
 			<th>Name</th>
 			<th>Ping</th>
 			<th>Status</th>
@@ -80,20 +83,27 @@ while True:
 		for each in files:
 			try:
 				mod = os.stat(str("./public/local_links/"+each)).st_mtime
-				content = os.popen("cat ./public/local_links/"+each).read()
-				content = content.replace("nan", " -1 ")
-				stat_field = content.split("status:")[-1]
+				content = os.popen("cat ./public/local_links/"+each).readlines()
+				for line in content:
+					if "status:" in line:
+						stat_field = line
+						break
+				content = stat_field.replace("nan", " -1 ")
+				#print content
 				user =str(each.split(".")[0])
+				#print user
 				try:
-					#print stat_field
-					if content.find("status")!=-1 :exec  ("lis ="+stat_field.split("\n")[0])
+					if content.find("status")!=-1 :
+						exec ("lis ="+stat_field.split(":")[-1])
+						#print lis
 					else: lis =[]
-				except:
+				except IOError:
 					lis=["data error"]
+				#print lis
 				if int(time.time()-starttime)%1 == 0:
 					try:
 						analyse_stat(lis,user)
-					except: print "analysis error"
+					except IOError: print "analysis error"
 				#print status[str(each.split(".")[0])], each
 				if (time.time()-mod)/3600>status[str(each.split(".")[0])]:
 					status[str(each.split(".")[0])] = round((time.time()-mod)/3600,2)
@@ -133,9 +143,35 @@ while True:
 					+"</td><td> "\
 					+status_table
  				#html2 += "<tr><td><a href=\"/local_links/"+each+"\">"+each+"</a></td><td>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td>"+flag+" </td></tr>\n" 
+		html +="<br></table><br>"
+		html += """	<table style="width: 100%">
+			<caption style="text-align:left"><strong>Not registered users:</strong></caption>
+			<tr>
+			<th style="text-align:left">Name</th>
+			<th>Ping</th>
+			<th>Status</th>
+			<th>Shr</th>
+			<th>Ex</th>
+			<th>tm</th>
+			<th>Unit</th>
+			<th>Vr</th>
+			<th>hash</th>
+			<th>uTm</th>
+			<th>In</th>
+			<th>Out</th>
+			<th>flw</th>
+			<th>RH</th>
+			<th>Auto ON</th>
+			<th>Cooling active</th>
+			<th>Supply</th>
+			<th>Exhaust</th>
+			<th>P.diff</th>
+			<th>detLimit</th>
+			</tr>"""
 
 		html += html2
 		html +="<br></table></html>"
+
 		file = open("/home/pi/airiana/RAM/status.html","w+")
 		file.write(html)
 		file.close()
