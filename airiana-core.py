@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 ###################IMPORTS
 import airdata, serial, numpy, select, threading, minimalmodbus
-import os, traceback, time, sys, signal
+import os, traceback, time, sys, signal, math
 import pickle
 from request import Request
 #from mail import *
@@ -788,7 +788,7 @@ class Systemair(object):
 		req.modbusregister(12401,0)
 		self.ef_rpm = req.response
 		try:
-			self.electric_power= 0.57 * (self.ef_rpm/(100/(float(float(self.ef_rpm)/1381)**1.89))+self.sf_rpm/(100/(float(float(self.sf_rpm)/1381)**1.89)))
+			self.electric_power= 3.404 * math.exp(0.001* self.ef_rpm)+3.404 * math.exp(0.001* self.sf_rpm) 
 		except ZeroDivisionError:self.electric_power=0
 
 	def update_fanspeed(self):
