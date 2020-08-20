@@ -29,6 +29,22 @@ print data
 #for each in users.keys():
 #	print each, ": ",users[each]
 stat_dict = {}
+location= dict()
+def checkLocation(user):
+	try:	
+		print location
+		if len(location[user]) <>0:
+			print "user known",user
+			return None
+	except KeyError:
+		with open("./public/local_links/"+user+".html") as log:
+			ip = log.read().split("Source:('")[-1].split("\'")[0]
+		print "checking ip:",ip
+		loc = os.popen("/home/pi/airiana/geoloc.py " + ip).read()
+		location.update( {user:loc})
+		print "got new location", loc
+	
+
 def analyse_stat(status,user):
 	#if "debug" in sys.argv:
 	#	print "Analyze", status, users[user]
@@ -78,7 +94,6 @@ while True:
 		flag = "unknown"
 		files = os.listdir("./public/local_links/")
 		html2 = ""
-
 		for each in files:
 			try:
 				mod = os.stat(str("./public/local_links/"+each)).st_mtime
@@ -90,7 +105,9 @@ while True:
 				content = stat_field.replace("nan", " -1 ")
 				#print content
 				user =str(each.split(".")[0])
-				#print user
+				checkLocation(user)
+				try: print "userID",user,"location:", location[user]
+				except:print "\n"
 				try:
 					if content.find("status")!=-1 :
 						exec ("lis ="+stat_field.split(":")[-1])
@@ -138,9 +155,10 @@ while True:
 				try:
 					html += " " +str(stat_dict[user])
 				except KeyError: pass
-				with open("./public/local_links/"+user+".html") as log:
-					location = log.read().split("location:")[-1]
-				html += " </td><td>"+location+"</td></tr>\n"
+				try:
+					html += " </td><td>"+location[user]+"</td></tr>\n"
+				except:
+					html += "</td></tr>\n"
 
 			except KeyError:
 				status_table= ""
@@ -151,9 +169,10 @@ while True:
 					+"</a></td><td>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td>"+flag\
 					+"</td><td> "\
 					+status_table
-				with open("./public/local_links/"+user+".html") as log:
-					location = log.read().split("location:")[-1]
-				html2 += " </td><td>"+location+"</td></tr>\n"
+				try:
+					html2 += " </td><td>"+location[user]+"</td></tr>\n"
+				except:
+					html2 += "</td></tr>\n"
 
 				if (time.time()-mod)/3600 > 24:
 					os.system("rm -f ./public/local_links/"+each)
