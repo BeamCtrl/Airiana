@@ -865,10 +865,10 @@ class Systemair(object):
 				self.dur = self.time[0]-self.time[1]
 				if self.rotor_active =="Yes":
 					self.totalenergy+=(self.loss*self.dur)/3600
+				elif self.exhaust_ave > self.extract_ave and self.exhaust_ave > self.inlet_ave:
+					self.AC_energy += self.airdata_inst.energy_flow(self.ef,self.exhaust_ave,self.inlet_ave)*self.dur/3600
 				elif self.extract_ave > self.supply_ave:
 					self.cooling += (self.loss*self.dur)/3600
-				elif self.exhaust_ave > self.extract_ave and self.exhaust_ave > self.inlet_ave:
-					self.AC_energy += ((self.loss*self.dur)/3600)
 				else:
 					self.gain += (self.loss*self.dur)/3600
 			except: pass
@@ -1666,13 +1666,14 @@ if __name__  ==  "__main__":
 	device = Systemair()
 
 	try:
-		if device.system_name =="VR400" and client.read_register(12543,0):
+		if device.system_name =="VR400" and req.modbusregister(12543,0) <> 0:
 			savecair=True
 			device.system_name="VTR300"
 			conversion_table ={}
 			device.status_field[3]="VTR300/savecair"
 			device.averagelimit=3400
-	except:pass
+
+	except: pass
 ################
 ###################################################
 ############################ RUN MAIN loop ########################

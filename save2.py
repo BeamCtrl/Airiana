@@ -1,6 +1,17 @@
 #!/usr/bin/python
+# FOR TESTING use ./save2.py dev /dev/[your_device] test
+# to manually read an address use ./save2.py
+# to manually write to an address put a w before the address input "w1234"
+# to list a range of addresses use ./save2.py list
+# to diff two passes to see changes in the addresses use ./save2.py diff
+#
+# if your unit is a non savecair use address 101
+# if you have a savecair use 1333
+# as the savecair units have a different address space.
+#
+
 import minimalmodbus,traceback,time,serial
-import sys
+import sys, os
 for each in sys.argv:
 		if not each.find("dev")==-1:
 			print "Using: " + each
@@ -32,8 +43,10 @@ if "test"in sys.argv:
 		client.precalculate_read_size=True
 		res= client.read_register(addrs,0,signed=True)
 		print addrs,":",res, "@",speed
+		print os.popen("stty -F -a /dev/serial0").read()
 		sys.stdout.flush()
-	  except:print "break at ", speed
+	  except minimalmodbus.NoResponseError: print "no response from unit"
+	  except:print "break at ", speed, traceback.print_exc()
 	exit()
 minimalmodbus.BAUDRATE =19200 # speeds[i]
 minimalmodbus.PARITY   = serial.PARITY_NONE

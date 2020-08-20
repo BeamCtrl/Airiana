@@ -1,5 +1,4 @@
 #!/usr/bin/python
-
 import os, time
 import mail
 import sys
@@ -53,7 +52,7 @@ while True:
 		if len(users_prev) <> len(users):
 			init()
 		html = """<html>STATUS VIEW AIRIANA SYSTEMS<br>
-			<meta http-equiv="refresh" content="5">
+			<meta http-equiv="refresh" content="5" charset="UTF-8">
 			<table style="width: 100%;"><tr>
 			<th>Name</th>
 			<th>Ping</th>
@@ -123,15 +122,25 @@ while True:
 				status_table= ""
 				for item in lis:
 					status_table += str(item) +"</td><td>"
-				html += "<tr><td><a href=\"/local_links/"\
-					+each+"\">"+users[str(each.split(".")[0])]\
-					+"</a></td><td>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td>"+flag\
-					+"</td><td> "\
-					+status_table
+				if (time.time()-mod)/3600<3:
+					html += "<tr><td><a href=\"/local_links/"\
+						+each+"\">"+users[str(each.split(".")[0])]\
+						+"</a></td><td>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td>"+flag\
+						+"</td><td> "\
+						+status_table
+				else:
+					html += "<tr style=\"font-style:italic\" ><td><a href=\"/local_links/"\
+						+each+"\">"+users[str(each.split(".")[0])]\
+						+"</a></td><td>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td>"+flag\
+						+"</td><td> "\
+						+status_table
+
 				try:
 					html += " " +str(stat_dict[user])
 				except KeyError: pass
-				html += " </td></tr>\n"
+				with open("./public/local_links/"+user+".html") as log:
+					location = log.read().split("location:")[-1]
+				html += " </td><td>"+location+"</td></tr>\n"
 
 			except KeyError:
 				status_table= ""
@@ -142,7 +151,12 @@ while True:
 					+"</a></td><td>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td>"+flag\
 					+"</td><td> "\
 					+status_table
- 				#html2 += "<tr><td><a href=\"/local_links/"+each+"\">"+each+"</a></td><td>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td>"+flag+" </td></tr>\n" 
+				with open("./public/local_links/"+user+".html") as log:
+					location = log.read().split("location:")[-1]
+				html2 += " </td><td>"+location+"</td></tr>\n"
+
+				if (time.time()-mod)/3600 > 24:
+					os.system("rm -f ./public/local_links/"+each)
 		html +="<br></table><br>"
 		html += """	<table style="width: 100%">
 			<caption style="text-align:left"><strong>Not registered users:</strong></caption>

@@ -38,6 +38,8 @@ while True:
 		for_file += "\n"+"Source:"+str(addr)
 		#print "filename:",filename
 		#print for_file
+		location = os.popen("/home/pi/airiana/geoloc.py "+addr[0]).read()
+		for_file += "\nlocation:"+ location+"\n"
 		for_file.replace("\n","<br>##")
 		try:
 			if len(mac)!=0:
