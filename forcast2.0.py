@@ -60,6 +60,7 @@ if "sun" in sys.argv:
 	exit(0)
 
 #save forcast to file in RAM
+if not os.path.lexists("RAM/forecast.json"): os.system("touch RAM/forecast.json")
 if os.stat("RAM/forecast.json").st_ctime - time.time() < -3600 or os.stat("RAM/forecast.json").st_size == 0 or "-f" in sys.argv:
 	print "updateing forcast", os.stat("RAM/forecast.json").st_ctime - time.time() 
 	loc = "\"https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=" + str(latlong["lat"]) + "&lon="+str(latlong["long"])+"\""

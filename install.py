@@ -56,18 +56,18 @@ else:
 		if "/RAM/" in each: lines.pop(lines.index(each))
 		if "/var/" in each: lines.pop(lines.index(each))
 		if "filesystem only in RAM" in each: lines.pop(lines.index(each))
-	 print "Setting up Ram drive"
-	 lines.append(fstab_comment)
-	 lines.append(fstab_cmd)
-	 fstab_file.seek(0,0)
-	 fstab_file.writelines(lines)
-	 fstab_file.close()
-	 reboot = True
+	print "Setting up Ram drive"
+	lines.append(fstab_comment)
+	lines.append(fstab_cmd)
+	fstab_file.seek(0,0)
+	fstab_file.writelines(lines)
+	fstab_file.close()
+	reboot = True
 
 #install system services for airaina and controller
 if not os.path.lexists("/etc/systemd/system/airiana.service") or "update" in sys.argv:
 	os.system("cp ./systemfiles/airiana.service /etc/systemd/system/")
-if not os.path.lexists("/etc/systemd/system/controller.service")) or "update" in sys.argv:
+if not os.path.lexists("/etc/systemd/system/controller.service") or "update" in sys.argv:
 	os.system("cp ./systemfiles/controller.service /etc/systemd/system/")
 
 os.system("systemctl enable airiana.service")
