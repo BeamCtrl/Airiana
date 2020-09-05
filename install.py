@@ -96,7 +96,7 @@ os.system("chown pi:pi ../RAM/")
 os.system("chown pi:pi ../RAM/*")
 
 # setup updater.py for auto update
-if not "update" in sys.argv if "/updater.py" not in os.popen("crontab -u pi -l").read():
+if  "/updater.py" not in os.popen("crontab -u pi -l").read():
 	tmp  =os.popen("crontab -u pi -l").read()
 	os.system("echo \"" + tmp+ "0 */4 * * * sudo /usr/bin/python "+dir+"/updater.py\"|crontab -u pi -")
 
