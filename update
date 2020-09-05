@@ -3,17 +3,25 @@
 sudo systemctl stop airiana.service controller.service
 cp data.log ../
 cp location ../
+cp latlong.json ../
+cp ipconfig ../
 cp data.save ../
 cp ha-token ../
 #git pull origin
 git fetch origin
 git reset --hard origin/master
+python ./install.py
+
 sudo cp ../data.log ./
 sudo cp ../location ./
 sudo cp ../data.save ./
 sudo cp ../ha-token ./
+sudo cp ../latlong.json ./
+sudo cp ../ipconfig ./
 rm  -f ../data.log
 rm  -f ../data.save
 rm  -f ../location
 rm  -f ../ha-token
+rm  -f ../latlong.json
+rm  -f ../ipconfig
 sudo systemctl start airiana.service controller.service

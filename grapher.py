@@ -51,8 +51,8 @@ try:
 	   else:
 	    try: 
 	     #i+=1
-	     #print i,
-	     #print(chr(27)+"["+str(len(str(i))+2)+"D"),
+	     # print i,
+	     # print chr(27)+"["+str(len(str(i))+2)+"D",
 	     sys.stdout.flush()
 	     tmp =each.split(":")
 	     for entry in tmp: 

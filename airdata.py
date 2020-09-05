@@ -8,14 +8,16 @@ class Energy(object):
 	def __init__(self):
 		try:
 			#GET AMBIENT PRESURE##
-			self.press= float(os.popen("./forcast.py pressure").read())
-			self.press = self.press -2 # 15m Above sea lvl
+			self.P_RED = 0.12 #hPa per meter 
+			self.press= float(os.popen("./forcast2.0.py pressure").read())
+			self.alt = int(os.popen("./forcast2.0.py altitude").read())
+			self.press = self.press -(self.alt*self.P_RED) # Above sea lvl
 		except ValueError:
-			 self.press=1013.25-2
+			 self.press=1013.25
 			 print "value error for pressure"
 		except:
 			print "error occured getting current pressure ISA assumed"
-		        self.press = 1013.25-2  #hPa Barkaro 15meters above sea level
+		        self.press = 1013.25
 			err = open("airdata_error.log","w")
 			err.write( "Airdata.py pressure error: "+str(sys.exc_info()))
 			err.close()
@@ -139,11 +141,8 @@ if  "__main__" in __name__:
 		print  RH,"% Dew:",round(air.dew_point(RH,each),1),"C ",round(1000*air.sat_vapor_press(each),0),"Pa" ,round( 1000*air.sat_vapor_press(air.dew_point(RH,each)),0)
 	print ""
 	#air.a = 16.500
-	print each,"C",
 	"""for RH in range(1,100,8):
 		print  RH,"%:",round(air.dew_point(RH,each),1)," ", 
 	print """
-
-
-
+	print str(air.press)+"hPa"
 

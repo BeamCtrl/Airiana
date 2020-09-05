@@ -356,7 +356,7 @@ class Systemair(object):
 		self.sensor_humid = 0
 		self.modetoken = 0
 		self.cooling = 0
-		self.forcast = [-1,-1]
+		self.forcast = [-1,-1,-1]
 		self.dt_hold = 0
 		self.dt_entries  =0
 		self.extract_dt_long_time = time.time()
@@ -1109,7 +1109,7 @@ class Systemair(object):
 			tmp += "Temperature Efficiency: "+str(round(numpy.average(self.eff_ave),2))+"%\n"
 		tmp += "Filter has been installed for "+ str(self.filter)+" days ,"+str(self.filter_remaining)+"% remaining. \n\n"
 		tmp += "Ambient Pressure:"+ str(self.airdata_inst.press)+"hPa\n"
-		if self.forcast[1]<>-1: tmp += "Weather forecast for tomorrow is: "+str(self.forcast[0])+"C "+self.weather_types[self.forcast[1]]+".\n\n"
+		if self.forcast[1]<>-1: tmp += "Weather forecast for tomorrow is: "+str(self.forcast[0])+"C "+str(self.forcast[1]/8*100)+"% cloud cover. RH:"+ str(self.forcast[2]) +"%\n\n"
 		if "Timer" in threading.enumerate()[-1].name: tmp+= "Ventilation timer on: "+count_down(self.timer,120*60)+"\n"
 		if self.shower : tmp += "Shower mode engaged at:" +time.ctime(self.shower_initial)+"\n"
 		if self.inhibit>0:tmp+=  "Status change inhibited ("+count_down(self.inhibit, 600)+")\n"
@@ -1311,7 +1311,7 @@ class Systemair(object):
 
 	    #FORECAST RELATED COOLING
 	    try:
-		if self.forcast[0] > 16 and int(os.popen("./forcast.py tomorrows-low").read().split(" ")[0]) > self.house_heat_limit	\
+		if self.forcast[0] > 16 and int(os.popen("./forcast2.0.py tomorrows-low").read().split(" ")[0]) > self.house_heat_limit	\
 			and self.forcast[1] < 4 				\
 			and self.cool_mode == False 				\
 			and self.extract_ave>20.7\
@@ -1480,15 +1480,16 @@ class Systemair(object):
 	def get_forcast (self):
 		###### WEATHER FORCAST MODES
 	    try:
-	    	forcast = os.popen("./forcast.py tomorrow")
-	    	forcast = forcast.readlines()[0]
-	    	self.forcast = forcast.split(" ")
-		self.forcast[0]=int(self.forcast[0])
-		self.forcast[1]=int(self.forcast[1])
+	    	forcast = os.popen("./forcast2.0.py tomorrow").readlines()
+		self.forcast[2] = float(forcast[1])
+	    	forcast = forcast[0].split(" ")
+		self.forcast[0]=float(forcast[0])
+		self.forcast[1]=float(forcast[1])
 		#print self.forcast[0],self.forcast[1]
-		if os.stat("./RAM/forecast.xml").st_ctime < time.time()-3600*24 :raise Exception("FileError")
-	    except:
-		self.msg+= "error getting forecast\n"
+		if os.stat("./RAM/forecast.json").st_ctime < time.time()-3600*24 :raise Exception("FileError")
+	    except IOError:
+		traceback.print_exc()
+		self.msg+= "error getting forecast.\n"+str(forcast)
 		self.forcast=[-1,-1]
 	#set the fan pressure diff
 	def set_differential(self, percent):

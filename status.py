@@ -40,9 +40,9 @@ def checkLocation(user):
 		with open("./public/local_links/"+user+".html") as log:
 			ip = log.read().split("Source:('")[-1].split("\'")[0]
 		#print "checking ip:",ip
-		loc = os.popen("/home/pi/airiana/geoloc.py " + ip).read()
+		loc = os.popen("/home/pi/airiana/geoloc.py " + ip ).read()
 		location.update( {user:loc})
-		#print "got new location", loc
+		print "got new location", loc
 def analyse_stat(status,user):
 	#if "debug" in sys.argv:
 	#	print "Analyze", status, users[user]
@@ -108,6 +108,7 @@ while True:
 				#try: print "userID",user,"location:", location[user]
 				#except:
 				#	print "\n"
+				lis=[]
 				try:
 					if content.find("status")!=-1 :
 						exec ("lis ="+stat_field.split(":")[-1])
@@ -184,6 +185,7 @@ while True:
 					if (time.time()-mod)/3600 > 24:
 						os.system("rm -f ./public/local_links/"+each)
 			except KeyError:
+				print "Trying to look up unknown user error"
 				pass
 
 		html +="<br></table><br>"

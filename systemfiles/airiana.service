@@ -7,7 +7,7 @@ Type=idle
 ExecStart=/usr/bin/python /home/pi/airiana/airiana-core.py daemon ping humidity 
 #cmdl.options:daemon debug humidity moisture sensors exhaust ping temperatur.nu keep-log homeAss TCP
 Restart=always
-User=pi
+User=root
 KillSignal = SIGKILL
 [Install]
 WantedBy=multi-user.target
