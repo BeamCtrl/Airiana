@@ -1109,7 +1109,7 @@ class Systemair(object):
 			tmp += "Temperature Efficiency: "+str(round(numpy.average(self.eff_ave),2))+"%\n"
 		tmp += "Filter has been installed for "+ str(self.filter)+" days ,"+str(self.filter_remaining)+"% remaining. \n\n"
 		tmp += "Ambient Pressure:"+ str(self.airdata_inst.press)+"hPa\n"
-		if self.forcast[1]<>-1: tmp += "Weather forecast for tomorrow is: "+str(self.forcast[0])+"C "+str(self.forcast[1]/8*100)+"% cloud cover. RH:"+ str(self.forcast[2]) +"%\n\n"
+		if self.forcast[1]<>-1: tmp += "Weather forecast for tomorrow is: "+str(self.forcast[0])+"C "+str(self.forcast[1]/8*100)+"% cloud cover RH:"+ str(self.forcast[2]) +"%\n\n"
 		if "Timer" in threading.enumerate()[-1].name: tmp+= "Ventilation timer on: "+count_down(self.timer,120*60)+"\n"
 		if self.shower : tmp += "Shower mode engaged at:" +time.ctime(self.shower_initial)+"\n"
 		if self.inhibit>0:tmp+=  "Status change inhibited ("+count_down(self.inhibit, 600)+")\n"
@@ -1593,6 +1593,7 @@ class Systemair(object):
 				os.write(ferr, "Unable to cast 24h low temp "+" "+str(time.ctime()) +"\n")
 				os.system("echo 8 > ./RAM/latest_static")
 				temp = self.inlet_ave
+			#if no forcast is avail
 			if self.forcast[1]<> -1:
 				try:
 					wthr = os.popen("./forcast.py tomorrows-low").read().split(" ")
@@ -1603,11 +1604,11 @@ class Systemair(object):
 					os.write(ferr, "Unable set weather or sunrise "+" "+str(time.ctime()) +"\n")
 					wthr = [self.prev_static_temp, 0, 0]
 					comp = float(wthr[0])-(float(wthr[2])/8) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/8
-	
 			else:
 				sun  = 7
 				comp = 0
-			comp = (comp - (self.prev_static_temp-self.kinetic_compensation))/(24*3)
+			#comp = (comp - (self.prev_static_temp-self.kinetic_compensation))/(24*3)
+			comp = (self.airdata_inst.dew_point(self.forcast[0],self.forcast[2])-self.airdata_inst.dew_point (self.extract_ave,self.local_humidity))/24 # new comp calc with humidity forcast
 			self.kinetic_compensation -= comp * self.avg_frame_time
 			if self.prev_static_temp >= temp:
 				self.local_humidity = self.moisture_calcs(temp - self.kinetic_compensation) #if 24hr low is higher than current temp
@@ -1619,6 +1620,7 @@ class Systemair(object):
 				self.kinetic_compensation = self.kinetic_compensation * 0.98
 			if "debug" in sys.argv:
 				self.msg += "Comp set to: " +str(round(comp,4))+" Calc RH%: "+str(self.local_humidity)+"% prev_static: " + str(self.prev_static_temp)+"C 24h-low: "+str(temp)+"C tomorrows low: "+str(wthr[0])+"c\n"
+			# nightly refresh
 			if time.localtime().tm_hour == sun and time.localtime().tm_min < 5 or self.prev_static_temp == 8:
 				self.prev_static_temp = temp
 				self.kinetic_compensation = 0
@@ -1631,7 +1633,7 @@ class Systemair(object):
 					#if type >=3: # do an offset if there is cloudcover
 					#	self.kinetic_compensation += 1
 					if wind >2: #compensate for windy conditions
-						self.kinetic_compensation += wind /8
+						self.kinetic_compensation += wind /16
 					if type == 15 or type == 9 or type == 10: # zero if fog etc.
 						self.kinetic_compensation = 0
 				  except:
@@ -1645,7 +1647,6 @@ class Systemair(object):
 			#if self.prev_static_temp > temp:
 			#	self.prev_static_temp = temp
 			#except: print "dayliy low calc error"#,comp,wthr,traceback.print_exc()
-
 
 
 	def check_coef (self):

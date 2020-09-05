@@ -63,7 +63,7 @@ if "sun" in sys.argv:
 if os.stat("RAM/forecast.json").st_ctime - time.time() < -3600 or os.stat("RAM/forecast.json").st_size == 0 or "-f" in sys.argv:
 	print "updateing forcast", os.stat("RAM/forecast.json").st_ctime - time.time() 
 	loc = "\"https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=" + str(latlong["lat"]) + "&lon="+str(latlong["long"])+"\""
-	os.system("wget -q -U \"Airiana-forecast-agent\" -O /home/pi/airiana/RAM/forecast.json "+loc)
+	os.system("wget -q -U \"Airiana-forecast-agent github.com/beamctrl\Airiana\" -O /home/pi/airiana/RAM/forecast.json "+loc)
 #get long lat alt from forecast
 with open("RAM/forecast.json") as source:
 	data = json.load(source)
