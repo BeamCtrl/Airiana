@@ -10,7 +10,7 @@ cp ha-token ../
 #git pull origin
 git fetch origin
 git reset --hard origin/master
-python ./install.py
+python ./install.py update
 
 sudo cp ../data.log ./
 sudo cp ../location ./
