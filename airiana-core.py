@@ -33,7 +33,6 @@ os.chdir("/home/pi/airiana/public")
 os.system("./ip-replace.sh")  # reset ip-addresses on buttons.html
 os.chdir("/home/pi/airiana/")
 os.system("./http &> /dev/null") ## START WEB SERVICE
-#os.system("./forcast.py &> /dev/null") ## Get forcast
 listme=[]
 ## cpy saved data to RAM ##
 if  not os.path.lexists("./data.save"):
@@ -1596,8 +1595,8 @@ class Systemair(object):
 			#if no forcast is avail
 			if self.forcast[1]<> -1:
 				try:
-					wthr = os.popen("./forcast.py tomorrows-low").read().split(" ")
-					sun = int(os.popen("./forcast.py sun").readlines()[0].split(":")[0])
+					wthr = os.popen("./forcast2.0.py tomorrows-low").read().split(" ")
+					sun = int(os.popen("./forcast2.0.py sun").readlines()[0].split(":")[0])
 					comp = float(wthr[0])-(float(wthr[2])/8) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/8
 				except ValueError:
 					sun = 7
@@ -1624,10 +1623,9 @@ class Systemair(object):
 			if time.localtime().tm_hour == sun and time.localtime().tm_min < 5 or self.prev_static_temp == 8:
 				self.prev_static_temp = temp
 				self.kinetic_compensation = 0
-				#self.kinetic_compensation = (-1+float(os.popen("./forcast.py now").read().split(" ")[-5][:-3]))/2
 				if self.forcast[1] <> -1:
 				  try:
-					weather = os.popen("./forcast.py -f now ").read().split(" ")
+					weather = os.popen("./forcast2.0.py -f now ").read().split(" ")
 					type = int(weather[-2])
 					wind = int(weather[-5].split(".")[0])
 					#if type >=3: # do an offset if there is cloudcover
