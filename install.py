@@ -78,10 +78,11 @@ os.system("echo airiana > /etc/hostname")
 os.system("chown pi:pi ../RAM/")
 os.system("chown pi:pi ../RAM/*")
 # setup updater.py for auto update
-tmp  =os.popen("crontab -u pi -l").read()
-os.system("echo \"" + tmp+ "0 */4 * * * sudo /usr/bin/python "+dir+"/updater.py\"|crontab -u pi -")
-
-if "update" not in sys.argv:
+if not "update" in sys.argv:
+	tmp  =os.popen("crontab -u pi -l").read()
+	os.system("echo \"" + tmp+ "0 */4 * * * sudo /usr/bin/python "+dir+"/updater.py\"|crontab -u pi -")
+	
+	#Reboot after installation
 	print "Installation completed, reboot in 15 sec"
 	os.system("sleep 15")
 	os.system("reboot")
