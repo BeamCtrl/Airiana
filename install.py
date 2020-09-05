@@ -44,13 +44,13 @@ else:
 
 #MAKE RAM DRIVE IN FSTAB#
 fstab_comment = "#temp filesystem only in RAM for use on Airiana tempfiles.\n"
-fstab_cmd = "tmpfs "+dir+"/RAM tmpfs defaults,noatime,nosuid,mode=0755,size=50m 0 0\n"
+fstab_RAM = "tmpfs "+dir+"/RAM tmpfs defaults,noatime,nosuid,mode=0755,size=50m 0 0\n"
 # MAKE RAM DRIve for linux logs var/logs
-fstab_cmd += "tmpfs /home/pi/airiana/RAM tmpfs defaults,noatime,nosuid,mode=0755,uid=pi,gid=pi,size=50m 0 0"
+fstab_var = "tmpfs /var/log tmpfs defaults,noatime,nosuid,mode=0755,size=75m 0 0"
 fstab_file = open("/etc/fstab","rw+")
 lines=fstab_file.readlines()
 ## write RAM tmpfs's to fstab
-if fstab_comment in lines: print "fstab installed" 
+if fstab_var not in lines: print "fstab installed" 
 else:
 	for each in lines:
 		if "/RAM/" in each: lines.pop(lines.index(each))
@@ -58,7 +58,8 @@ else:
 		if "filesystem only in RAM" in each: lines.pop(lines.index(each))
 	print "Setting up Ram drive"
 	lines.append(fstab_comment)
-	lines.append(fstab_cmd)
+	lines.append(fstab_RAM)
+	lines.append(fstab_var)
 	fstab_file.seek(0,0)
 	fstab_file.writelines(lines)
 	fstab_file.close()
