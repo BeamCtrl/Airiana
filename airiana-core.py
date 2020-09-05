@@ -1311,7 +1311,7 @@ class Systemair(object):
 
 	    #FORECAST RELATED COOLING
 	    try:
-		if self.forcast[0] > 16 and int(os.popen("./forcast2.0.py tomorrows-low").read().split(" ")[0]) > self.house_heat_limit	\
+		if self.forcast[0] > 16 and float(os.popen("./forcast2.0.py tomorrows-low").read().split(" ")[0]) > self.house_heat_limit	\
 			and self.forcast[1] < 4 				\
 			and self.cool_mode == False 				\
 			and self.extract_ave>20.7\
@@ -1328,7 +1328,7 @@ class Systemair(object):
 				self.cool_mode = True
 			        os.write(ferr, "Cooling activated "+str(time.ctime()) +"\n")
 
-	    except: os.write(ferr, "Forcast cooling error "+str(time.ctime()) +"\n")
+	    except: os.write(ferr, "Forecast cooling error "+str(time.ctime()) +"\n")
 	    # SAVECAIR COOL reCover cheat
 	    """if savecair and not self.inhibit and not self.shower:
 		    if self.exchanger_mode<>5\
