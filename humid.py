@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import airdata,os,time,sys
-import numpy
+import numpy, traceback
 airdata_inst = airdata.Energy()
 extract = float(sys.argv[1])
 def get_humidity():
@@ -14,19 +14,19 @@ def get_humidity():
                 for each in data.readlines():
                          tmp = each.split(":")
 			 try:
-				 if time.localtime(float(tmp[0]))[3] >=sunrise - 0.1 and time.localtime(float(tmp[0]))[3] <= sunrise + 0.1 and float(tmp[0])>time.time()-(day*60):
-	                         	#if float(tmp[0])<time.time()-(24*3600):
-					templist.append (float(tmp[5]))
+				 if time.localtime(float(tmp[0]))[3] >=sunrise - 1 and time.localtime(float(tmp[0]))[3] <= sunrise + 1 and float(tmp[0])>time.time()-(3*3600):
+						templist.append (float(tmp[5]))
 				 else:
 					#print time.localtime(float(tmp[0]))[3]
 				 	pass
-			 except: print "error"
+			 except: print "error getting sunrise temp ranges"
 		#print templist
                 if len(templist)>0:inlet_min = numpy.average(templist)
 		else:
 			try:
-				inlet_min = int(open("RAM/latest_static",'r').read())
+				inlet_min = float(open("RAM/latest_static",'r').read())
 			except:
+				traceback.print_exc()
 				raise IndexError
 		airdata_inst.vapor_max(extract)
 		bottom = airdata_inst.pw
@@ -46,5 +46,5 @@ try:
 	get_humidity()
 except:
 	print -60, -1
-
+	traceback.print_exc()
 ##############
