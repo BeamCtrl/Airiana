@@ -301,6 +301,7 @@ class Systemair(object):
 		self.diff_ave=[0]
 		self.totalenergy = 0.0
 		self.averagelimit = 1800#min122
+		self.cooling_limit = 16
 		self.sf = 20
 		self.ef = 20
 		self.sf_base = 20
@@ -1310,7 +1311,8 @@ class Systemair(object):
 
 	    #FORECAST RELATED COOLING
 	    try:
-		if self.forcast[0] > 16 and float(os.popen("./forcast2.0.py tomorrows-low").read().split(" ")[0]) > self.house_heat_limit	\
+		if self.forcast[0] > self.cooling_limit and float(os.popen("./forcast2.0.py tomorrows-low").read().split(" ")[0]) > self.house_heat_limit	\
+			and float(os.popen("./forcast2.0.py integral "+str(self.cooling_limit))) > 0\
 			and self.forcast[1] < 4 				\
 			and self.cool_mode == False 				\
 			and self.extract_ave>20.7\
@@ -1587,11 +1589,11 @@ class Systemair(object):
 			tmp = out.split(" ")
 			wthr= [-1,-1]
 			try:
-				temp = float(tmp[1])
+				saturation_point = float(tmp[1])
 			except:
 				os.write(ferr, "Unable to cast 24h low temp "+" "+str(time.ctime()) +"\n")
 				os.system("echo 8 > ./RAM/latest_static")
-				temp = self.inlet_ave
+				saturation_point = self.inlet_ave
 			#if no forcast is avail
 			if self.forcast[1]<> -1:
 				try:
@@ -1607,44 +1609,40 @@ class Systemair(object):
 				sun  = 7
 				comp = 0
 			#comp = (comp - (self.prev_static_temp-self.kinetic_compensation))/(24*3)
-			comp = (self.airdata_inst.dew_point(self.forcast[0],self.forcast[2])-self.airdata_inst.dew_point (self.extract_ave,self.local_humidity))/24 # new comp calc with humidity forcast
+			comp = (self.airdata_inst.dew_point(self.forcast[0],self.forcast[2])-self.airdata_inst.dew_point (self.extract_ave,self.local_humidity))/(24*5) # new comp calc with humidity forcast
 			self.kinetic_compensation -= comp * self.avg_frame_time
-			if self.prev_static_temp >= temp:
-				self.local_humidity = self.moisture_calcs(temp - self.kinetic_compensation) #if 24hr low is higher than current temp
+			# if prev static is above saturation point
+			if self.prev_static_temp >= saturation_point:
+				self.local_humidity = self.moisture_calcs(saturation_point - self.kinetic_compensation) #if 24hr low is higher than current temp
 			else:
-				self.local_humidity = self.moisture_calcs(self.prev_static_temp-self.kinetic_compensation) # if 24hr low is lower than current temp
+				self.local_humidity = self.moisture_calcs(self.prev_static_temp - self.kinetic_compensation) # if 24hr low is lower than current temp
 
 			if self.prev_static_temp-self.kinetic_compensation > self.inlet_ave:
 				#self.prev_static_temp = self.inlet_ave+self.kinetic_compensation
 				self.kinetic_compensation = self.kinetic_compensation * 0.98
 			if "debug" in sys.argv:
-				self.msg += "Comp set to: " +str(round(comp,4))+" Calc RH%: "+str(self.local_humidity)+"% prev_static: " + str(self.prev_static_temp)+"C 24h-low: "+str(temp)+"C tomorrows low: "+str(wthr[0])+"c\n"
+				self.msg += "Comp set to: " +str(round(comp,4))+" Calc RH%: "+str(self.local_humidity)+"% prev_static: " + str(self.prev_static_temp)+"C 24h-low: "+str(saturation_point)+"C tomorrows low: "+str(wthr[0])+"c\n"
 			# nightly refresh
 			if time.localtime().tm_hour == sun and time.localtime().tm_min < 5 or self.prev_static_temp == 8:
-				self.prev_static_temp = temp
+				self.prev_static_temp = saturation_point
 				self.kinetic_compensation = 0
 				if self.forcast[1] <> -1:
 				  try:
-					weather = os.popen("./forcast2.0.py -f now ").read().split(" ")
-					type = int(weather[-2])
-					wind = int(weather[-5].split(".")[0])
-					#if type >=3: # do an offset if there is cloudcover
-					#	self.kinetic_compensation += 1
-					if wind >2: #compensate for windy conditions
+					weather = 	os.popen("./forcast2.0.py -f wind/fog ").read().split(" ")
+					fog_cover = 	float(weather[-1])
+					wind = 		float(weather[-2])
+					if wind >2: 				# compensate for windy conditions
 						self.kinetic_compensation += wind /16
-					if type == 15 or type == 9 or type == 10: # zero if fog etc.
+					if fog_cover > 75: 			# if fog over 75%
 						self.kinetic_compensation = 0
 				  except:
 					os.write(ferr, "Unable to update morning low with weather "+" "+str(time.ctime()) +"\n")
 
-				#self.prev_static_temp -= self.kinetic_compensation
-				self.kinetic_compensation = 0
+				self.prev_static_temp -= self.kinetic_compensation
+				#self.kinetic_compensation = 0
 				fd = os.open("RAM/latest_static",os.O_WRONLY | os.O_CREAT| os.O_TRUNC)
 				os.write(fd,str(self.prev_static_temp-self.kinetic_compensation))
 				os.close(fd)
-			#if self.prev_static_temp > temp:
-			#	self.prev_static_temp = temp
-			#except: print "dayliy low calc error"#,comp,wthr,traceback.print_exc()
 
 
 	def check_coef (self):

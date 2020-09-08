@@ -20,12 +20,14 @@ dir = os.getcwd()
 
 # INSTALL DEPS#
 os.system("apt-get -y install python-matplotlib")
-os.system("pip install  minimalmodbus")
-os.system("pip install  progressbar")
+os.system("pip install minimalmodbus")
+os.system("pip install progressbar")
 os.system("pip install requests")
 os.system("pip install pyModbusTCP")
 os.system("pip install pyephem")
 os.system("apt-get -y install ntp")
+os.system("apt-get -y install python-dev")
+os.system("apt-get -y upgrade")
 
 # NEED TO SET LOCALE
 os.system("cp ./systemfiles/timezone /etc/")

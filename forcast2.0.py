@@ -78,6 +78,13 @@ if "now" in sys.argv:
 		curr= time.strptime(each["time"],"%Y-%m-%dT%H:%M:%SZ")
 		if curr.tm_mday == time.localtime().tm_mday and time.localtime().tm_hour== curr.tm_hour:
 			print_weather(each["time"],each["data"]["instant"]["details"],each["data"]["next_1_hours"]["details"]["precipitation_amount"])
+if ("wind/fog" in sys.argv):
+	for each in data["properties"]["timeseries"]:
+		curr= time.strptime(each["time"],"%Y-%m-%dT%H:%M:%SZ")
+		if curr.tm_mday == time.localtime().tm_mday and time.localtime().tm_hour== curr.tm_hour:
+			print each["time"],\
+			each["data"]["instant"]["details"]["wind_speed"],\
+			each["data"]["instant"]["details"]["fog_area_fraction"]
 
 # print current sealvl pressure
 if "pressure" in sys.argv:
@@ -112,6 +119,20 @@ if "tomorrows-low" in sys.argv:
 				wind = float(each["data"]["instant"]["details"]["wind_speed"])
 				wt = float(each["data"]["instant"]["details"]["cloud_area_fraction"])/100
 	print low,int(wt*MAX_CLOUD_LVL),wind
+
+if "integral" in sys.argv:
+	try:
+		center = float(sys.argv[-1])
+	except:
+		print "usage forcast2.0.py integral [center temperature]"
+		exit()
+	sum = 0
+	limit =time.mktime(time.localtime())+3600*24*2 #add two days
+	for each in data["properties"]["timeseries"]:
+		curr= time.mktime(time.strptime(each["time"],"%Y-%m-%dT%H:%M:%SZ"))
+		if curr > time.time() and  curr < limit:
+			sum += float(each["data"]["instant"]["details"]["air_temperature"]) -center
+	print sum/len(data)
 
 if len(sys.argv)< 2 or "all" in sys.argv:
 	try:

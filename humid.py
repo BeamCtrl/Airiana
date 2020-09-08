@@ -9,12 +9,12 @@ def get_humidity():
                 templist = []
                 data = os.popen("tail -n "+str(int(day))+" ./RAM/data.log")
 		try:
-			sunrise = int(os.popen ("sudo ./forcast.py sun").readlines()[0].split(":")[0])
+			sunrise = int(os.popen ("sudo ./forcast2.0.py sun").readlines()[0].split(":")[0])
 		except: sunrise = 6
                 for each in data.readlines():
                          tmp = each.split(":")
 			 try:
-				 if time.localtime(float(tmp[0]))[3] >=sunrise-1 and time.localtime(float(tmp[0]))[3] <= sunrise+1 and float(tmp[0])>time.time()-(day*60):
+				 if time.localtime(float(tmp[0]))[3] >=sunrise - 0.1 and time.localtime(float(tmp[0]))[3] <= sunrise + 0.1 and float(tmp[0])>time.time()-(day*60):
 	                         	#if float(tmp[0])<time.time()-(24*3600):
 					templist.append (float(tmp[5]))
 				 else:

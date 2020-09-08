@@ -32,7 +32,7 @@ class Request:
         self.bus = bus
 	self.mode = mode
 	if self.mode == "TCP":
-		print "using TCP backend"
+		print "Using TCP backend\n"
 		# TCP auto connect on first modbus request
 		try:
 			config = open("ipconfig","r").readline()
@@ -43,7 +43,7 @@ class Request:
 			print "Fallback localhost:505 server there may be a problem with formating the ipconfig file or it may not exist"
 			self.client = pyModbusTCP.client.ModbusClient(host=IP, port=PORT, auto_open=True)
 	else:
-		print "using RTU backend"
+		print "Using RTU backend\n"
         print "request object created",self.mode
 
     def modbusregisters(self, start, count, signed=False):
