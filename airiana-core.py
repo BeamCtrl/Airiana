@@ -144,6 +144,7 @@ def report_alive():
 					message += temp + "<br>"
 					message += os.popen("df |grep RAM").read()+"<br>"
 					message +=  os.popen("df |grep var").read()+"<br>"
+					if os.path.lexists("RAM/error_rate"):message +=  os.popen("cat RAM/error_rate").read()+"<br>"
 				except :
 					os.write(ferr, "Ping error "+traceback.print_exc() +"\n")
 					print "ERROR IN PING ",traceback.print_exc()
@@ -1609,7 +1610,7 @@ class Systemair(object):
 				sun  = 7
 				comp = 0
 			#comp = (comp - (self.prev_static_temp-self.kinetic_compensation))/(24*3)
-			comp = (self.airdata_inst.dew_point(self.forcast[0],self.forcast[2])-self.airdata_inst.dew_point (self.extract_ave,self.local_humidity))/(24*5) # new comp calc with humidity forcast
+			comp = (self.airdata_inst.dew_point(self.forcast[0],self.forcast[2])-self.airdata_inst.dew_point (self.extract_ave,self.local_humidity))/(24*10) # new comp calc with humidity forcast
 			self.kinetic_compensation -= comp * self.avg_frame_time
 			# if prev static is above saturation point
 			if self.prev_static_temp >= saturation_point:
@@ -1662,16 +1663,13 @@ if __name__  ==  "__main__":
 	os.write(ferr, "System started "+str(time.ctime())+"\n")
 
 	device = Systemair()
-
-	try:
-		if device.system_name =="VR400" and req.modbusregister(12543,0) <> 0:
-			savecair=True
-			device.system_name="VTR300"
-			conversion_table ={}
-			device.status_field[3]="VTR300/savecair"
-			device.averagelimit=3400
-
-	except: pass
+	req.modbusregister(12543,0)
+	if device.system_name =="VR400" and req.response != "no data":
+		savecair=True
+		device.system_name="VTR300"
+		conversion_table ={}
+		device.status_field[3]="VTR300/savecair"
+		device.averagelimit=3400
 ################
 ###################################################
 ############################ RUN MAIN loop ########################

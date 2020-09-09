@@ -121,6 +121,7 @@ class Request:
             except ValueError:
             	self.buff += os.read(self.bus, 20)  # bus purge
             	self.checksum_errors += 1
+		if address == 12543 and checksum_errors >= 10: return 0
             	self.modbusregister(address, decimals)
         	self.client.precalculate_read_size = False
 		#print "request om address ", address, "returned", self.response
