@@ -52,20 +52,21 @@ fstab_var = "tmpfs /var/log tmpfs defaults,noatime,nosuid,mode=0755,size=75m 0 0
 fstab_file = open("/etc/fstab","rw+")
 lines=fstab_file.readlines()
 ## write RAM tmpfs's to fstab
-if fstab_var not in lines: print "fstab installed" 
-else:
-	for each in lines:
-		if "/RAM/" in each: lines.pop(lines.index(each))
-		if "/var/" in each: lines.pop(lines.index(each))
+if fstab_var not in lines or fstab_RAM not in lines:
+	 for each in lines:
+		if "/RAM" in each: lines.pop(lines.index(each))
+		if "/var" in each: lines.pop(lines.index(each))
 		if "filesystem only in RAM" in each: lines.pop(lines.index(each))
-	print "Setting up Ram drive"
-	lines.append(fstab_comment)
-	lines.append(fstab_RAM)
-	lines.append(fstab_var)
-	fstab_file.seek(0,0)
-	fstab_file.writelines(lines)
-	fstab_file.close()
-	reboot = True
+	 print "Setting up Ram drive"
+	 lines.append(fstab_comment)
+	 lines.append(fstab_RAM)
+	 lines.append(fstab_var)
+	 fstab_file.seek(0,0)
+	 fstab_file.writelines(lines)
+	 fstab_file.close()
+	 reboot = True
+else:
+	 print "fstab  already installed" 
 
 #install system services for airaina and controller
 if not os.path.lexists("/etc/systemd/system/airiana.service") or "update" in sys.argv:
