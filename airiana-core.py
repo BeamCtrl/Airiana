@@ -1470,10 +1470,10 @@ class Systemair(object):
 		else:
 			self.indoor_dewpoint = 5.0
 		if not self.cool_mode:
-			if self.inlet_ave > self.indoor_dewpoint+0.2   and self.sf <> self.ef and not self.press_inhibit and not self.forcast[1] == -1 :
+			if self.inlet_ave > self.indoor_dewpoint+0.2   and  self.pressure_diff <> 0  and not self.press_inhibit and not self.forcast[1] == -1 :
 				self.set_differential(0)
 				if "debug" in sys.argv: self.msg += "\nPressure diff to 0%"
-			if (self.inlet_ave < self.indoor_dewpoint-0.1  and self.sf == self.ef and self.inlet_ave < 15 and not self.press_inhibit) or (self.forcast[-1] == -1 and self.sf == self.ef):
+			if (self.inlet_ave < self.indoor_dewpoint-0.1  and self.pressure_diff <> 10 and self.inlet_ave < 15 and not self.press_inhibit) or (self.forcast[-1] == -1 and self.sf == self.ef):
 				self.set_differential(10)
 				if "debug" in sys.argv: self.msg += "\nPressure diff to +10%"
     	    #if "debug" in sys.argv: print "Pressure inhibit = " , str(time.ctime(self.press_inhibit))
@@ -1497,11 +1497,10 @@ class Systemair(object):
 	def set_differential(self, percent):
 	    os.write(ferr, "Pressure difference set to:  "+str(percent)+"% "+str(time.ctime()) +"\n")
             self.coef_inhibit = time.time()
-	    self.pressure_diff  = percent
+	    if percent>20:percent = 20
+	    if percent<-20:percent =-20
 	    if not savecair and not self.shower:
 		if "debug" in sys.argv: self.msg += "start pressure change " +str( percent)+"\n"
-		if percent>20:percent = 20
-		if percent<-20:percent =-20
 		req.modbusregister(103,0) #nominal supply flow
 		#print "sf_nom is", req.response
 		target = int(req.response + req.response * (float(percent)/100))
@@ -1530,8 +1529,6 @@ class Systemair(object):
 			req.write_register(each+1,int(req.response+percent))
 	    if not savecair and not self.shower and self.system_name=="VTR300":
 		if "debug" in sys.argv: self.msg += "start pressure change " +str( percent)+"\n"
-                if percent>20:percent = 20
-                if percent<-20:percent =-20
 
 		req.modbusregister(101,0) #LOW supply flow
                 target = int(req.response + req.response * (float(percent)/100))
@@ -1548,6 +1545,7 @@ class Systemair(object):
                 if req.response == target:
                         self.press_inhibit = time.time()
                 if "debug" in sys.argv: self.msg += "change completed\n"
+	        self.pressure_diff  = percent
 		self.update_airflow()
 	#Set base flow rate with an offset to regulate humidity in a more clever manner.
 	def check_flow_offset(self):
