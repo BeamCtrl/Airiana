@@ -753,6 +753,7 @@ class Systemair(object):
 		self.coef_inhibit = time.time()
 		if target <> self.fanspeed:  # add one to bucket
 			self.status_field[0] += 1
+			os.write(ferr,"Changing fanspeed to:"+str(target)+" "+str(time.ctime())+"\n")
 		#print actual,"->",target
 	    	if target>=4: target=0
 		if target<0: target=0
@@ -1545,8 +1546,8 @@ class Systemair(object):
                 if req.response == target:
                         self.press_inhibit = time.time()
                 if "debug" in sys.argv: self.msg += "change completed\n"
-	        self.pressure_diff  = percent
-		self.update_airflow()
+	    self.pressure_diff  = percent
+	    self.update_airflow()
 	#Set base flow rate with an offset to regulate humidity in a more clever manner.
 	def check_flow_offset(self):
 		if savecair:
@@ -1608,7 +1609,7 @@ class Systemair(object):
 				sun  = 7
 				comp = 0
 			#comp = (comp - (self.prev_static_temp-self.kinetic_compensation))/(24*3)
-			comp = (self.airdata_inst.dew_point(self.forcast[0],self.forcast[2])-self.airdata_inst.dew_point (self.extract_ave,self.local_humidity))/(24*10) # new comp calc with humidity forcast
+			comp = (self.airdata_inst.dew_point(self.forcast[0],self.forcast[2])-self.airdata_inst.dew_point (self.extract_ave,self.local_humidity))/(24*100) # new comp calc with humidity forcast
 			self.kinetic_compensation -= comp * self.avg_frame_time
 			# if prev static is above saturation point
 			if self.prev_static_temp >= saturation_point:

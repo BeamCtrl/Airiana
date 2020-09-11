@@ -100,8 +100,7 @@ if "tomorrow" in sys.argv:
 			wind = float(each["data"]["instant"]["details"]["wind_speed"])
 			wt = float(each["data"]["instant"]["details"]["cloud_area_fraction"])/100
 			temp = float(each["data"]["instant"]["details"]["air_temperature"])
-			humid = float(each["data"]["instant"]["details"]["relative_humidity"])
-			
+			humid = float(each["data"]["instant"]["details"]["relative_humidity"])			
 	print temp,int(wt*MAX_CLOUD_LVL),wind
 	print humid
 
@@ -137,5 +136,8 @@ if "integral" in sys.argv:
 if len(sys.argv)< 2 or "all" in sys.argv:
 	try:
 		for each in data["properties"]["timeseries"]:
+		    try:
 			print_weather(each["time"],each["data"]["instant"]["details"],each["data"]["next_1_hours"]["details"]["precipitation_amount"])
-	except KeyError: pass 
+		    except KeyError:
+			print_weather(each["time"],each["data"]["instant"]["details"],0)
+	except: pass
