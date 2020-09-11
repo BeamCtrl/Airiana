@@ -10,7 +10,7 @@ she keeps her self in check.
 
   **Shower detections
 
-  **Pre-emptive cooling with forcasts from YR.no
+  **Pre-emptive cooling with forcasts from met.no
 
   **Dynamic pressure control to save some €
 
@@ -21,6 +21,7 @@ she keeps her self in check.
   **24hr plotter all put on web-page for your convenience
 
   **Internal AI to map temperature response for acurate home environment control.
+  
 
   does alot more calculation and spits out more data than you'll ever need.
  
@@ -42,7 +43,7 @@ she keeps her self in check.
 
   -Run  "sudo python ./install.py"
 
-  -Update the location file with your current position for YR.no  
+  -Update the latlong.json file with your position to enable the forcast for your position.  
 
 
 #### To enable HomeAssitant integration:
@@ -92,7 +93,7 @@ The system will when activated map the sensor offset of the extracted air at dif
 
 #### Preemptive cooling:
 
-The system will if the location file is properly updated monitor the current atmospheric conditions thru the YR.no weather service. If it detects that tomorrows weather will be above 17C and have low cloud cover it will go into cooling mode. In this mode only shower detection is active. It will run the fans at maximum speed with a target temperature of 20.7C to cool the building going into a hot day. When during the day the outside temperature surpasses the inside temperature it will lower fanspeed to low to conserve the indoor cold air. It will return to high speed when the outside conditions allows it.
+The system will if the location file is properly updated monitor the current atmospheric conditions thru the MET.no weather service. If it detects that the comming days will have temperatures netting above 17deg average it will go into cooling mode. In this mode only shower detection is active. It will run the fans at maximum speed with a target temperature of 20.7C to cool the building going into a hot day. When during the day the outside temperature surpasses the inside temperature it will lower fanspeed to low to conserve the indoor cold air. It will return to high speed when the outside conditions allows.
 
 
 #### Exchanger control:
@@ -108,9 +109,9 @@ Airana will every 4hrs check if ther is a new stable release availible in this g
 
 #### Interface:
 
-System control and monitoring is done via a web-page at http://airana.local. from this interface you can toggle the winter/summer mode, set fanspeed low/mid/high, force the high mode on a timer for 2hrs if there is need for forced ventilation.
+System control and monitoring is done via a web-page at http://airana.local. from this interface you can toggle the winter/summer mode, set fanspeed low/mid/high, force the high mode on a timer for 2hrs if there is need for forced ventilation. System control is separated from the display so if you like you kan expose the web interface to the Internet without having outsiders change your settings. The sytem will not allow access from an external network unless explicitly directed to do so.
 
-Tips and Tricks: if you want to run fans at low on a timer set forced and then manually set low speed. the timer inhibits the automation for 2 hrs
+Tips and Tricks: if you want to run fans at low on a timer set forced ventilation and then manually set low speed. the timer inhibits the automation for 2 hrs
 
 #### HomeAssistant http-sensor:
 If configured the ha-token file can contain the ip, port and token of your runnning homeAssistant server. Airiana will then send temperature/humidity and extract fan rpm as http sensors and they śhould pop up in you HomeAssistant.
@@ -127,4 +128,4 @@ use "humidity" as an added argument if you also want the humidity graph added to
 
 A runnning log file is availble in ./RAM/err.
 
-Communication error rate is availble in ./RAM/error_rate.
+Communication error rate if any is availble in ./RAM/error_rate.
