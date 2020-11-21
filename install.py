@@ -72,11 +72,11 @@ else:
 #install system services for airaina and controller
 if not os.path.lexists("/etc/systemd/system/airiana.service") or "update" in sys.argv:
 	os.system("cp ./systemfiles/airiana.service /etc/systemd/system/")
+	os.system("systemctl enable airiana.service")
+
 if not os.path.lexists("/etc/systemd/system/controller.service") or "update" in sys.argv:
 	os.system("cp ./systemfiles/controller.service /etc/systemd/system/")
-
-os.system("systemctl enable airiana.service")
-os.system("systemctl enable controller.service")
+	os.system("systemctl enable controller.service")
 
 # redir console from uart
 boot_cmd= "dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait"
@@ -102,7 +102,7 @@ os.system("chown pi:pi ../RAM/*")
 
 # setup updater.py for auto update
 if  "/updater.py" not in os.popen("crontab -u pi -l").read():
-	tmp  =os.popen("crontab -u pi -l").read()
+	tmp  = os.popen("crontab -u pi -l").read()
 	os.system("echo \"" + tmp+ "0 */4 * * * sudo /usr/bin/python "+dir+"/updater.py\"|crontab -u pi -")
 
 #reboot if needed

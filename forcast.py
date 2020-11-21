@@ -6,12 +6,13 @@ import traceback
 #print dir(os.stat("forecast.xml"))
 #print os.stat("forecast.xml").st_ctime -time.time()
 loc = os.popen("cat location").read()
-try:
+"""try:
 	with open("latlong.json") as file:
 		latlong=json.load(file)
 	#print latlong["lat"], latlong["long"]
 except IOError:
 	print "legacy parsing"
+"""
 sun ={}
 weather_types= {\
 				1:"Clear skies",2:"Fair weather",3:"Partly cloudy",\
@@ -50,7 +51,7 @@ try:
 				os.system("wget -q -U \"Airiana-forecast-agent\" -O /home/pi/airiana/RAM/forecast.xml "+loc)
 	except NameError:
 		if os.stat("/home/pi/airiana/RAM/forecast.xml").st_ctime -time.time() < -3600 or os.stat("/home/pi/airiana/RAM/forecast.xml").st_size ==0 or "-f" in sys.argv:
-			#print "Downloading updated forcast" 
+			print "Downloading updated forcast"
 			os.system("wget -q -O /home/pi/airiana/RAM/forecast.xml "+loc)
 
 except Exception as err:
