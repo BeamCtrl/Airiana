@@ -57,12 +57,12 @@ fd = open(str(log)+".log","a+")
 fd.seek(0)
 for each in fd.readlines():
 	data = each.split(":")
-	if float(data[0]) > tm.time()-3600*24*1000:
-		#print data
+	if float(data[0]) > tm.time()-3600*24*30 *3:
 		time.append(float(data[0]))
 		temp.append(float(data[1]))
 		humid.append(int(data[2][0:-1]))
-		dewpoint.append(air_obj.dew_point(humid[-1],temp[-1]))
+		dewpoint.append(air_obj.dew_point(float(data[2][0:-1]),float(data[1])))
+		#print time[-1],temp[-1],humid[-1],dewpoint[-1]
 fig=figure(1,figsize=(11,8),dpi=250)
 #s1=subplot("111")
 #temp_line=plot(time,temp)[0]
@@ -82,11 +82,13 @@ while True:
 	fig.subplots_adjust(bottom=0.2, top=0.95,
                     hspace=0.7, wspace=0.7)
 	#print max(time),min(time)
+	#print len(time),len(temp),len(humid)
 	ax = gca()
 	#low, high = ax.get_ylim()
 	low, high = -20,100
 	ax.yaxis.set_ticks(np.arange(int(low),int(high+1),5))
 	gca().set_autoscalex_on(True)
+	gca().set_autoscaley_on(True)
 	gca().set_xlim(min(time),max(time))
 	hum_line=plot(time,humid,"-")[0]
 	temp_line=plot(time,temp,"-")[0]
@@ -104,12 +106,12 @@ while True:
 			labels[pos]=tm.strftime("%H:%M - %d/%m - %Y",tm.localtime(float(each)))
 			pos+=1
 	except:pos+=1
-	print labels
+	#print labels
 	s1.set_xticklabels(labels)
 	setp(s1.get_xticklabels(), rotation=45)
 	draw()
 
 	savefig("./RAM/"+str(log)+".png")
 	#tm.sleep((60*60*12)+rndm.randint(0,30))
-	tm.sleep(120)
+	tm.sleep(600)
 	sys.stdout.flush()

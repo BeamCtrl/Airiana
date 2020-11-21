@@ -51,8 +51,10 @@ tomorrow = tomorrow.timetuple()
 ###
 ## get longlat from file
 with open("latlong.json") as f:
-	latlong = json.load(f)
-
+	try:
+		latlong = json.load(f)
+	except : 
+		print "-1 -1"
 #print sunrise and sunset for current location 
 if "sun" in sys.argv:
 	rise , setting =  getSun(latlong["lat"], latlong["long"])

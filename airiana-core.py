@@ -3,7 +3,7 @@
 ###################IMPORTS
 import airdata, serial, numpy, select, threading, minimalmodbus
 import os, traceback, time, sys, signal, math
-import pickle
+import pickle, json
 from request import Request
 #from mail import *
 #############################
@@ -710,44 +710,6 @@ class Systemair(object):
 			return 0
 		return tcomp
 
-	def flow_calcs(self):
-		extr_vol = self.ef
-		supp_vol = self.sf
-		inlet_T  = 0
-		extract_T= 0
-		exhaust_T= 0
-		supply_T = 0
-		for each in self.rawdata:
-			inlet_T   += float(each[4])/10
-			extract_T += float(each[1])/10
-			exhaust_T += float(each[2])/10
-			supply_T  += float(each[3])/10
-		inlet_T   = inlet_T/len(self.rawdata)
-		extract_T = extract_T/len(self.rawdata)
-		exhaust_T = exhaust_T/len(self.rawdata)
-		supply_T  = supply_T/len(self.rawdata)
-
-		ener_in = 0
-		ener_out = 0
-
-		casing_diff = extract_T - inlet_T
-		in_ave = supply_T - inlet_T
-		out_ave = extract_T - exhaust_T
-		duct_diff = out_ave - in_ave
-
-		ener_in  = self.airdata_inst.energy_flow(supp_vol,inlet_T,supply_T)
-		ener_out = self.airdata_inst.energy_flow(extr_vol,exhaust_T,extract_T)
-
-		ener_diff = ener_out - ener_in
-		try:
-			diff_deg = ener_diff / casing_diff
-		except ZeroDivisionError: pass
-		if self.iter % 100 == 0:
-			self.msg += "\Energ.flow Differential: "+str(diff_deg)+"W/deg\nin: "+str(int(ener_in))+" out: "+str(int(ener_out))\
-				+" casing_diff"+str(int(casing_diff))+"C\n"
-		#self.msg += "inlet\tsupply\textract\texhaust\n"+str(inlet_T)+"\t"+str(supply_T)+"\t"\
-		#		+str(extract_T)+"\t"+str(exhaust_T)+"\n"
-
 	def set_fanspeed(self,target):
 		self.inhibit = time.time()
 		self.coef_inhibit = time.time()
@@ -1111,7 +1073,7 @@ class Systemair(object):
 			tmp += "Temperature Efficiency: "+str(round(numpy.average(self.eff_ave),2))+"%\n"
 		tmp += "Filter has been installed for "+ str(self.filter)+" days ,"+str(self.filter_remaining)+"% remaining. \n\n"
 		tmp += "Ambient Pressure:"+ str(self.airdata_inst.press)+"hPa\n"
-		if self.forcast[1]<>-1: tmp += "Weather forecast for tomorrow is: "+str(self.forcast[0])+"C "+str(self.forcast[1]/8*100)+"% cloud cover RH:"+ str(self.forcast[2]) +"%\n\n"
+		if self.forcast[1]<>-1: tmp += "Weather forecast: "+str(self.forcast[0])+"C "+str(self.forcast[1]/8*100)+"% cloud cover RH:"+ str(self.forcast[2]) +"%\n\n"
 		if "Timer" in threading.enumerate()[-1].name: tmp+= "Ventilation timer on: "+count_down(self.timer,120*60)+"\n"
 		if self.shower : tmp += "Shower mode engaged at:" +time.ctime(self.shower_initial)+"\n"
 		if self.inhibit>0:tmp+=  "Status change inhibited ("+count_down(self.inhibit, 600)+")\n"
@@ -1314,7 +1276,7 @@ class Systemair(object):
 	    #FORECAST RELATED COOLING
 	    try:
 		if self.forcast[0] > self.cooling_limit and float(os.popen("./forcast2.0.py tomorrows-low").read().split(" ")[0]) > self.house_heat_limit	\
-			and float(os.popen("./forcast2.0.py integral "+str(self.cooling_limit))) > 0\
+			and float(os.popen("./forcast2.0.py integral "+str(self.cooling_limit)).read()) > 0\
 			and self.forcast[1] < 4 				\
 			and self.cool_mode == False 				\
 			and self.extract_ave>20.7\
@@ -1331,7 +1293,8 @@ class Systemair(object):
 				self.cool_mode = True
 			        os.write(ferr, "Cooling activated "+str(time.ctime()) +"\n")
 
-	    except: os.write(ferr, "Forecast cooling error "+str(time.ctime()) +"\n")
+	    except:
+		os.write(ferr, "Forecast cooling error "+str(os.popen("./forcast2.0.py integral "+str(self.cooling_limit)).read())+' '+str(time.ctime()) +"\n")
 	    # SAVECAIR COOL reCover cheat
 	    """if savecair and not self.inhibit and not self.shower:
 		    if self.exchanger_mode<>5\
@@ -1356,7 +1319,7 @@ class Systemair(object):
 			self.cycle_exchanger(0)
 			self.modetoken = 0
 			os.write(ferr,"Stoped forcing heat exchanger "+ str(time.ctime())+ "\n")
-	ยง  """
+	ง  """
 	    if self.cool_mode and not self.inhibit and not self.shower:
 		if (self.extract_ave <20.7 ) and self.fanspeed <> 1 :
 			self.set_fanspeed(1)
@@ -1609,7 +1572,7 @@ class Systemair(object):
 				sun  = 7
 				comp = 0
 			#comp = (comp - (self.prev_static_temp-self.kinetic_compensation))/(24*3)
-			comp = (self.airdata_inst.dew_point(self.forcast[0],self.forcast[2])-self.airdata_inst.dew_point (self.extract_ave,self.local_humidity))/(24*100) # new comp calc with humidity forcast
+			comp = (self.airdata_inst.dew_point(self.forcast[0],self.forcast[2])-self.airdata_inst.dew_point (self.extract_ave,self.local_humidity))/(24*50) # new comp calc with humidity forcast
 			self.kinetic_compensation -= comp * self.avg_frame_time
 			# if prev static is above saturation point
 			if self.prev_static_temp >= saturation_point:
@@ -1682,7 +1645,7 @@ if __name__  ==  "__main__":
 	try:
 	    #FIRST PASS ONLY #
             clear_screen()
-	    print "First PASS;\n updating fanspeeds;"
+	    print "First PASS;\nUpdating fanspeeds;"
 	    device.system_setup()
 	    device.update_airflow()
 	    sys.stdout.flush()
@@ -1705,7 +1668,7 @@ if __name__  ==  "__main__":
 		os.system("sudo nice ./grapher.py &")
 	    sys.stdout.flush()
 	    if "debug" in sys.argv:
-		print "checking for sensor data;"
+		print "Checking for sensor data;"
 		update_sensors()
 	    	sys.stdout.flush()
 	    print "Updating current rotor status;"
@@ -1726,7 +1689,7 @@ if __name__  ==  "__main__":
 		device.new_humidity = device.moisture_calcs(10.0)
 		device.get_local()
 	    starttime=time.time()
-	    print "system started:",time.ctime(starttime),";"
+	    print "System started:",time.ctime(starttime),";"
 	    sys.stdout.flush()
 	    if "ping" in sys.argv:report_alive()
 	    time.sleep(2)
@@ -1736,8 +1699,6 @@ if __name__  ==  "__main__":
 		device.update_temps()
 		device.update_xchanger()
 		device.derivatives()
-                if "raw_debug" in sys.argv:
-                        device.flow_calcs()
 		## EXEC TREE, exec steps uniqe if prime##
 		#check states and flags
 		if device.iter%3 ==0:
@@ -1985,7 +1946,6 @@ if __name__  ==  "__main__":
 						device.set_fanspeed(2)
 				if data == 13:
 					device.cool_mode= not device.cool_mode
-
 
 		except TypeError:pass
 		except ValueError:pass
