@@ -1572,7 +1572,9 @@ class Systemair(object):
 				sun  = 7
 				comp = 0
 			#comp = (comp - (self.prev_static_temp-self.kinetic_compensation))/(24*3)
-			comp = (self.airdata_inst.dew_point(self.forcast[0],self.forcast[2])-self.airdata_inst.dew_point (self.extract_ave,self.local_humidity))/(24*50) # new comp calc with humidity forcast
+			try:
+				comp = (self.airdata_inst.dew_point(self.forcast[0],self.forcast[2])-self.airdata_inst.dew_point (self.extract_ave,self.local_humidity))/(24*50) # new comp calc with humidity forcast
+			except OverflowError: print "Comp calc error"
 			self.kinetic_compensation -= comp * self.avg_frame_time
 			# if prev static is above saturation point
 			if self.prev_static_temp >= saturation_point:
