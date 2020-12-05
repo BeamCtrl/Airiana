@@ -19,6 +19,8 @@ os.system("apt-get update")
 dir = os.getcwd()
 
 # INSTALL DEPS#
+os.system("apt-get -y install python-dev")
+os.system("apt-get -y install python-dev3")
 os.system("apt-get -y install python-matplotlib")
 os.system("pip install minimalmodbus")
 os.system("pip install progressbar")
