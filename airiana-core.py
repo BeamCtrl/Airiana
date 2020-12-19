@@ -7,7 +7,7 @@ import pickle, json
 from request import Request
 #from mail import *
 #############################
-vers = "10.15"
+vers = "10.16"
 Running =True
 savecair=False
 mode = "RTU"
@@ -1548,6 +1548,9 @@ class Systemair(object):
 					os.write(ferr, "Unable set weather or sunrise "+" "+str(time.ctime()) +"\n")
 					wthr = [self.prev_static_temp, 0, 0,100]
 					comp = float(wthr[0])-(float(wthr[2])/8) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/8
+				except IndexError:
+					os.write(ferr, "Forcast does not return proper data."+" "+str(time.ctime()) +"\n")
+
 			else:
 				sun  = 7
 				comp = 0
