@@ -29,7 +29,6 @@ os.system("pip install pyModbusTCP")
 os.system("pip install pyephem")
 os.system("pip install setuptools")
 os.system("apt-get -y install ntp")
-os.system("apt-get -y install python-dev")
 os.system("apt-get -y upgrade")
 
 # NEED TO SET LOCALE
