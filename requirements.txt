@@ -1,0 +1,8 @@
+## Airiana Python requirements ##
+
+matplotlib
+pyephem
+minimalmodbus
+setuptools
+requests
+progressbar

@@ -7,7 +7,7 @@ import pickle, json
 from request import Request
 #from mail import *
 #############################
-vers = "10.14"
+vers = "10.15"
 Running =True
 savecair=False
 mode = "RTU"
@@ -96,7 +96,7 @@ while True:
 		break
 	except:
 		os.system("sleep 1")
-		print "sleeping"
+		print "sleeping;"
 		if time.time()-starttime> 60:break
 
 ########### global uty functions################
@@ -147,7 +147,6 @@ def report_alive():
 					if os.path.lexists("RAM/error_rate"):message +=  os.popen("cat RAM/error_rate").read()+"<br>"
 				except :
 					os.write(ferr, "Ping error "+traceback.print_exc() +"\n")
-					print "ERROR IN PING ",traceback.print_exc()
 					os.close(fd)
 				#if "debug" in sys.argv: device.msg +=  message + "\n"
 
