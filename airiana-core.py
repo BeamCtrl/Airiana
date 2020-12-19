@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 ###################IMPORTS
-import airdata, serial, numpy, select, threading, minimalmodbus
+import airdata, numpy, select, threading
 import os, traceback, time, sys, signal, math
 import pickle, json
 from request import Request
@@ -72,17 +72,19 @@ elif os.path.lexists("/dev/serial0"):
 else :
 	print "Communication started on device ttyAMA0;"
 	unit = "/dev/ttyAMA0"
-minimalmodbus.BAUDRATE = 19200
-minimalmodbus.PARITY = serial.PARITY_NONE
-minimalmodbus.BYTESIZE = 8
-minimalmodbus.STOPBITS=1
-client = minimalmodbus.Instrument(unit,1)
-client.debug=False
-client.precalculate_read_size=True
-client.timeout= 0.05
-#############################################
-wait_time = 0.00
-bus=os.open(unit,os.O_RDONLY)
+
+#minimalmodbus.BAUDRATE = 19200
+#minimalmodbus.PARITY = serial.PARITY_NONE
+#minimalmodbus.BYTESIZE = 8
+#minimalmodbus.STOPBITS=1
+#client = minimalmodbus.Instrument(unit,1)
+#client.debug=False
+#client.precalculate_read_size=True
+#client.timeout= 0.05
+##############################################
+#wait_time = 0.00
+#bus=os.open(unit,os.O_RDONLY)
+
 ################################# command socket setup
 import socket
 hostname =os.popen("hostname").read()[:-1]
@@ -231,7 +233,7 @@ def logger ():
 #PRINT COMM SETTING
 def display_settings():
         clear_screen()
-        print str(client).replace(",","\n")
+        print str(req.client).replace(",","\n")
 
 #CLEAR WHATS ON SCREEN AND RETURN TO UPPER LEFT
 def clear_screen():
@@ -245,7 +247,9 @@ def clear_screen():
 #################################################################################
 start = time.time() # START TIME
 # init request class for communication
-req = Request(bus,client,mode)
+sys.stdout.flush()
+req = Request()
+req.setup(unit,mode)
 ############DEVICE CLASS FOR SYSTEMAIR VR400DCV#############################
 class Systemair(object):
 	def __init__(self):
