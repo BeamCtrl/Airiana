@@ -32,7 +32,7 @@ stat_dict = {}
 location= dict()
 def checkLocation(user):
 	try:
-		#print location
+		print location
 		if len(location[user]) <>0:
 			#print "user known",user, location[user]
 			return None
@@ -42,7 +42,7 @@ def checkLocation(user):
 		#print "checking ip:",ip
 		loc = os.popen("/home/pi/airiana/geoloc.py " + ip ).read()
 		location.update( {user:loc})
-		print "got new location", loc
+		#print "got new location", loc
 def analyse_stat(status,user):
 	#if "debug" in sys.argv:
 	#	print "Analyze", status, users[user]

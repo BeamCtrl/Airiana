@@ -15,6 +15,9 @@ def print_weather(time,w,precep):
 	print time, str(w["air_temperature"])+"C",str(w["wind_speed"])+"m/s","at",str(w["wind_from_direction"])+"deg.", str(precep)+"mm",str(w["relative_humidity"])+"%","Press.:"+str(w["air_pressure_at_sea_level"])+"hPa"
 #weather types
 MAX_CLOUD_LVL = 8
+try:
+	os.chdir("./airiana/")
+except: pass
 weather_types= {\
                     1:"Clear skies",2:"Fair weather",3:"Partly cloudy",\
                     4:"Cloudy",40:"Light showers",41:"Heavy showers",\
@@ -122,8 +125,9 @@ if "tomorrows-low" in sys.argv:
 			if low > temp or low == -60:
 				low = temp
 				wind = float(each["data"]["instant"]["details"]["wind_speed"])
+				rh = float(each["data"]["instant"]["details"]["relative_humidity"])
 				wt = float(each["data"]["instant"]["details"]["cloud_area_fraction"])/100
-	print low,int(wt*MAX_CLOUD_LVL),wind
+	print low,int(wt*MAX_CLOUD_LVL),wind,rh
 
 if "integral" in sys.argv:
 	try:

@@ -178,8 +178,8 @@ def update_sensors():
 		except KeyError: pass#device.msg +="\nerror on sensor 91"
 		try:
 			device.inside =float(sensor_dict["92"]["temperature"])
-			device.inside_humid =int(sensor_dict["92"]["humidity"])+5
-			device.inside_humid += (75-device.inside_humid)/10
+			device.inside_humid =int(sensor_dict["92"]["humidity"])
+			#device.inside_humid += 5 +(75-device.inside_humid)/10 use if sensor has incorrect tuning
 		except KeyError: pass#device.msg +="\nerror on sensor 92"
 		try:
 			device.sensor_exhaust =float(sensor_dict["94"]["temperature"])
@@ -1295,31 +1295,7 @@ class Systemair(object):
 
 	    except:
 		os.write(ferr, "Forecast cooling error "+str(os.popen("./forcast2.0.py integral "+str(self.cooling_limit)).read())+' '+str(time.ctime()) +"\n")
-	    # SAVECAIR COOL reCover cheat
-	    """if savecair and not self.inhibit and not self.shower:
-		    if self.exchanger_mode<>5\
-			and self.fanspeed == 1\
-			and self.supply_ave < self.inlet_ave\
-			and self.supply_ave < 29:
-				os.write(ferr,"Outside is to warm will force heat exchanger "+ str(time.ctime())+ "\n")
-				self.cycle_exchanger(5)
-				self.modetoken = 0
 
-		    if self.exchanger_mode==5 \
-			and self.fanspeed == 1 \
-			and self.exchanger_speed < 95 \
-			and self.supply_ave<self.inlet_ave\
-			and self.supply_ave<29:
-				self.cycle_exchanger(0)
-				time.sleep(2)
-				self.cycle_exchanger(5)
-				self.modetoken = 0
-				self.inhibit = time.time()-9*60-30 # prevent more than one reset per 30s
-		    elif self.exchanger_mode ==5 and self.supply_ave > 29 and self.supply_ave > self.inlet_ave and self.supply_ave >17 and savecair and self.cool_mode:
-			self.cycle_exchanger(0)
-			self.modetoken = 0
-			os.write(ferr,"Stoped forcing heat exchanger "+ str(time.ctime())+ "\n")
-	§  """
 	    if self.cool_mode and not self.inhibit and not self.shower:
 		if (self.extract_ave <20.7 ) and self.fanspeed <> 1 :
 			self.set_fanspeed(1)
@@ -1457,6 +1433,7 @@ class Systemair(object):
 		traceback.print_exc()
 		self.msg+= "error getting forecast.\n"+str(forcast)
 		self.forcast=[-1,-1]
+
 	#set the fan pressure diff
 	def set_differential(self, percent):
 	    os.write(ferr, "Pressure difference set to:  "+str(percent)+"% "+str(time.ctime()) +"\n")
@@ -1566,15 +1543,15 @@ class Systemair(object):
 				except ValueError:
 					sun = 7
 					os.write(ferr, "Unable set weather or sunrise "+" "+str(time.ctime()) +"\n")
-					wthr = [self.prev_static_temp, 0, 0]
+					wthr = [self.prev_static_temp, 0, 0,100]
 					comp = float(wthr[0])-(float(wthr[2])/8) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/8
 			else:
 				sun  = 7
 				comp = 0
-			#comp = (comp - (self.prev_static_temp-self.kinetic_compensation))/(24*3)
 			try:
-				comp = (self.airdata_inst.dew_point(self.forcast[0],self.forcast[2])-self.airdata_inst.dew_point (self.extract_ave,self.local_humidity))/(24*50) # new comp calc with humidity forcast
-			except OverflowError: print "Comp calc error"
+				comp = (self.airdata_inst.dew_point(wthr[0],float(wthr[3]))-self.airdata_inst.dew_point (self.extract_ave,self.local_humidity))/(24*50) # new comp calc with humidity forcast
+			except OverflowError:
+				comp = (comp - (self.prev_static_temp-self.kinetic_compensation))/(24*3)
 			self.kinetic_compensation -= comp * self.avg_frame_time
 			# if prev static is above saturation point
 			if self.prev_static_temp >= saturation_point:
@@ -1627,7 +1604,7 @@ if __name__  ==  "__main__":
 	os.write(ferr, "System started "+str(time.ctime())+"\n")
 
 	device = Systemair()
-	req.modbusregister(12543,0)
+	req.modbusregister(12543,0) # test for savecair extended address range
 	if device.system_name =="VR400" and req.response != "no data":
 		savecair=True
 		device.system_name="VTR300"
@@ -1647,7 +1624,8 @@ if __name__  ==  "__main__":
 	try:
 	    #FIRST PASS ONLY #
             clear_screen()
-	    print "First PASS;\nUpdating fanspeeds;"
+	    print "First PASS;"
+            print "Updating fanspeeds;"
 	    device.system_setup()
 	    device.update_airflow()
 	    sys.stdout.flush()
