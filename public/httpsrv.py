@@ -20,8 +20,8 @@ class extendedHandler(SimpleHTTPRequestHandler):
 	def finish(self):
 		req = self.request
 		ip = self.request.getpeername()[0]
-		#if self.requestline.find("current_version") != -1:
-		os.system("echo "+str(ip)+" "+self.requestline+" "+str(time.ctime()) +  " >> ../checks.txt")
+		if self.requestline.find("current_version") != -1:
+			os.system("echo "+str(ip)+" "+self.requestline+" "+str(time.ctime()) +  " >> ../checks.txt")
 		SimpleHTTPRequestHandler.finish(self)
 
 class uServer(ThreadingHTTPServer):
