@@ -107,3 +107,10 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# intermittent files
+*.save
+coeficients.dat*
+*.bak
+*BU
+newCoef.txt

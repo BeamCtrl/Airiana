@@ -30,7 +30,6 @@ os.system("pip install setuptools")
 os.system("pip install pyephem")
 os.system("apt-get -y install ntp")
 os.system("apt-get -y upgrade")
-
 # NEED TO SET LOCALE
 os.system("cp ./systemfiles/timezone /etc/")
 
@@ -39,12 +38,13 @@ boot_cmd="enable_uart=1\n"
 boot_file = open("/boot/config.txt","rw+")
 lines=boot_file.readlines()
 if boot_cmd in lines:
-	print "uart_enabled" 
+	print "Uart already enabled" 
 else:
 	print "Enabling uart"
 	boot_file.write(boot_cmd)
 	boot_file.close()
 	reboot = True
+sys.stdout.flush()
 
 #MAKE RAM DRIVE IN FSTAB#
 fstab_comment = "#temp filesystem only in RAM for use on Airiana tempfiles.\n"
@@ -56,9 +56,15 @@ lines=fstab_file.readlines()
 ## write RAM tmpfs's to fstab
 if fstab_var not in lines or fstab_RAM not in lines:
 	 for each in lines:
-		if "/RAM" in each: lines.pop(lines.index(each))
-		if "/var" in each: lines.pop(lines.index(each))
-		if "filesystem only in RAM" in each: lines.pop(lines.index(each))
+		if "/RAM" in each: 
+			print "Found RAM drive setup"
+			lines.pop(lines.index(each))
+		if "/var" in each:
+			print "Found /var/log partition setup"
+			lines.pop(lines.index(each))
+		if "filesystem only in RAM" in each:
+			print "Found fstab comment"
+			lines.pop(lines.index(each))
 	 print "Setting up Ram drive"
 	 lines.append(fstab_comment)
 	 lines.append(fstab_RAM)
@@ -69,15 +75,19 @@ if fstab_var not in lines or fstab_RAM not in lines:
 	 reboot = True
 else:
 	 print "fstab  already installed" 
+sys.stdout.flush()
 
 #install system services for airaina and controller
 if not os.path.lexists("/etc/systemd/system/airiana.service") or "update" in sys.argv:
+	print "setup autostart for airiana.service"
 	os.system("cp ./systemfiles/airiana.service /etc/systemd/system/")
 	os.system("systemctl enable airiana.service")
 
 if not os.path.lexists("/etc/systemd/system/controller.service") or "update" in sys.argv:
+	print "setup autostart for controller.service"
 	os.system("cp ./systemfiles/controller.service /etc/systemd/system/")
 	os.system("systemctl enable controller.service")
+sys.stdout.flush()
 
 # redir console from uart
 boot_cmd= "dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait"
@@ -87,13 +97,19 @@ if boot_cmd not in open("/boot/cmdline.txt").read():
 	reboot = True
 ##
 ## setup airiana as host#
+print "Copy hosts file"
 os.system ("cp ./systemfiles/hosts /etc/")
+sys.stdout.flush()
 
 #Touch a data log file
+print "Touch data.log"
 os.system ("touch data.log")
 os.chdir("./public/")
+sys.stdout.flush()
 
 # link files to RAM-disk
+print "setup symlinkts between RAM and ./public"
+sys.stdout.flush()
 os.system("ln -s ../RAM/out out.txt")
 os.system("ln -s ../RAM/history.png history.png")
 os.system("ln -s ../RAM/status.html status.html")
@@ -103,12 +119,18 @@ os.system("chown pi:pi ../RAM/*")
 
 # setup updater.py for auto update
 if  "/updater.py" not in os.popen("crontab -u pi -l").read():
+	print "setup auto update from airiana repo."
 	tmp  = os.popen("crontab -u pi -l").read()
 	os.system("echo \"" + tmp+ "0 */4 * * * sudo /usr/bin/python "+dir+"/updater.py\"|crontab -u pi -")
+sys.stdout.flush()
 
 #reboot if needed
 if not "update" in sys.argv or reboot:
 	#Reboot after installation
 	print "Installation completed, reboot in 15 sec"
+	sys.stdout.flush()
 	os.system("sleep 15")
 	os.system("reboot")
+
+if "update" in sys.argv:
+	print "System update sucessfull"
