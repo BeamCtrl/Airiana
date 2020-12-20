@@ -1,32 +1,42 @@
 #!/usr/bin/python3
-import sys,os
+import sys,os, time
 version = sys.version_info[0:2]
 print ("running on version",version)
 if version[0]==3 and version[1]<7:
 	os.system("python2.7 public/httpsrv2.py&")
 	exit()
-import http.server
+from  http.server import BaseHTTPRequestHandler, ThreadingHTTPServer, SimpleHTTPRequestHandler
 import socketserver,os,socket,struct,ssl
+print ("running python3")
 cert = "../keys/public.pem"
 PORT = 80
-dir= "./public/"
-os.chdir(dir)
+dirs= "./public/"
+os.chdir(dirs)
 
-Handler = http.server.SimpleHTTPRequestHandler
+class extendedHandler(SimpleHTTPRequestHandler):
+	def __init__(self,request, server, handler):
+		super().__init__(request,server,handler)
+
+	def finish(self):
+		req = self.request
+		ip = self.request.getpeername()[0]
+		#if self.requestline.find("current_version") != -1:
+		os.system("echo "+str(ip)+" "+self.requestline+" "+str(time.ctime()) +  " >> ../checks.txt")
+		SimpleHTTPRequestHandler.finish(self)
+
+class uServer(ThreadingHTTPServer):
+	def __init__(self,*args, **kwargs):
+		super().__init__(*args,**kwargs)
+
+Handler = extendedHandler
 Handler.server_version = "Airiana Web Server interface/2.5a"
-class uServer(http.server.ThreadingHTTPServer):
-	def run(self,server_class=http.server.ThreadingHTTPServer, handler_class=http.server.SimpleHTTPRequestHandler):
-		server_address = ("",PORT)
-		httpd = server_class(server_address,handler_class)
-		httpd.socket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
-		httpd.serve_forever()
 
 httpd = uServer(('',PORT),Handler)
 
 #httpd.socket = ssl.wrap_socket(httpd.socket,certfile= cert,server_side=True)
-
 print("serving at port", PORT)
 try:
 	httpd.serve_forever()
+	pass
 except:
-	os.close(httpd.socket)
+	httpd.socket.close()

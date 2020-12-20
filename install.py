@@ -78,12 +78,12 @@ else:
 sys.stdout.flush()
 
 #install system services for airaina and controller
-if not os.path.lexists("/etc/systemd/system/airiana.service") or "update" in sys.argv:
+if not os.path.lexists("/etc/systemd/system/airiana.service"):
 	print "setup autostart for airiana.service"
 	os.system("cp ./systemfiles/airiana.service /etc/systemd/system/")
 	os.system("systemctl enable airiana.service")
 
-if not os.path.lexists("/etc/systemd/system/controller.service") or "update" in sys.argv:
+if not os.path.lexists("/etc/systemd/system/controller.service"):
 	print "setup autostart for controller.service"
 	os.system("cp ./systemfiles/controller.service /etc/systemd/system/")
 	os.system("systemctl enable controller.service")
