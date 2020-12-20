@@ -142,6 +142,10 @@ def report_alive():
 						os.fsync(ferr)
 						os.write(ferr,temp)
 						os.fsync(ferr)
+					if os.path.exists("update.log"):
+						log = os.open("update.log", os.O_RDONLY)
+						logdata = log.read()
+						temp += logdata
 					temp = temp.replace("\n","<br>")
 					message += temp + "<br>"
 					message += os.popen("df |grep RAM").read()+"<br>"
