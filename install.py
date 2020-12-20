@@ -125,7 +125,7 @@ if  "/updater.py" not in os.popen("crontab -u pi -l").read():
 sys.stdout.flush()
 
 #reboot if needed
-if not "update" in sys.argv or reboot:
+if not "update" in sys.argv or reboot or "reboot" in sys.argv:
 	#Reboot after installation
 	print "Installation completed, reboot in 15 sec"
 	sys.stdout.flush()
