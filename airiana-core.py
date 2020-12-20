@@ -7,7 +7,7 @@ import pickle, json
 from request import Request
 #from mail import *
 #############################
-vers = "10.18"
+vers = "10.19"
 Running =True
 savecair=False
 mode = "RTU"
@@ -72,18 +72,6 @@ elif os.path.lexists("/dev/serial0"):
 else :
 	print "Communication started on device ttyAMA0;"
 	unit = "/dev/ttyAMA0"
-
-#minimalmodbus.BAUDRATE = 19200
-#minimalmodbus.PARITY = serial.PARITY_NONE
-#minimalmodbus.BYTESIZE = 8
-#minimalmodbus.STOPBITS=1
-#client = minimalmodbus.Instrument(unit,1)
-#client.debug=False
-#client.precalculate_read_size=True
-#client.timeout= 0.05
-##############################################
-#wait_time = 0.00
-#bus=os.open(unit,os.O_RDONLY)
 
 ################################# command socket setup
 import socket
