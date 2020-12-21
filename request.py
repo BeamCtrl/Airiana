@@ -53,10 +53,10 @@ class Request:
 			print "Fallback localhost:505 server there may be a problem with formating the ipconfig file or it may not exist"
 			self.client = pyModbusTCP.client.ModbusClient(host=IP, port=PORT, auto_open=True)
 	else:
-		print "Using RTU backend\n"
+		print "Using RTU backend;"
 		ID = 1 # UNIT ID
-                self.bus = os.open(self.unit,os.O_RDONLY)  # read bus file to drain buffers
-                #os.read(self.bus) # read 1k chars to empty buffer before starting the instrument
+                self.bus = os.open(self.unit,os.O_RDONLY|os.O_NONBLOCK)  # read bus file to drain buffers
+                buf  = os.read(self.bus,1000) # read 1k chars to empty buffer before starting the instrument
 		client = minimalmodbus.Instrument(self.unit,ID) # setup the minimal modbus client
 		client.debug=False
 		client.precalculate_read_size=True
@@ -64,7 +64,21 @@ class Request:
                 self.client = client
                 wait_time = 0.00
 
-        print "request object created",self.mode
+        print "request object created: ",self.mode,";\n"
+	test = self.comm_test()
+	print "Comm test: ", test, ";\n"
+
+    def comm_test(self):
+		self.modbusregister(101,0) # Read non savecair flow address
+		first = self.response
+		self.modbusregister(12543,0) # Read savecair address space
+		seccond = self.response
+		if not first and not seccond:
+	            	fd = os.open("RAM/err", os.O_WRONLY)
+            		os.write(fd, "Request object failed communications test.\n")
+            		os.close(fd)
+			return False
+		else: return True
 
     def modbusregisters(self, start, count, signed=False):
         self.client.precalculate_read_size = True
@@ -103,7 +117,7 @@ class Request:
                          self.write_errors +
                          self.multi_errors) / delta
         else:
-            rate = 0.5
+            rate = 0.0
         if rate >= 0.9:
             os.read(self.bus, 1000)
             time.sleep(1)

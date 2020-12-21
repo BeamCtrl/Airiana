@@ -7,7 +7,7 @@ import pickle, json
 from request import Request
 #from mail import *
 #############################
-vers = "10.21"
+vers = "10.22"
 Running =True
 savecair=False
 mode = "RTU"
@@ -65,13 +65,16 @@ if "daemon" in sys.argv:
 if os.path.lexists("/dev/ttyUSB0"):
 	print "Communication started on device ttyUSB0;"
 	unit = "/dev/ttyUSB0"
+	os.write(ferr, "Using /dev/ttyUSB0" +"\n")
+
 elif os.path.lexists("/dev/serial0"):
 	print "Communication started on device Serial0;"
 	unit = "/dev/serial0"
-	#os.system("sleep 2")
+	os.write(ferr, "Using /dev/serial0" +"\n")
 else :
 	print "Communication started on device ttyAMA0;"
 	unit = "/dev/ttyAMA0"
+	os.write(ferr, "Using /dev/ttyAMA0" +"\n")
 
 ################################# command socket setup
 import socket
@@ -240,10 +243,7 @@ def clear_screen():
 
 #################################################################################
 start = time.time() # START TIME
-# init request class for communication
 sys.stdout.flush()
-req = Request()
-req.setup(unit,mode)
 ############DEVICE CLASS FOR SYSTEMAIR VR400DCV#############################
 class Systemair(object):
 	def __init__(self):
@@ -1599,8 +1599,11 @@ class Systemair(object):
 ## Init base class ##
 if __name__  ==  "__main__":
 	print "Reporting system start;"
-	#print os.read(bus,10000)
 	report_alive()
+	# init request class for communication
+	req = Request()
+	req.setup(unit,mode)
+
 	os.write(ferr, "System started "+str(time.ctime())+"\n")
 
 	device = Systemair()
