@@ -56,7 +56,7 @@ class Request:
 		print "Using RTU backend\n"
 		ID = 1 # UNIT ID
                 self.bus = os.open(self.unit,os.O_RDONLY)  # read bus file to drain buffers
-                os.read(self.bus,1000) # read 1k chars to empty buffer before starting the instrument
+                #os.read(self.bus) # read 1k chars to empty buffer before starting the instrument
 		client = minimalmodbus.Instrument(self.unit,ID) # setup the minimal modbus client
 		client.debug=False
 		client.precalculate_read_size=True
