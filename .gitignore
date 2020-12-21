@@ -109,7 +109,7 @@ ENV/
 .ropeproject
 
 # intermittent files
-*.save
+*.save*
 coeficients.dat*
 *.bak
 *BU
