@@ -119,16 +119,16 @@ os.system("chown pi:pi ../RAM/*")
 
 # setup updater.py for auto update
 print "setup auto update from airiana repo."
-cron =  os.popen("crontab -u pi -l").read():
+cron =  os.popen("crontab -u pi -l").readlines()
 crontab = ""
 updated = False
 for line in cron:
-	if "updater.py" in line:
-		line = "0 */4 * * * sudo /usr/bin/python "+dir+"/updater.py\n")
+	if  line.find("updater.py") >0 :
+		line = "0 */4 * * * sudo /usr/bin/python "+dir+"/updater.py\n"
 		updated = True
 	crontab += line
 if not updated:
-	crontab +=  "0 */4 * * * sudo /usr/bin/python "+dir+"/updater.py\n")
+	crontab +=  "0 */4 * * * sudo /usr/bin/python "+dir+"/updater.py\n"
 os.system("echo \"" + crontab +"\" | crontab -u pi -")
 sys.stdout.flush()
 
