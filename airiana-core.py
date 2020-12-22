@@ -134,11 +134,15 @@ def report_alive():
 						os.write(ferr,temp)
 						os.fsync(ferr)
 					try:
-						if os.path.exists("update.log"):
+						if os.path.lexists("update.log"):
 							log = os.open("update.log", os.O_RDONLY)
-							logdata = log.read()
-							temp += logdata
-					except:pass
+							logdata = os.read(log,5000)
+							temp += "\n\n"+logdata
+							os.close(log)
+						if os.path.lexists("./RAM/request.log"):
+							with open("./RAM/request.log") as reqlog:
+								temp+= "\n\n"+reqlog.read()
+					except KeyboardInterrupt:pass
 					temp = temp.replace("\n","<br>")
 					message += temp + "<br>"
 					message += os.popen("df |grep RAM").read()+"<br>"
@@ -1608,7 +1612,7 @@ if __name__  ==  "__main__":
 
 	device = Systemair()
 	req.modbusregister(12543,0) # test for savecair extended address range
-	if device.system_name =="VR400" and req.response != "no data":
+	if device.system_name =="VR400" and req.response != "no data" and not req.response == 0:
 		savecair=True
 		device.system_name="VTR300"
 		conversion_table ={}
