@@ -114,16 +114,11 @@ class Request:
             self.connect_errors += 1
             if self.connect_errors > 100 or self.multi_errors > 100:
                 self.error_review()
-		self.response = 0
-		return 0
             if self.rate < 0.9:
                 self.modbusregisters(start, count)
         self.client.precalculate_read_size = False
-	self.reset = 0 #set reset counter to 0
 
     def error_review(self):
-	self.reset += 1
-	if self.reset >= 5: exit(-1)
         delta = self.iter - self.error_time
         self.error_time = self.iter
         if delta != 0:
@@ -141,6 +136,7 @@ class Request:
             os.write(fd, """read error high rate,
             possible no comms with unit error rate over 90%\n""")
             os.close(fd)
+	    exit(-1)
         os.system("echo " + str(rate)
                   + " "
                   + str(self.wait_time)
