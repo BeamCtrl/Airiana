@@ -114,6 +114,7 @@ class Request:
             self.connect_errors += 1
             if self.connect_errors > 100 or self.multi_errors > 100:
                 self.error_review()
+		self.response = 0
 		return 0
             if self.rate < 0.9:
                 self.modbusregisters(start, count)
