@@ -74,7 +74,6 @@ class Request:
     def comm_test(self):
 		print "Running Comm test"
 	        fd = os.open("RAM/request.log", os.O_WRONLY|os.O_CREAT)
-		print "errfile:",fd
 		self.modbusregister(101,0) # Read non savecair flow address
 		first = self.response
             	os.write(fd, "Testing Non-savecair address 101:" +str(first)+"\n")
@@ -84,7 +83,7 @@ class Request:
 		print "Testing savecair address 12543:" +str(seccond)
             	os.write(fd, "Testing savecair address 12543:" +str(seccond)+"\n")
 		if first == 0 and seccond == 0 or (first =="no data" and seccond=="no data"):
-            		os.write(fd, "Request object failed communications test.\n")
+            		os.write(fd, "Request object Failed communications test.\n")
             		os.close(fd)
 			return False
 		os.write(fd, "Request object Passed communications test.\n")
