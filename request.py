@@ -37,6 +37,7 @@ class Request:
     	self.response = ""
     	self.mode = "RTU"
     	self.unit = ""
+	self.reset = 0
 
     def setup(self, unit, mode):
         self.unit = unit
@@ -82,7 +83,7 @@ class Request:
 		seccond = self.response
 		print "Testing savecair address 12543:" +str(seccond)
             	os.write(fd, "Testing savecair address 12543:" +str(seccond)+"\n")
-		if first == 0 and seccond == 0:
+		if first == 0 and seccond == 0 or (first =="no data" and seccond=="no data"):
             		os.write(fd, "Request object failed communications test.\n")
             		os.close(fd)
 			return False
@@ -114,11 +115,15 @@ class Request:
             self.connect_errors += 1
             if self.connect_errors > 100 or self.multi_errors > 100:
                 self.error_review()
+		return 0
             if self.rate < 0.9:
                 self.modbusregisters(start, count)
         self.client.precalculate_read_size = False
+	self.reset = 0 #set reset counter to 0
 
     def error_review(self):
+	self.reset += 1
+	if self.reset >= 5: exit(-1)
         delta = self.iter - self.error_time
         self.error_time = self.iter
         if delta != 0:
@@ -132,10 +137,10 @@ class Request:
             os.read(self.bus, 1000)
             time.sleep(1)
             fd = os.open("RAM/err", os.O_WRONLY)
+	    os.lseek(fd, os.SEEK_SET, os.SEEK_END)
             os.write(fd, """read error high rate,
             possible no comms with unit error rate over 90%\n""")
             os.close(fd)
-            raise IOError
         os.system("echo " + str(rate)
                   + " "
                   + str(self.wait_time)
@@ -165,6 +170,7 @@ class Request:
             	if self.connect_errors > 100:
                 	self.error_review()
             	self.buff += os.read(self.bus, 20)  # bus purge
+		if address == 12543 and self.connect_errors >= 10: return 0
             	self.modbusregister(address, decimals)
             except ValueError:
             	self.buff += os.read(self.bus, 20)  # bus purge
@@ -176,9 +182,11 @@ class Request:
         else:
             try:
                 self.response = self.client.read_holding_registers(address, 1)[0]
-                if decimals == 1:
-                    self.response/=10
+                if decimals != 0:
+                    self.response/=(decimals*10)
             except: print "TCP read error on addrs:",address
+
+	self.reset = 0 #set reset counter to 0
     def write_register(self, reg, value, tries=10):
 	if self.mode == "RTU":
 	        self.iter += 1

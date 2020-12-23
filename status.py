@@ -114,7 +114,7 @@ while True:
 						exec ("lis ="+stat_field.split(":")[-1])
 						#print lis
 					else: lis =["no data"]
-				except IOError:
+				except:
 					lis=["data error"]
 				# CHECK IF USER REGISTERED #
 				if user in users.keys():
