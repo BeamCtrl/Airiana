@@ -4,7 +4,7 @@ import os,sys
 ip = sys.argv[-1]
 
 #Test for valid ip and if not supplied use external.
-if ip.count(".")!=4:
+if ip.count(".")!=3:
     ip = eval(os.popen("curl \'https://api.ipify.org?format=json\'").read())
     ip= ip["ip"]
 
