@@ -7,7 +7,7 @@ import pickle, json
 from request import Request
 #from mail import *
 #############################
-vers = "10.22"
+vers = "10.23"
 Running =True
 savecair=False
 mode = "RTU"
@@ -117,7 +117,9 @@ def report_alive():
 				message += os.popen("hostname -I").read()
 				try:
 					message += "\nstatus:"+str(device.status_field)+"\n\n<br>"
-				except : pass
+				except : 
+					message += "\nstatus: initialization "+str(vers)+"\n\n<br>"
+
 				try:
 					fd = os.open("RAM/err",os.O_RDONLY)
 					stats = os.stat("RAM/err")
