@@ -1948,6 +1948,6 @@ if __name__  ==  "__main__":
 		#	error.close()
 		#	traceback.print_exc()
 		#	if "daemon" not in sys.argv:raw_input("press enter to resume")
-
+	except TypeError: pass 
 	except KeyboardInterrupt:
 		exit_callback(2,None)
