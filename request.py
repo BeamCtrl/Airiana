@@ -262,6 +262,8 @@ class ModbusTCP(threading.Thread):
 							incomming.send(response)
 							incomming.close()
 						except: time.sleep(1)
+						except: pass
+						time.sleep(0.5)
 			except: print "error"
 		incomming.close()
 		self.socket.close()
