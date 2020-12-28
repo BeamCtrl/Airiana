@@ -4,7 +4,11 @@ import time
 import os
 import minimalmodbus
 import serial
-
+import socket
+import select
+import threading
+import traceback
+import struct
 try:
 	import pyModbusTCP.client
 except:
@@ -215,6 +219,55 @@ class Request:
 	else:
 		try:
 			self.response = self.client.write_single_register(address, 1)
-		except:  
+		except:
 			with os.open("RAM/err","w") as fd:
 				os.write(fd, "TCP write error on addrs:" + str(address) + "\n")
+
+
+
+
+
+class ModbusTCP(threading.Thread):
+
+	def __init__(self):
+		super(ModbusTCP,self).__init__()
+		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.socket.setblocking(0)
+		self.socket.bind(("",502))
+		self.socket.listen(1)
+		self.running= True
+		self.start()
+		self.run()
+
+	def run(self):
+		while self.running:
+			print "preparing to read"
+			read, write, exept = select.select([self.socket],[],[],5)
+			try:
+				if self.socket in read:
+					print "found active socket"
+					incomming, addr = self.socket.accept()
+					print incomming, addr
+					incomming.setblocking(0)
+					while self.running:
+						try:
+							response = self.parse_incomming(incomming.recv(1024))
+						except: pass
+						time.sleep(0.5)
+			except: print "error"
+		incomming.close()
+		self.socket.close()
+	def parse_incomming(self, msg):
+		try:
+			print "parsing", msg
+			data = struct.unpack('HHHBBHH', msg) # 2+2+2+1+1+2+2 = 12bytes
+			print data
+			transaction_id, protocol, length ,address, function_code, address, count = data 
+			print transaction_id, protocol, length ,address, function_code, address, count
+			# return response
+		except: traceback.print_exc()
+	def read_register(self):
+		return 1
+
+	def write_register(self):
+		return 0
