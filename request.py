@@ -4,6 +4,12 @@ import time
 import os
 import minimalmodbus
 import serial
+import socket
+import select
+import threading
+import traceback
+import struct
+import hexdump
 
 try:
 	import pyModbusTCP.client
@@ -215,6 +221,66 @@ class Request:
 	else:
 		try:
 			self.response = self.client.write_single_register(address, 1)
-		except:  
+		except:
 			with os.open("RAM/err","w") as fd:
 				os.write(fd, "TCP write error on addrs:" + str(address) + "\n")
+
+
+
+
+
+class ModbusTCP(threading.Thread):
+
+	def __init__(self):
+		super(ModbusTCP,self).__init__()
+		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.socket.setblocking(0)
+		self.socket.bind(("",502))
+		self.socket.listen(1)
+		self.testmsg = struct.pack("HHHBBHH", 1,0,6,1,3,12543,1)
+		self.test = True
+		self.running= True
+		self.start()
+		self.run()
+	def run(self):
+		while self.running:
+			print "preparing to read"
+			try:
+				read, write, exept = select.select([self.socket],[],[],5)
+			except:
+				self.running = False
+			try:
+				if self.socket in read:
+					print "found active socket"
+					incomming, addr = self.socket.accept()
+					print incomming, addr
+					incomming.setblocking(0)
+					while self.running:
+						try:
+							response = self.parse_incomming(incomming.recv(1024))
+							print "sending:", response, len(response)
+							incomming.send(response)
+							incomming.close()
+						except: time.sleep(1)
+			except: print "error"
+		incomming.close()
+		self.socket.close()
+	def parse_incomming(self, msg):
+		try:
+			print "parsing", msg
+			if self.test:
+				msg = self.testmsg
+			data = struct.unpack('HHHBBHH', msg) # 2+2+2+1+1+2+2 = 12bytes
+			transaction_id, protocol, length ,unit, function_code, address, count = data 
+			print transaction_id, protocol, length ,address, function_code, address, count
+
+			if function_code==3:
+				response = self.read_register(address)
+			response = self.read_register(address)
+			return struct.pack('HHHBBBH',transaction_id,protocol,5, unit, function_code, 2, response)
+		except: traceback.print_exc()
+	def read_register(self,address):
+		return 1
+
+	def write_register(self):
+		return 0
