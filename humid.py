@@ -35,7 +35,7 @@ def get_humidity():
 
 		# adjustmet to closer match RHwmo below zero saturations
 		if inlet_min < 0:
-			top  = airdata_inst.pw + bottom*(float(inlet_min*-1.03)/100)
+			top  = airdata_inst.pw + bottom*(float(inlet_min*-0.9)/100)
 
 		print top/bottom*100, inlet_min
 

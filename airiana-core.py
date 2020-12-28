@@ -1937,12 +1937,17 @@ if __name__  ==  "__main__":
 				if data == 13:
 					device.cool_mode= not device.cool_mode
 
-		except TypeError:
-		        os.write(ferr, "Type conversion error at: "+str(time.ctime()) +"\n")
-		except ValueError:
-		        os.write(ferr, "Value error at: "+str(time.ctime()) +"\n")
+		except TypeError:pass
+		except ValueError:pass
 		except IOError:
 		        os.write(ferr, "Connection to the systemAir unit has been lost at: "+str(time.ctime()) +"\n")
-	except TypeError: pass
+		#except:
+		#	error  = open("error.txt","w")
+		#	traceback.print_tb(sys.exc_info()[-1],error)
+		#	traceback.print_exc(error)
+		#	error.close()
+		#	traceback.print_exc()
+		#	if "daemon" not in sys.argv:raw_input("press enter to resume")
+	except TypeError: pass 
 	except KeyboardInterrupt:
 		exit_callback(2,None)
