@@ -1560,7 +1560,8 @@ class Systemair(object):
 				comp = (comp - (self.prev_static_temp-self.kinetic_compensation))/(24*3)
 			self.kinetic_compensation -= comp * self.avg_frame_time
 			# if prev static is above saturation point
-			if self.prev_static_temp >= saturation_point:
+			#if self.prev_static_temp >= saturation_point:
+			if self.prev_static_temp >= self.inlet_ave:
 				self.local_humidity = self.moisture_calcs(saturation_point - self.kinetic_compensation) #if 24hr low is higher than current temp
 			else:
 				self.local_humidity = self.moisture_calcs(self.prev_static_temp - self.kinetic_compensation) # if 24hr low is lower than current temp
@@ -1726,7 +1727,6 @@ if __name__  ==  "__main__":
 				device.get_temp_status()
 			if device.coef_test_bool: 
 				device.coef_debug()
-			device.check_flow_offset()
 			if "daemon" in sys.argv :device.print_xchanger() # PRint to screen
 
 		#refresh static humidity
@@ -1734,6 +1734,7 @@ if __name__  ==  "__main__":
 			if "debug" in sys.argv:
 				os.system("echo \"79\" >./RAM/exec_tree")
 			device.update_airflow()
+			device.check_flow_offset()
 			device.get_heater()
 			#if "humidity" in sys.argv and (device.system_name not in device.has_RH_sensor or not device.RH_valid):
 		#calc local humidity and exec logger

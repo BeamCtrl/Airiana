@@ -32,7 +32,7 @@ stat_dict = {}
 location= dict()
 def checkLocation(user):
 	try:
-		print location
+		#print location
 		if len(location[user]) <>0:
 			#print "user known",user, location[user]
 			return None
