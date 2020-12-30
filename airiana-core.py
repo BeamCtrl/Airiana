@@ -1493,9 +1493,9 @@ class Systemair(object):
 	    self.update_airflow()
 	#Set base flow rate with an offset to regulate humidity in a more clever manner.
 	def check_flow_offset(self):
+		if self.flowOffset[0] > 20: # Maximum offset allowed
+			self.flowOffset[0] = 20
 		if savecair:
-			if self.flowOffset[0] > 20: # Maximum offset allowed
-				self.flowOffset[0] = 20
 			base = self.ef_base+self.pressure_diff
 			if self.fanspeed == 1 and self.ef <> base+self.flowOffset[0] and not self.shower and not self.cool_mode:
 				req.write_register(1403,base+self.flowOffset[0])
