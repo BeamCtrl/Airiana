@@ -701,6 +701,8 @@ class Systemair(object):
 				dyn_coef = numpy.average(self.coef_dict[self.get_coef_mode()].values())
 				if numpy.isnan(dyn_coef):
 					dyn_coef = 0
+			except DivisionByZeroError:
+				pass
 			try:
 				if dyn_coef <> self.new_coef:
 					self.new_coef += 0.0001 * (dyn_coef - self.new_coef)
@@ -1213,7 +1215,7 @@ class Systemair(object):
 	    if self.coef_inhibit < now-(60*60):self.coef_inhibit = 0
 	    if self.flowOffset[1]-time.time() < -3600 \
 				and self.flowOffset[0]>0 \
-				and numpy.average(self.hum_list)-self.local_humidity <7:
+				and self.humdiff < 350:
 		self.flowOffset[0]-=1
 		self.flowOffset[1]=time.time()
 
@@ -1230,7 +1232,7 @@ class Systemair(object):
 	  if True:
 	    #### EXCHANGER CONTROL
 	    self.house_heat_limit = 7  # daily low limit on cooling
-	    if self.inlet_ave< 13: self.target = 23
+	    if self.inlet_ave< 13: self.target = 24
 	    else: self.target = 22
 	    if self.cool_mode:
 		self.target = 20.7
@@ -1531,6 +1533,7 @@ class Systemair(object):
 			out = os.popen("./humid.py "+str(self.extract_ave)).readline()
 			tmp = out.split(" ")
 			wthr= [-1,-1]
+			comp = 0
 			try:
 				saturation_point = float(tmp[1])
 			except:
@@ -1540,24 +1543,27 @@ class Systemair(object):
 			#if no forcast is avail
 			if self.forcast[1]<> -1:
 				try:
-					wthr = os.popen("./forcast2.0.py tomorrows-low").read().split(" ")
+					#wthr = os.popen("./forcast2.0.py tomorrows-low").read().split(" ")
 					sun = int(os.popen("./forcast2.0.py sun").readlines()[0].split(":")[0])
-					comp = float(wthr[0])-(float(wthr[2])/8) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/8
+					#comp = float(wthr[0])-(float(wthr[2])/8) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/8
 				except ValueError:
 					sun = 7
 					os.write(ferr, "Unable set weather or sunrise "+" "+str(time.ctime()) +"\n")
-					wthr = [self.prev_static_temp, 0, 0,100]
-					comp = float(wthr[0])-(float(wthr[2])/8) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/8
+					#wthr = [self.prev_static_temp, 0, 0,100]
+					#comp = float(wthr[0])-(float(wthr[2])/8) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/8
 				except IndexError:
 					os.write(ferr, "Forcast does not return proper data."+" "+str(time.ctime()) +"\n")
 
 			else:
+				os.write(ferr, "forcast unavailible. "+" "+str(time.ctime()) +"\n")
 				sun  = 7
 				comp = 0
 			try:
-				comp = (self.airdata_inst.dew_point(wthr[0],float(wthr[3]))-self.airdata_inst.dew_point (self.extract_ave,self.local_humidity))/(24*50) # new comp calc with humidity forcast
+				#comp = (self.airdata_inst.dew_point(wthr[0],float(wthr[3]))-self.airdata_inst.dew_point (self.extract_ave,self.local_humidity))/(24*50) # new comp calc with humidity forcast
+				pass
 			except OverflowError:
-				comp = (comp - (self.prev_static_temp-self.kinetic_compensation))/(24*3)
+				pass
+				#comp = (comp - (self.prev_static_temp-self.kinetic_compensation))/(24*3)
 			self.kinetic_compensation -= comp * self.avg_frame_time
 			# if prev static is above saturation point
 			#if self.prev_static_temp >= saturation_point:

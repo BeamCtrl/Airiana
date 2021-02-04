@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import os, time
 import mail
-import sys
+import sys, traceback
 mailer = mail.Smtp()
 if not os.path.lexists("/home/pi/airiana/RAM/status.html"):
 	os.system("touch /home/pi/airiana/RAM/status.html" )
@@ -19,6 +19,8 @@ def init():
 	for each in users.keys():
 		mail_sent[each] = False
 init()
+for each in users.keys():
+	print users[each], each
 os.chdir("/home/pi/airiana")
 os.system("./alive_logger.py > /dev/null &")
 files = os.listdir("./public/local_links/")
@@ -50,7 +52,7 @@ def analyse_stat(status,user):
 	# check if winter mode is on and exhaust is higher than supply
 	if len(status) > 1:
 		#print status[data["exchanger"]],status[data["exhaust"]], status[data["supply"] ]
-		if int(status[data["exchanger"]])==5 and float(status[data["exhaust"]])>float(status[data["supply"]]) and float(status[data["intlet"]])< 10:
+		if int(status[data["exchanger"]])==5 and float(status[data["exhaust"]])>float(status[data["supply"]]) and float(status[data["inlet"]])< 10:
 			#print users[user], "Exchanger problem\n"
 			try:
 				stat_dict[user]={"ExchangerProblem":True}
@@ -185,7 +187,8 @@ while True:
 					if (time.time()-mod)/3600 > 24:
 						os.system("rm -f ./public/local_links/"+each)
 			except KeyError:
-				print "Trying to look up unknown user error"
+				print "Trying to look up unknown user error", user
+				traceback.print_exc()
 				pass
 
 		html +="<br></table><br>"
