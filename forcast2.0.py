@@ -76,7 +76,11 @@ if os.stat("RAM/forecast.json").st_ctime - time.time() < -3600 or os.stat("RAM/f
 	os.system("wget -q -U \"Airiana-forecast-agent github.com/beamctrl/Airiana/\" -O /home/pi/airiana/RAM/forecast.json "+loc)
 #get long lat alt from forecast
 with open("RAM/forecast.json") as source:
-	data = json.load(source)
+	try:
+		data = json.load(source)
+	except:
+		print "-1,-1"
+		exit()
 [long, lat, alt] = data["geometry"]["coordinates"]
 #print position altitude
 if "altitude" in sys.argv:
