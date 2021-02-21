@@ -28,14 +28,14 @@ def get_humidity():
 			except:
 				traceback.print_exc()
 				raise IndexError
-		airdata_inst.vapor_max(extract)
+		airdata_inst.sat_vapor_press(extract)
 		bottom = airdata_inst.pw
-		airdata_inst.vapor_max(inlet_min)
+		airdata_inst.sat_vapor_press(inlet_min)
 		top = airdata_inst.pw
 
 		# adjustmet to closer match RHwmo below zero saturations
 		if inlet_min < 0:
-			top  = airdata_inst.pw + bottom*(float(inlet_min*-1.03)/100)
+			top  = airdata_inst.pw + bottom*(float(inlet_min*-1.05)/100)
 
 		print top/bottom*100, inlet_min
 
