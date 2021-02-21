@@ -7,7 +7,7 @@ import pickle, json
 from request import Request
 #from mail import *
 #############################
-vers = "10.25"
+vers = "10.26"
 Running =True
 savecair=False
 mode = "RTU"
