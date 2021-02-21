@@ -81,15 +81,14 @@ class Energy(object):
 		if T<0:
 			a=0.61115 #mBar
 			c=333.7 # C
-			d=279.82 #acc ardon buck (1996)
+			d=279.82 #acc arden buck (1996)
 			b=23.036
 
 		else:
 			a=0.61121 #mBar
 			c=234.5 # C
-			d=257.14 #acc ardon buck (1996)
+			d=257.14 #acc arden buck (1996)
 			b=18.678
-		#self.pw = a*math.exp((b-T/d)*(T/(c+T)) ) * 1000 
 		self.pw = a*math.exp( (b-T/c) * (T/(T+d))  )  #kPa
 		return self.pw # kPa
 	def vapor_mass(self,pw): #return vapor mass from vapor partial pressure
@@ -138,7 +137,9 @@ if  "__main__" in __name__:
 	else: each = 23
 	for RH in range(1,101,1):
 		print each,"C",
-		print  RH,"% Dew:",round(air.dew_point(RH,each),1),"C ",round(1000*air.sat_vapor_press(each),0),"Pa" ,round( 1000*air.sat_vapor_press(air.dew_point(RH,each)),0)
+		print  RH,"% Dew:",round(air.dew_point(RH,each),1),"C ",round(1000*air.sat_vapor_press(each),0),"Pa" ,round( 1000*air.sat_vapor_press(air.dew_point(RH,each)),0),
+	        air.vapor_max(round(air.dew_point(RH,each),1))
+		print  round(air.pw*100,0)
 	print ""
 	#air.a = 16.500
 	"""for RH in range(1,100,8):
