@@ -694,14 +694,15 @@ class Systemair(object):
 			diff = extract - inlet
 			dyn_coef =0
 			try:
-				dyn_coef = numpy.median(self.coef_dict[self.get_coef_mode()].values())* float(1)/(self.fanspeed)   #self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
+				if self.fanspeed :
+					dyn_coef = numpy.median(self.coef_dict[self.get_coef_mode()].values())* float(1)/(self.fanspeed)   #self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
 				if self.fanspeed == 3:
 					dyn_coef = 0
 			except KeyError:
 				dyn_coef = numpy.average(self.coef_dict[self.get_coef_mode()].values())
 				if numpy.isnan(dyn_coef):
 					dyn_coef = 0
-			except DivisionByZeroError:
+			except:
 				pass
 			try:
 				if dyn_coef <> self.new_coef:
@@ -1341,10 +1342,10 @@ class Systemair(object):
 		    if self.fanspeed == 1 					\
 			and 	((self.extract_ave > self.target+0.6 		\
 			    and 	self.extract_ave - self.supply_ave>0.1)	\
-			or 	self.humdiff > 400):
+			or 	self.humdiff > 500):
 			 	self.set_fanspeed(2)
 			 	self.msg += "Dynamic fanspeed 2\n"
-				if self.humdiff > 400:
+				if self.humdiff > 500:
 					self.flowOffset = [self.flowOffset[0]+5,time.time()]
 					os.write(ferr, "Dynamic fanspeed 2 with RH "+str(time.ctime()) +"\n")
 				else:
@@ -1352,11 +1353,11 @@ class Systemair(object):
 		    if self.fanspeed == 2 					\
 			and ((self.extract_ave < self.target + 0.5 		\
 			    and self.extract_ave - self.supply_ave > 0.1 	\
-			    and self.humdiff < 300 				\
-			or (self.humdiff < 250 					\
+			    and self.humdiff < 400 				\
+			or (self.humdiff < 350 					\
 			    and not self.extract_ave > self.target+0.5))):
 				self.set_fanspeed(1)
-				if self.humdiff<250:
+				if self.humdiff<350:
 					self.msg += "Dynamic fanspeed 1, Air quality Good\n"
 					os.write(ferr, "Dynamic fanspeed 1 with RH "+str(time.ctime()) +"\n")
 				else:
