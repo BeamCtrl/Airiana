@@ -83,7 +83,7 @@ High fanspeed will be set at target +1.2
 #### Humidity control: 
 
 The airiana system will monitor the humidity level in the exhaust air if there is a relative humidity sensor installed on your unit. 
-During the course of a 24hr period it will calculate the expected outside vapor content of the air. This value will be used in relation to the measured indoor humidity to increase the fanspeed if there is a difference of more than +400Pa H2O partial pressure. it will also reduce the fanspeed if the partial pressure difference is less than +200Pa H2O
+During the course of a 24hr period it will calculate the expected outside vapor content of the air. This value will be used in relation to the measured indoor humidity to increase the fanspeed if there is a difference of more than +500Pa H2O partial pressure. it will also reduce the fanspeed if the partial pressure difference is less than +300Pa H2O
 
 
 #### Sensor AI:
