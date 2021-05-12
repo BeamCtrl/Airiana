@@ -1962,7 +1962,8 @@ if __name__  ==  "__main__":
 						device.set_fanspeed(2)
 				if data == 13:
 					device.cool_mode= not device.cool_mode
-
+				if data == 14:
+					monitoring = False
 		except TypeError:
 		        os.write(ferr, "TypeError occured at: "+str(time.ctime()) +"\n")
 		except ValueError:
