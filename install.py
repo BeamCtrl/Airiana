@@ -19,6 +19,7 @@ os.system("apt-get update")
 dir = os.getcwd()
 
 # INSTALL DEPS#
+os.system("apt-get -y install python-pip")
 os.system("apt-get -y install python-dev")
 os.system("apt-get -y install python3-dev")
 os.system("apt-get -y install python-matplotlib")
@@ -112,6 +113,7 @@ print "setup symlinkts between RAM and ./public"
 sys.stdout.flush()
 os.system("ln -s ../RAM/out out.txt")
 os.system("ln -s ../RAM/history.png history.png")
+os.system("ln -s ../RAM/air.out air.out")
 os.system("ln -s ../RAM/status.html status.html")
 os.system("echo airiana > /etc/hostname")
 os.system("chown pi:pi ../RAM/")

@@ -49,7 +49,7 @@ if "debug" in sys.argv and not os.path.lexists("./sensors"):
 starttime=time.time()
 #Setup deamon env
 ferr = os.open("./RAM/err",os.O_WRONLY|os.O_CREAT)
-
+air_out = os.open("./RAM/air.out",os.O_WRONLY|os.O_CREAT)
 if "daemon" in sys.argv:
 	fout = os.open("./RAM/out",os.O_WRONLY|os.O_CREAT)
 	os.dup2(fout,sys.stdout.fileno())
@@ -1600,7 +1600,23 @@ class Systemair(object):
 				os.write(fd,str(self.prev_static_temp-self.kinetic_compensation))
 				os.close(fd)
 
-
+        def print_json(self):
+		global monitoring
+                json_vars = {"extract":self.extract_ave, "coolingMode":self.cool_mode, "supply":self.supply_ave,"sf":self.sf,"ef":self.ef,
+			    	"exhaust":self.exhaust_ave, "autoON": monitoring, 
+			    	"shower":self.shower, "rotorSpeed": self.exchanger_speed,
+			    	"sfRPM":self.sf_rpm, "energyXfer": self.loss,
+			     	"efRPM":self.ef_rpm,
+				"pressure":self.airdata_inst.press,
+				"rotorActive":self.rotor_active,
+				"inlet":self.inlet_ave,
+				"humidity":self.local_humidity,
+				"extract":self.extract_ave,
+				"electricPower":self.electric_power}
+		os.ftruncate(air_out,0)
+		os.lseek(air_out,0, os.SEEK_SET)
+		os.write(air_out,str(json_vars))
+		
 	def check_coef (self):
 		""" CHECK IF COEF IS AVAILIBLE AND IF NOT in inhibit and current fans are at 1 ,
 			 run a set of max speed fans to generate new coef data"""
@@ -1697,6 +1713,7 @@ if __name__  ==  "__main__":
 		device.update_temps()
 		device.update_xchanger()
 		device.derivatives()
+		device.print_json() # Print to json
 		## EXEC TREE, exec steps uniqe if prime##
 		#check states and flags
 		if device.iter%3 ==0:
@@ -1732,9 +1749,10 @@ if __name__  ==  "__main__":
 			if "debug" in sys.argv:
 				update_sensors()
 				device.get_temp_status()
-			if device.coef_test_bool: 
+			if device.coef_test_bool:
 				device.coef_debug()
-			if "daemon" in sys.argv :device.print_xchanger() # PRint to screen
+			if "daemon" in sys.argv :
+				device.print_xchanger() # Print to screen
 
 		#refresh static humidity
 		if device.iter%79==0:
@@ -1798,7 +1816,7 @@ if __name__  ==  "__main__":
 		device.iter+=1
 		########### Selection menu if not daemon######
 		if "daemon" not in sys.argv:
-			device.print_xchanger() # PRint to screen
+			device.print_xchanger() # Print to screen
 			timeout = 0.1
 			print """
 	CTRL-C to exit,
