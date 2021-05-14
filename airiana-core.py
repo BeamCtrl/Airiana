@@ -1602,7 +1602,7 @@ class Systemair(object):
 
         def print_json(self):
 		global monitoring
-                json_vars = {"extract":self.extract_ave, "coolingMode":self.cool_mode, "supply":self.supply_ave,"sf":self.sf,"ef":self.ef,
+                json_vars = {"extract":self.extract_ave, "coolingMode":str(self.cool_mode).lower(), "supply":self.supply_ave,"sf":self.sf,"ef":self.ef,
 			    	"exhaust":self.exhaust_ave, "autoON": str(monitoring).lower(), 
 			    	"shower":str(self.shower).lower(), "rotorSpeed": self.exchanger_speed,
 			    	"sfRPM":self.sf_rpm, "energyXfer": self.loss,
