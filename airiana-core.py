@@ -1603,19 +1603,20 @@ class Systemair(object):
         def print_json(self):
 		global monitoring
                 json_vars = {"extract":self.extract_ave, "coolingMode":self.cool_mode, "supply":self.supply_ave,"sf":self.sf,"ef":self.ef,
-			    	"exhaust":self.exhaust_ave, "autoON": monitoring, 
-			    	"shower":self.shower, "rotorSpeed": self.exchanger_speed,
+			    	"exhaust":self.exhaust_ave, "autoON": str(monitoring).lower(), 
+			    	"shower":str(self.shower).lower(), "rotorSpeed": self.exchanger_speed,
 			    	"sfRPM":self.sf_rpm, "energyXfer": self.loss,
 			     	"efRPM":self.ef_rpm,
 				"pressure":self.airdata_inst.press,
-				"rotorActive":self.rotor_active,
+				"rotorActive":str(self.rotor_active).lower(),
 				"inlet":self.inlet_ave,
 				"humidity":self.local_humidity,
 				"extract":self.extract_ave,
 				"electricPower":self.electric_power}
+		tmp = str(json_vars).replace("'","\"")
 		os.ftruncate(air_out,0)
 		os.lseek(air_out,0, os.SEEK_SET)
-		os.write(air_out,str(json_vars))
+		os.write(air_out,tmp)
 		
 	def check_coef (self):
 		""" CHECK IF COEF IS AVAILIBLE AND IF NOT in inhibit and current fans are at 1 ,
@@ -1713,7 +1714,6 @@ if __name__  ==  "__main__":
 		device.update_temps()
 		device.update_xchanger()
 		device.derivatives()
-		device.print_json() # Print to json
 		## EXEC TREE, exec steps uniqe if prime##
 		#check states and flags
 		if device.iter%3 ==0:
@@ -1729,6 +1729,8 @@ if __name__  ==  "__main__":
 			if monitoring:
 				device.monitor()
 				device.shower_detect()
+	
+			device.print_json() # Print to json
 
 			if "humidity" in sys.argv and (device.system_name not in device.has_RH_sensor or not device.RH_valid) or "debug" in sys.argv:
 				device.moisture_calcs()
