@@ -546,6 +546,7 @@ class Systemair(object):
 		if len(self.hum_list)>self.averagelimit:
 			self.hum_list.pop(-1)
 		try:
+			# if an update of the humidity value on the sensor exeeds 2points reuse last known value
 			if abs(self.new_humidity-self.hum_list[1]) > 2 :
 				self.new_humidity = self.hum_list[1]
 				self.hum_list[0]  = self.new_humidity
@@ -747,6 +748,8 @@ class Systemair(object):
 				self.electric_power= (self.ef_rpm/(100/(float(float(self.ef_rpm)/1381)**1.89))+self.sf_rpm/(100/(float(float(self.sf_rpm)/1381)**1.89)))
 			if self.system_name in ("VSR300"):
 				self.electric_power=0.2 *  (self.ef_rpm/(100/(float(float(self.ef_rpm)/1381)**1.89))+self.sf_rpm/(100/(float(float(self.sf_rpm)/1381)**1.89)))
+			if self.system_name in ("VTR300"):
+				self.electric_power=0.2 *  (self.ef_rpm/(100/(float(float(self.ef_rpm)/1381)**1.89))+self.sf_rpm/(100/(float(float(self.sf_rpm)/1381)**1.89)))
 
 		except ZeroDivisionError:self.electric_power=0
 		if "Yes" in self.rotor_active :self.electric_power +=10 # rotor motor 10Watts
@@ -760,6 +763,8 @@ class Systemair(object):
 		try:
 			self.electric_power= 3.404 * math.exp(0.001* self.ef_rpm)+3.404 * math.exp(0.001* self.sf_rpm) 
 		except ZeroDivisionError:self.electric_power=0
+		if "Yes" in self.rotor_active :self.electric_power +=10 # rotor motor 10Watts
+		self.electric_power+=5 #controller board power
 
 	def update_fanspeed(self):
 		self.fanspeed = self.get_fanspeed()
@@ -1599,25 +1604,28 @@ class Systemair(object):
 				fd = os.open("RAM/latest_static",os.O_WRONLY | os.O_CREAT| os.O_TRUNC)
 				os.write(fd,str(self.prev_static_temp-self.kinetic_compensation))
 				os.close(fd)
-
+	# print Json data to air.out for thrid party processing
         def print_json(self):
-		global monitoring
+	    global monitoring
+	    tmp = ""
+	    try:
                 json_vars = {"extract":self.extract_ave, "coolingMode":str(self.cool_mode).lower(), "supply":self.supply_ave,"sf":self.sf,"ef":self.ef,
 			    	"exhaust":self.exhaust_ave, "autoON": str(monitoring).lower(), 
 			    	"shower":str(self.shower).lower(), "rotorSpeed": self.exchanger_speed,
-			    	"sfRPM":self.sf_rpm, "energyXfer": self.loss,
-			     	"efRPM":self.ef_rpm,
-				"pressure":self.airdata_inst.press,
-				"rotorActive":str(self.rotor_active).lower(),
+			    	"sfRPM":self.sf_rpm, "energyXfer": self.loss, "efficiency":self.eff,
+			     	"efRPM":self.ef_rpm, "name":self.system_name, "filterPercentRemaining":self.filter_remaining,
+				"pressure":self.airdata_inst.press, "filterInstalledDays":self.filter,
+				"rotorActive":str(self.rotor_active).lower(),"elecHeater":self.heater,
 				"inlet":self.inlet_ave,
-				"humidity":self.local_humidity,
+				"referenceHumidity":self.local_humidity, "measuredHumidity":self.hum_list[0],
 				"extract":self.extract_ave,
 				"electricPower":self.electric_power}
 		tmp = str(json_vars).replace("'","\"")
-		os.ftruncate(air_out,0)
-		os.lseek(air_out,0, os.SEEK_SET)
-		os.write(air_out,tmp)
-		
+	    except: pass
+	    os.ftruncate(air_out,0)
+	    os.lseek(air_out,0, os.SEEK_SET)
+            os.write(air_out,tmp)
+
 	def check_coef (self):
 		""" CHECK IF COEF IS AVAILIBLE AND IF NOT in inhibit and current fans are at 1 ,
 			 run a set of max speed fans to generate new coef data"""
