@@ -48,14 +48,14 @@ else:
 sys.stdout.flush()
 
 #replace static paths with install path
-os.system("sed -i 's-/home/pi/airiana/-"+dir+"-g airiana-core.py")
-os.system("sed -i 's-/home/pi/airiana/-"+dir+"-g public/ip-replace.sh")
-os.system("sed -i 's-/home/pi/airiana/-"+dir+"-g forecast2.0.py")
-os.system("sed -i 's-/home/pi/airiana/-"+dir+"-g humtest.py")
-os.system("sed -i 's-/home/pi/airiana/-"+dir+"-g updater.py")
-os.system("sed -i 's-/home/pi/airiana/-"+dir+"-g systemfiles/controller.service")
-os.system("sed -i 's-/home/pi/airiana/-"+dir+"-g systemfiles/airiana.service")
-os.system("sed -i 's-/home/pi/airiana/-"+dir+"-g public/ip-utils.sh")
+os.system("sed -i 's-/home/pi/airiana/-"+dir+"/-g' airiana-core.py")
+os.system("sed -i 's-/home/pi/airiana/-"+dir+"/-g' public/ip-replace.sh")
+os.system("sed -i 's-/home/pi/airiana/-"+dir+"/-g' forecast2.0.py")
+os.system("sed -i 's-/home/pi/airiana/-"+dir+"/-g' humtest.py")
+os.system("sed -i 's-/home/pi/airiana/-"+dir+"/-g' updater.py")
+os.system("sed -i 's-/home/pi/airiana/-"+dir+"/-g' systemfiles/controller.service")
+os.system("sed -i 's-/home/pi/airiana/-"+dir+"/-g' systemfiles/airiana.service")
+os.system("sed -i 's-/home/pi/airiana/-"+dir+"/-g' public/ip-utils.sh")
 
 #MAKE RAM DRIVE IN FSTAB#
 fstab_comment = "#temp filesystem only in RAM for use on Airiana tempfiles.\n"
