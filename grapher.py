@@ -27,7 +27,7 @@ else:
 sen_hum = []
 sen_temp = []
 extract =[]
-calc_hum = []
+measured_hum = []
 inlet = []
 exhaust=[]
 time =[]
@@ -62,7 +62,7 @@ try:
 		sen_hum.append(float(tmp[3]))
 		sen_temp.append(float(tmp[1]))
 		extract.append(float(tmp[2]))
-		calc_hum.append(float(tmp[4]))
+		measured_hum.append(float(tmp[4]))
 		inlet.append(float(tmp[5]))
 		exhaust.append(float(tmp[6]))
 		time.append(tm.time()-float(tmp[0]))
@@ -95,7 +95,7 @@ except:traceback.print_exc()
 red_hum = []
 red_time=[]
 i=0
-for each in calc_hum:
+for each in measured_hum:
 	i+=1
 	if float(each) <> 0.0: 
 		try:
