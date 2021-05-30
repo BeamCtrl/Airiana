@@ -17,6 +17,10 @@ print "Installing the AirianaCores"
 reboot = False
 os.system("apt-get update")
 dir = os.getcwd()
+if "clean" in sys.argv:
+    os.system("systemctl disable controller.service")
+    os.system("systemctl disable airiana.service")
+    os.system("rm /etc/systemd/airiana.service /etc/systemd/system/controller.service")
 
 # INSTALL DEPS#
 os.system("apt-get -y install python-pip")
