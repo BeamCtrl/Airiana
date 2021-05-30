@@ -50,6 +50,7 @@ sys.stdout.flush()
 #replace static paths with install path
 os.system("sed -i 's-/home/pi/airiana/-"+dir+"/-g' airiana-core.py")
 os.system("sed -i 's-/home/pi/airiana/-"+dir+"/-g' public/ip-replace.sh")
+os.system("sed -i 's-/home/pi/airiana/-"+dir+"/-g' public/controler.py")
 os.system("sed -i 's-/home/pi/airiana/-"+dir+"/-g' forcast2.0.py")
 os.system("sed -i 's-/home/pi/airiana/-"+dir+"/-g' humtest.py")
 os.system("sed -i 's-/home/pi/airiana/-"+dir+"/-g' updater.py")
