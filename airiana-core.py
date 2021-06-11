@@ -858,7 +858,7 @@ class Systemair(object):
                 if "sensors" in sys.argv and "exhaust" in sys.argv: self.exhaust_ave =  self.sensor_exhaust
 		if self.sensor_exhaust >= 30 and self.exhaust_ave > self.extract_ave + 5:
                     self.ac_active = True
-		    os.write(ferr,"A/C mode engaged. Detected high exhaust temperatures:\n"")
+		    os.write(ferr,"A/C mode engaged. Detected high exhaust temperatures:\n")
                     self.set_fanspeed(3)
 		else:
                     self.ac_active = False
