@@ -3,11 +3,11 @@ import socket,time,select,sys,os
 sock=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 def cmds ():
 	print """        CTRL-C to exit,
-1: Toggle Auto Monitoring        6: Retrive all Modbus Registers
+1: Toggle Auto Monitoring        6:
 2: Toggle fanspeed               7: Toggle pressure diff
 3: Print all device attributes   8: Run fans for 120min at Max
-4: Display link settings         9: Display availible Modbus Registers
-5: show/update values           10:
+4: Display link settings         9:
+5: show/update values           10: Toggle shower mode
                 enter commands:"""
 print chr(27)+"[2J"
 #cmds()

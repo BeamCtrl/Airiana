@@ -294,6 +294,7 @@ class Systemair(object):
 				34:"Heavy snow and thunder",\
 				15:"Fog",-1:"No weather data"}
 		self.AC_energy = 0
+                self.ac_active = False
 		self.avg_frame_time = 1
 		self.coef_new = 0
 		self.coef_prev_supply = 0
@@ -850,11 +851,20 @@ class Systemair(object):
 
 			self.cond_data.append(self.energy_diff)
 			if len(self.cond_data)> self.averagelimit+5000:self.cond_data.pop(0)
+
+        # test if exhaust temperatures are indicative of ac hot flow connected to cooker exhaust line
+        def check_ac_mode(self):
+                # use external exhaust sensor if it measures more 30C, airCond mode.
+                if "sensors" in sys.argv and "exhaust" in sys.argv: self.exhaust_ave =  self.sensor_exhaust
+		if self.sensor_exhaust >= 30 and self.exhaust_ave > self.extract_ave + 5:
+                    self.ac_active = True
+		    os.write(ferr,"A/C mode engaged. Detected high exhaust temperatures:\n"")
+                    self.set_fanspeed(3)
+		else:
+                    self.ac_active = False
+
 	# For units whithout exhaust temp sensor calc expected exhaust temp based on transfered energy in supply
 	def calc_exhaust(self):
-		if "sensors" in sys.argv and "exhaust" in sys.argv or self.sensor_exhaust > 30 : # use external exhaust sensor if it measures more 30C, airCond mode.
-			self.exhaust_ave =  self.sensor_exhaust
-		else:
 			try:
 				if self.supply_power and self.ef:
 					if self.supply_ave > self.inlet_ave:
@@ -863,6 +873,7 @@ class Systemair(object):
 						exhaust = self.extract_ave+ self.airdata_inst.temp_diff(-1*self.supply_power,self.extract_ave,self.ef)
 					self.exhaust_ave=exhaust
 			except: pass
+        # Retrieve the rotor state from the unit
 	def get_rotor_state(self):
 	    if not savecair:
 		req.modbusregister(206,0)
@@ -885,6 +896,7 @@ class Systemair(object):
 		self.exchanger_speed = req.response
 	    self.status_field[1] = self.exchanger_mode
 
+        # do moisture calculations 
 	def moisture_calcs(self,data="None"):## calculate moisure/humidities
 		self.moist_in = 1000 * self.airdata_inst.sat_vapor_press(self.airdata_inst.dew_point(self.new_humidity,self.extract_ave))
 		self.moist_out  = 1000 * self.airdata_inst.sat_vapor_press(self.airdata_inst.dew_point(self.local_humidity,self.extract_ave))
@@ -1102,46 +1114,7 @@ class Systemair(object):
 		clear_screen()
 		print tmp
 
-	#Read all data registers
-	def update_registers(self):
-		for each in range(100,900,100):
-			print "Get series",each
-			if   each == 100: addresses = 84#36
-			elif each == 200: addresses = 84#21
-			elif each == 300: addresses = 84
-			elif each == 400: addresses = 85
-			elif each == 500: addresses = 85
-			elif each == 600: addresses = 85
-			elif each == 700: addresses = 85
-			elif each == 800: addresses = 85
-			elif each == 900: addresses = 85
-			elif each == 1000: addresses = 85
-			for i in range(addresses):
-				try:
-					req.modbusregister(each+i,0)
-				except:
-					pass # print "error reading address",each+i
-				self.register[str(each+i)]=req.response
-				#print traceback.print_exc()
-				#print "entries recieved at address:",each+i,req.response
 
-
-	#print previously read modbus registers
-	def print_registers(self):
-	    if not savecair:
-		try:
-			print "\n",
-			for each in range(1,84):
-				tmp=""
-				for address in range(100,1100,100):
-				    try:
-					pos = address+each
-					tmp+= str(address+each)+":"+str( self.register[str(pos)])+" "+str( hex(self.register[str(pos)]))+"\t"
-				    except KeyError: tmp+= str(pos)+":\t\t"
-				print tmp
-			if "daemon" not in sys.argv :raw_input("enter to resume")
-			print "break"
-		except:traceback.print_exc()
 
 	#change exchanger mode to to, if no to flip 0 or 5
 	def cycle_exchanger(self,to):
@@ -1307,7 +1280,7 @@ class Systemair(object):
 	    except:
 		os.write(ferr, "Forecast cooling error "+str(os.popen("./forcast2.0.py integral "+str(self.cooling_limit)).read())+' '+str(time.ctime()) +"\n")
 
-	    if self.cool_mode and not self.inhibit and not self.shower:
+	    if self.cool_mode and not self.inhibit and not self.shower and not self.ac_mode:
 		if (self.extract_ave <20.7 ) and self.fanspeed <> 1 :
 			self.set_fanspeed(1)
 			self.msg += "Cooling complete\n"
@@ -1499,6 +1472,7 @@ class Systemair(object):
                 if "debug" in sys.argv: self.msg += "change completed\n"
 	    self.pressure_diff  = percent
 	    self.update_airflow()
+
 	#Set base flow rate with an offset to regulate humidity in a more clever manner.
 	def check_flow_offset(self):
 		if self.flowOffset[0] > 20: # Maximum offset allowed
@@ -1604,6 +1578,7 @@ class Systemair(object):
 				fd = os.open("RAM/latest_static",os.O_WRONLY | os.O_CREAT| os.O_TRUNC)
 				os.write(fd,str(self.prev_static_temp-self.kinetic_compensation))
 				os.close(fd)
+
 	# print Json data to air.out for thrid party processing
         def print_json(self):
 	    global monitoring
@@ -1730,6 +1705,7 @@ if __name__  ==  "__main__":
 			device.check_flags()
 			if device.system_name == "VTR300" or device.system_name == "VSR300":
 				device.calc_exhaust()
+			device.check_ac_mode()
 		# update moisture
 		if device.iter%5==0:
 			if "debug" in sys.argv:
@@ -1830,10 +1806,10 @@ if __name__  ==  "__main__":
 			timeout = 0.1
 			print """
 	CTRL-C to exit,
-1: Toggle auto Monitoring	 6: Retrive all Modbus Registers
+1: Toggle auto Monitoring	 6: 
 2: Toggle fanspeed		 7: Set flow differential
 3: Print all device attributes	 8: Run fans for 15min at Max
-4: Display link settings	 9: Display availible Modbus Registers
+4: Display link settings	 9: 
 5: show/update values		 0: cycle winter/summer mode
 		enter commands:""",
 		else: timeout=0.05
@@ -1869,25 +1845,25 @@ if __name__  ==  "__main__":
 					traceback.print_exc()
 
 			if data <> -1:
-				if data == 1:
+				if data == 1: # toggle auto monitor on/off
 					monitoring = not monitoring # Toggle monitoring on / off
 					device.inhibit = 0
 					device.press_inhibit = 0
 					device.coef_inhibit = 0
 					device.modetoken = 0
 					device.shower_mode = 0
-				if data == 2:
+				if data == 2: # increment fanspeed
 					device.set_fanspeed(device.fanspeed+1)
 					if "daemon" not in sys.argv:
 						print "set on 2"
 						raw_input("press enter to resume")
-				if data == 3:
+				if data == 3: # print device attributes
 					clear_screen()
 					device.print_attributes()
 					sys.stdout.flush()
 					time.sleep(10)
 					if "daemon" not in sys.argv:raw_input("press enter to resume")
-				if data == 4:
+				if data == 4: # display modbus link settings
 					display_settings()
 					sys.stdout.flush()
 					time.sleep(10)
@@ -1895,12 +1871,11 @@ if __name__  ==  "__main__":
 					else: print "break"
 					recent=4
 
-				if data ==6:
-					device.update_registers()
+				if data ==6: # 
 					if "daemon" not in sys.argv:raw_input("press enter to resume")
 					else:print "break"
 
-				if data ==7:
+				if data ==7: # set pressure differential
 					try:
 						if "daemon" not in sys.argv :inp =int( raw_input("set differential pressure(-20% -> 20%):"))
 						else:
@@ -1911,7 +1886,7 @@ if __name__  ==  "__main__":
 					except:
 						traceback.print_exc()
 						#raw_input("break")
-				if data == 8:
+				if data == 8:  # toggle forced vent timer
 					try:
 						if threading.enumerate()[-1].name == "Timer": 
 							tim.cancel()
@@ -1933,36 +1908,33 @@ if __name__  ==  "__main__":
 					except:
 						traceback.print_exc()
 						print "force vent error"
-				if data == 9:
-					device.print_registers()
-					sys.stdout.flush()
-					time.sleep(10)
+				if data == 9: # 
 					if "daemon" not in sys.argv:raw_input("press enter to resume")
 					else: print "break"
-				if data == 0:
+				if data == 0: # cycle exchanger mode
 					device.cycle_exchanger(None)
 					device.modetoken = time.time()
 				if data == 96:
 					clear_screen()
 					device.msg += "Fanspeed to Off\n"
 					device.set_fanspeed(0)
-				if data == 97:
+				if data == 97: # set low fanspeed
 					clear_screen()
 					device.msg += "Fanspeed to Low\n"
 					device.set_fanspeed(1)
-				if data == 98:
+				if data == 98: #set mid fanspeed
 					device.set_fanspeed(2)
 					device.msg += "Fanspeed to Norm\n"
-				if data == 99:
+				if data == 99: #set high fanspeed
 					device.set_fanspeed(3)
 					#device.coef_debug()
 					device.msg += "Fanspeed to High\n"
-				if data == 11:
+				if data == 11: ## toggle electric heater set
 					if device.heater ==0:
 						set = 2
 					else: set = 0
 					device.set_heater(set)
-				if data == 12:
+				if data == 12: # toggle shower mode
 					device.shower = not device.shower
 					if device.shower:
 						device.initial_temp=device.extract_ave - 1
