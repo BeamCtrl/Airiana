@@ -841,7 +841,7 @@ class Systemair(object):
 				self.dur = self.time[0]-self.time[1]
 				if self.rotor_active =="Yes":
 					self.totalenergy+=(self.loss*self.dur)/3600
-				elif self.exhaust_ave > self.extract_ave and self.exhaust_ave > self.inlet_ave:
+				elif self.exhaust_ave > self.extract_ave and self.exhaust_ave > self.inlet_ave and self.ac_active:
 					self.AC_energy += self.airdata_inst.energy_flow(self.ef,self.exhaust_ave,self.inlet_ave)*self.dur/3600
 				elif self.extract_ave > self.supply_ave:
 					self.cooling += (self.loss*self.dur)/3600
@@ -855,24 +855,26 @@ class Systemair(object):
         # test if exhaust temperatures are indicative of ac hot flow connected to cooker exhaust line
         def check_ac_mode(self):
                 # use external exhaust sensor if it measures more 30C, airCond mode.
-                if "sensors" in sys.argv and "exhaust" in sys.argv: self.exhaust_ave =  self.sensor_exhaust
-		if self.sensor_exhaust >= 30 and self.exhaust_ave > self.extract_ave + 5:
+		if (self.sensor_exhaust >= 30 or (self.exhaust_ave - self.inlet_ave >5 and self.exhaust_ave > 30)) and not self.ac_active :
                     self.ac_active = True
 		    os.write(ferr,"A/C mode engaged. Detected high exhaust temperatures:\n")
-                    self.set_fanspeed(3)
-		else:
+                    if self.fanspeed <> 3 :
+                        self.set_fanspeed(3)
+		if self.ac_active and (self.sensor_exhaust <= 30 or (self.exhaust_ave - self.extract_ave <5 and self.exhaust_ave < 30 and self.sensor_exhaust <= 30)) :
                     self.ac_active = False
+		    os.write(ferr,"A/C mode disengaged. no AC contitions detected:\n")
+                if "sensors" in sys.argv and self.ac_active:
+                   self.exhaust_ave =  self.sensor_exhaust
 
 	# For units whithout exhaust temp sensor calc expected exhaust temp based on transfered energy in supply
 	def calc_exhaust(self):
-			try:
-				if self.supply_power and self.ef:
+				if self.supply_power and self.ef and not self.ac_active:
 					if self.supply_ave > self.inlet_ave:
 						exhaust = self.extract_ave- self.airdata_inst.temp_diff(self.supply_power,self.extract_ave,self.ef)
 					else:
 						exhaust = self.extract_ave+ self.airdata_inst.temp_diff(-1*self.supply_power,self.extract_ave,self.ef)
 					self.exhaust_ave=exhaust
-			except: pass
+
         # Retrieve the rotor state from the unit
 	def get_rotor_state(self):
 	    if not savecair:
@@ -1065,6 +1067,7 @@ class Systemair(object):
 		if "sensors" in sys.argv:
 				tmp += "Outdoor Sensor:\t "+str(self.sensor_temp)+"C "+str(self.sensor_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.sensor_humid,self.sensor_temp),2))+"C\n"
 				tmp += "Indoor Sensor:\t "+str(self.inside)+"C "+str(self.inside_humid)+"% Dewpoint: "+str(round(self.airdata_inst.dew_point(self.inside_humid,self.inside),2))+"C\n"
+				tmp += "Sensor exhaust:\t"+ str(self.sensor_exhaust)+"\n"
 		if "debug" in sys.argv:
 			try:
 				tmp += "Fanspeed level: "+str(self.fanspeed)+"\n"
@@ -1090,6 +1093,8 @@ class Systemair(object):
 		tmp+= "Cooling Total: "+str(round(self.cooling/1000,3))+"kWh\n"
 		tmp += "Heat Gain Total: "+ str(round(self.gain/1000,3))+"kWh\n"
 		tmp += "Supply:"+str(self.sf)+" l/s,"+str(self.sf_rpm)+"rpm\tExtract:"+str(self.ef)+" l/s,"+str(self.ef_rpm)+"rpm\n"
+                if self.ac_active:
+                        tmp += "AirCondition unit detected ON\n"
 		if self.AC_energy:
 			tmp += "AC-energy: "+str(round(self.AC_energy/1000,3))+"kWh\n"
 		if self.rotor_active == "Yes" or "debug" in sys.argv:
@@ -1261,7 +1266,6 @@ class Systemair(object):
 	    try:
 		if self.forcast[0] > self.cooling_limit and float(os.popen("./forcast2.0.py tomorrows-low").read().split(" ")[0]) > self.house_heat_limit	\
 			and float(os.popen("./forcast2.0.py integral "+str(self.cooling_limit)).read()) > 0\
-			and self.forcast[1] < 4 				\
 			and self.cool_mode == False 				\
 			and self.extract_ave>20.7\
 			or self.inlet_ave >25.0 and not self.cool_mode :
@@ -1280,7 +1284,7 @@ class Systemair(object):
 	    except:
 		os.write(ferr, "Forecast cooling error "+str(os.popen("./forcast2.0.py integral "+str(self.cooling_limit)).read())+' '+str(time.ctime()) +"\n")
 
-	    if self.cool_mode and not self.inhibit and not self.shower and not self.ac_mode:
+	    if self.cool_mode and not self.inhibit and not self.shower and not self.ac_active:
 		if (self.extract_ave <20.7 ) and self.fanspeed <> 1 :
 			self.set_fanspeed(1)
 			self.msg += "Cooling complete\n"
@@ -1306,7 +1310,7 @@ class Systemair(object):
 			self.msg += "No cooling posible due to temperature conditions\n"
 		        os.write(ferr, "Cooling will wait, will try to recycle cold air by low fanspeed "+str(time.ctime()) +"\n")
 
-		if (self.forcast[0] <= 16 or self.forcast[1]>=4) and time.localtime().tm_hour >12 and self.inlet_ave < 24.9:
+		if float(os.popen("./forcast2.0.py integral "+str(self.cooling_limit)).read()) < 0  and time.localtime().tm_hour >12 and self.inlet_ave < 24.9:
 			self.cool_mode=False
 		        os.write(ferr, "Cooling mode turned off "+str(time.ctime()) +"\n")
 			if savecair and self.ef==100:
@@ -1416,7 +1420,9 @@ class Systemair(object):
 	    except IOError:
 		traceback.print_exc()
 		self.msg+= "error getting forecast.\n"+str(forcast)
-		self.forcast=[-1,-1]
+       	        self.forcast=[-1,-1]
+	    except IndexError:
+       	        self.forcast=[-1,-1]
 
 	#set the fan pressure diff
 	def set_differential(self, percent):
