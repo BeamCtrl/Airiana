@@ -857,12 +857,12 @@ class Systemair(object):
                 # use external exhaust sensor if it measures more 30C, airCond mode.
 		if (self.sensor_exhaust >= 30 or (self.exhaust_ave - self.inlet_ave >5 and self.exhaust_ave > 30)) and not self.ac_active :
                     self.ac_active = True
-		    os.write(ferr,"A/C mode engaged. Detected high exhaust temperatures:\n")
+		    os.write(ferr,"A/C mode engaged. Detected high exhaust temperatures at "+time.ctime()+"\n")
                     if self.fanspeed <> 3 :
                         self.set_fanspeed(3)
 		if self.ac_active and (self.sensor_exhaust <= 30 or (self.exhaust_ave - self.extract_ave <5 and self.exhaust_ave < 30 and self.sensor_exhaust <= 30)) :
                     self.ac_active = False
-		    os.write(ferr,"A/C mode disengaged. no AC contitions detected:\n")
+		    os.write(ferr,"A/C mode disengaged. no AC conditions detected at "+time.ctime()+"\n")
                 if "sensors" in sys.argv and self.ac_active:
                    self.exhaust_ave =  self.sensor_exhaust
 
