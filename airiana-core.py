@@ -1577,10 +1577,9 @@ class Systemair(object):
 					if fog_cover > 75: 			# if fog over 75%
 						self.kinetic_compensation = 0
 				  except:
-					os.write(ferr, "Unable to update morning low with weather "+" "+str(time.ctime()) +"\n")
+					os.write(ferr, "Unable to update morning low with wind/fog compensation "+" "+str(time.ctime()) +"\n")
 
 				self.prev_static_temp -= self.kinetic_compensation
-				#self.kinetic_compensation = 0
 				fd = os.open("RAM/latest_static",os.O_WRONLY | os.O_CREAT| os.O_TRUNC)
 				os.write(fd,str(self.prev_static_temp-self.kinetic_compensation))
 				os.close(fd)
