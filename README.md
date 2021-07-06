@@ -116,6 +116,10 @@ Tips and Tricks: if you want to run fans at low on a timer set forced ventilatio
 #### HomeAssistant http-sensor:
 If configured the ha-token file can contain the ip, port and token of your runnning homeAssistant server. Airiana will then send temperature/humidity and extract fan rpm as http sensors and they śhould pop up in you HomeAssistant.
 
+### Json data:
+There is a json file availible for thrid-party integrations which contain a limited set of data för use as anyone sees fit to do. I use it as a data source for publishing on MQTT for homeassistant to read.
+This file is availible at "./RAM/air.out"
+
 
 ### Tools:
  
