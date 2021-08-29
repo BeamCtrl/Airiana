@@ -356,6 +356,7 @@ class Systemair(object):
 		self.rotor_state = 0
 		self.rotor_active = "Yes"
 		self.inhibit = time.time()
+		self.integral_forcast = 0
 		self.system_name = ""
 		self.sensor_temp = 0
 		self.sensor_humid = 0
@@ -389,6 +390,7 @@ class Systemair(object):
 		self.prev_static_temp = 8
 		self.indoor_dewpoint = 0
 		self.target = 22
+		self.tomorrows_low = []
 		self.energy_diff=0
 		self.new_humidity=40.0
 		self.moist_in = 0
@@ -1217,7 +1219,7 @@ class Systemair(object):
 	    #### EXCHANGER CONTROL
 	    self.house_heat_limit = 7  # daily low limit on cooling
 	    if self.inlet_ave< 13: self.target = 24
-	    else: self.target = 22
+	    else: self.target = 23
 	    if self.cool_mode:
 		self.target = 20.7
 	    if self.modetoken<=0 and self.cool_mode==0 :
@@ -1264,8 +1266,8 @@ class Systemair(object):
 
 	    #FORECAST RELATED COOLING
 	    try:
-		if self.forcast[0] > self.cooling_limit and float(os.popen("./forcast2.0.py tomorrows-low").read().split(" ")[0]) > self.house_heat_limit	\
-			and float(os.popen("./forcast2.0.py integral "+str(self.cooling_limit)).read()) > 0\
+		if self.forcast[0] > self.cooling_limit and self.tomorrows_low[0] > self.house_heat_limit	\
+			and self.integral_forcast > 0\
 			and self.cool_mode == False 				\
 			and self.extract_ave>20.7\
 			or self.inlet_ave >25.0 and not self.cool_mode :
@@ -1282,7 +1284,7 @@ class Systemair(object):
 			        os.write(ferr, "Cooling activated "+str(time.ctime()) +"\n")
 
 	    except:
-		os.write(ferr, "Forecast cooling error "+str(os.popen("./forcast2.0.py integral "+str(self.cooling_limit)).read())+' '+str(time.ctime()) +"\n")
+		os.write(ferr, "Forecast cooling error "+str(self.integral_forcast)+' '+str(time.ctime()) +"\n")
 
 	    if self.cool_mode and not self.inhibit and not self.shower and not self.ac_active:
 		if (self.extract_ave <20.7 ) and self.fanspeed <> 1 :
@@ -1310,12 +1312,15 @@ class Systemair(object):
 			self.msg += "No cooling posible due to temperature conditions\n"
 		        os.write(ferr, "Cooling will wait, will try to recycle cold air by low fanspeed "+str(time.ctime()) +"\n")
 
-		if float(os.popen("./forcast2.0.py integral "+str(self.cooling_limit)).read()) < 0  and time.localtime().tm_hour >12 and self.inlet_ave < 24.9:
-			self.cool_mode=False
-		        os.write(ferr, "Cooling mode turned off "+str(time.ctime()) +"\n")
-			if savecair and self.ef==100:
-				req.write_register(1407,90)
-				req.write_register(1406,90)
+		try:
+			if self.integral_forcast < 0  and time.localtime().tm_hour >12 and self.inlet_ave < 24.9:
+				self.cool_mode=False
+			        os.write(ferr, "Cooling mode turned off "+str(time.ctime()) +"\n")
+				if savecair and self.ef==100:
+					req.write_register(1407,90)
+					req.write_register(1406,90)
+		except ValueError:
+		     os.write(ferr, "forcast error  "+str(time.ctime()) +"\n")
 
 	    #DYNAMIC FANSPEED CONTROL
 	    if not self.inhibit and not self.shower and not self.cool_mode:
@@ -1415,14 +1420,24 @@ class Systemair(object):
 	    	forcast = forcast[0].split(" ")
 		self.forcast[0]=float(forcast[0])
 		self.forcast[1]=float(forcast[1])
-		#print self.forcast[0],self.forcast[1]
+		# get tomorrows-low values
+		tomorrows_low = os.popen("./forcast2.0.py tomorrows-low").read().split(" ")
+		for index in range(len(tomorrows_low)):
+			self.tomorrows_low[index] = float(tomorrows_low[index])
+		print self.tomorrows_low
+		#get integral for comming days
+		self.integral_forcast = float(os.popen("./forcast2.0 integral "+str(self.cooling_limit)).read())
+		print self.integral_forcast
 		if os.stat("./RAM/forecast.json").st_ctime < time.time()-3600*24 :raise Exception("FileError")
 	    except IOError:
 		traceback.print_exc()
-		self.msg+= "error getting forecast.\n"+str(forcast)
+		self.msg+= "error getting forecast.(io error)\n"+str(forcast)
        	        self.forcast=[-1,-1]
 	    except IndexError:
+		self.msg+= "error getting forecast.(index error)\n"+str(forcast)
        	        self.forcast=[-1,-1]
+	    except FileError:
+		self.msg+= "error getting forecast.(file too old)\n"+str(forcast)
 
 	#set the fan pressure diff
 	def set_differential(self, percent):
@@ -1590,7 +1605,7 @@ class Systemair(object):
 	    tmp = ""
 	    try:
                 json_vars = {"extract":self.extract_ave, "coolingMode":str(self.cool_mode).lower(), "supply":self.supply_ave,"sf":self.sf,"ef":self.ef,
-			    	"exhaust":self.exhaust_ave, "autoON": str(monitoring).lower(), 
+			    	"exhaust":self.exhaust_ave, "autoON": str(monitoring).lower(),
 			    	"shower":str(self.shower).lower(), "rotorSpeed": self.exchanger_speed,
 			    	"sfRPM":self.sf_rpm, "energyXfer": self.loss, "efficiency":self.eff,
 			     	"efRPM":self.ef_rpm, "name":self.system_name, "filterPercentRemaining":self.filter_remaining,
@@ -1718,7 +1733,6 @@ if __name__  ==  "__main__":
 			if monitoring:
 				device.monitor()
 				device.shower_detect()
-	
 			device.print_json() # Print to json
 
 			if "humidity" in sys.argv and (device.system_name not in device.has_RH_sensor or not device.RH_valid) or "debug" in sys.argv:
@@ -1761,7 +1775,7 @@ if __name__  ==  "__main__":
 		if device.iter%251==0:
 			if "debug" in sys.argv:
 				os.system("echo \"251\" >./RAM/exec_tree")
-		#send ping status, generarte graphs and refresh airdata instance.
+		#send ping status, generate graphs and refresh airdata instance.
 		if device.iter%563==0:
 			if "debug" in sys.argv:
 				os.system("echo \"563\" >./RAM/exec_tree")
