@@ -114,10 +114,10 @@ rmsError =  stat.rmsError(x,y)
 mae = stat.meanAbsError(x,y)
 print "Calculated:"
 print "Mean:",ave,"Stddev:",stddev
-print "\nCorrelation coeficient",stat.correlation(x,y)
+print "\nCorrelation coeficient\t",round(stat.correlation(x,y),2)
 #print "MeanErrorSquared", stat.meanErrorSq(x,y)
-print "RootMeanSquaredError",rmsError, round(rmsError/mstddev,2),"stdDev"
-print "MeanAbsoluteError",mae, round(mae/mstddev,2),"stdDev"
+print "RootMeanSquaredError\t",rmsError,"\t", round(rmsError/mstddev,2),"stdDev"
+print "MeanAbsoluteError\t",mae,"\t", round(mae/mstddev,2),"stdDev"
 #print "Z test", stat.z_test(x,y)
 #print "chi2test", stat.chi2test(x,y)
 print "\nPartial pressures (Pa)"
@@ -129,10 +129,10 @@ rmsError =  stat.rmsError(mdP,cdP)
 mae = stat.meanAbsError(mdP,cdP)
 print "Calculated:"
 print "Mean:",ave,"Stddev:",stddev
-print "\nCorrelation coeficient",stat.correlation(mdP,cdP)
+print "\nCorrelation coeficient\t",round(stat.correlation(mdP,cdP),2)
 #print "MeanErrorSquared", stat.meanErrorSq(mdP,cdP)
-print "RootMeanSquaredError",rmsError, round(rmsError/mstddev,2),"stdDev"
-print "MeanAbsoluteError",mae, round(mae/mstddev,2),"stdDev"
+print "RootMeanSquaredError\t",rmsError, round(rmsError/mstddev,2),"stdDev"
+print "MeanAbsoluteError\t",mae, round(mae/mstddev,2),"stdDev"
 #print "Z test", stat.z_test(mdP,cdP)
 #print "chi2test", stat.chi2test(mdP,cdP)
 print "End: " + tm.ctime(float(-time[-1]+tm.time()))+"\n"

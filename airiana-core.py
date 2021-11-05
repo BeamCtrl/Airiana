@@ -88,6 +88,7 @@ while True:
 		cmd_socket.bind(("0.0.0.0",9876))
 		break
 	except:
+		traceback.print_exc(ferr)
 		os.system("sleep 1")
 		print "sleeping;"
 		if time.time()-starttime> 60:break
@@ -159,7 +160,7 @@ def report_alive():
 		sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
 		sock.close()
 	except:
-		#traceback.print_exc()
+		#traceback.print_exc(ferr)
 		os.write(ferr, "Error reporting alive at "+str(time.ctime())+"\n")
 
 #READ AVAIL SENSOR DATA
@@ -224,13 +225,16 @@ def logger ():
 		+":"+str(device.moist_out)\
 		+":"+str(device.humdiff)
 		fdo.write(cmd+"\n")
-	except:traceback.print_exc()
+	except:
+		traceback.print_exc(ferr)
 	if "homeAss" in sys.argv:
 		os.system("./ha-httpsensor.py -n ftx_Indoor -u °C -d temperature -v "+str(round(device.extract_ave,1))+">/dev/null &")
 		os.system("./ha-httpsensor.py -n ftx_Outside -u °C -d temperature -v "+str(round(device.inlet_ave,1))+">/dev/null &")
 		try:
 			os.system("./ha-httpsensor.py -n ftx_Efficiency -u % -d calculated -v "+str(round(numpy.average(device.eff_ave),2))+">/dev/null &")
-		except:pass
+		except:
+			traceback.print_exc(ferr)
+
 		os.system("./ha-httpsensor.py -n ftx_Humidity -d humidity -u % -v "+str(int(device.new_humidity))+">/dev/null &")
 		os.system("./ha-httpsensor.py -n ftx_ExtractFan -d fanspeed -u rpm -v "+str(int(device.ef_rpm))+">/dev/null &")
 #PRINT COMM SETTING
@@ -412,8 +416,9 @@ class Systemair(object):
 			else: 
 				raise IOError
 		except:
-				with open("coeficients.dat",'w') as f:
-					pickle.dump(self.coef_dict, f)
+			traceback.print_exc(ferr)
+			with open("coeficients.dat",'w') as f:
+				pickle.dump(self.coef_dict, f)
 		if savecair:
 			req.write_register(1400,16)
 		 	req.write_register(1401,16)
@@ -551,7 +556,11 @@ class Systemair(object):
 			if abs(self.new_humidity-self.hum_list[1]) > 2 :
 				self.new_humidity = self.hum_list[1]
 				self.hum_list[0]  = self.new_humidity
-		except: pass
+		except IndexError:
+			pass
+		except:
+			traceback.print_exc(ferr)
+
 	#get the nr of days  used and alarm lvl for filters
 	def get_filter_status(self):
 	    if not savecair:
@@ -561,7 +570,9 @@ class Systemair(object):
 		self.filter = req.response
 		try:
 			self.filter_remaining = round(100*(1 - (float(self.filter)/self.filter_limit)),1)
-		except: pass
+		except: 
+			traceback.print_exc(ferr)
+
 		if self.filter_remaining <0: self.filter_remaining = 0
 	    else:
 		req.modbusregister(7000,0)
@@ -647,9 +658,13 @@ class Systemair(object):
 		req.modbusregister(12543,1)
 		extract = req.response
 		try: # replace erronous data input when temp diff exceeds 1C between samples
-			if extract - self.rawdata[0]>1:
-				extract =self.rawdata[0]
-		except: pass
+			if extract - self.rawdata[0][1]>1:
+				extract = self.rawdata[0][1]
+		except IndexError:
+			pass
+		except:
+			traceback.print_exc(ferr)
+
 		req.modbusregister(12102,1)
 		supply = req.response
 		req.modbusregister(12101,1)
@@ -705,13 +720,14 @@ class Systemair(object):
 				if numpy.isnan(dyn_coef):
 					dyn_coef = 0
 			except:
-				pass
+				traceback.print_exc(ferr)
 			try:
 				if dyn_coef <> self.new_coef:
 					self.new_coef += 0.0001 * (dyn_coef - self.new_coef)
 					if abs(dyn_coef-self.new_coef) < 0.001:
 						self.new_coef=dyn_coef
-			except: pass
+			except:
+				traceback.print_exc(ferr)
 			tcomp = (diff) * -self.new_coef   #self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
 		except ZeroDivisionError : pass
 		if numpy.isnan(tcomp):
@@ -802,7 +818,9 @@ class Systemair(object):
 			#self.availible_energy =  self.airdata_inst.energy_flow(self.ef,self.extract_ave,self.inlet_ave)+self.airdata_inst.condensation_energy((self.airdata_inst.vapor_max(self.exhaust_ave)-self.airdata_inst.vapor_max(self.inlet_ave))*((self.ef)/1000))
 
 			try:self.used_energy    = self.airdata_inst.energy_flow(self.sf,self.supply_ave,self.inlet_ave)
-			except: self.used_energy = 0
+			except:
+				traceback.print_exc(ferr)
+				self.used_energy = 0
 			factor = 1 # casing transfer correction factor
 			if   self.rotor_active=="Yes":
 				if self.fanspeed ==3:
@@ -824,8 +842,10 @@ class Systemair(object):
 				self.supply_power   = self.used_energy-00-(self.extract_ave-self.inlet_ave)*factor#  constant# red  from casing heat transfer
  			else: self.supply_power   = self.used_energy-0-(self.extract_ave-self.inlet_ave)*factor#  constant# red  from casing heat transfer
 
-			try:self.extract_exchanger  = self.airdata_inst.energy_flow(self.ef,self.extract_ave,self.exhaust_ave)
-			except: self.extract_exchanger = 0
+			try:
+				self.extract_exchanger  = self.airdata_inst.energy_flow(self.ef,self.extract_ave,self.exhaust_ave)
+			except:
+				self.extract_exchanger = 0
 			self.extract_offset =0 #float(8)*(self.extract_ave-self.supply_ave)# + 20Watt/degC transfer after exchanger unit
 			self.extract_power = self.extract_exchanger+self.extract_offset
 			self.extract_combined = self.extract_power + self.condensate_compensation
@@ -847,7 +867,10 @@ class Systemair(object):
 					self.cooling += (self.loss*self.dur)/3600
 				else:
 					self.gain += (self.loss*self.dur)/3600
-			except: pass
+			except IndexError:
+				pass
+			except:
+				traceback.print_exc(ferr)
 
 			self.cond_data.append(self.energy_diff)
 			if len(self.cond_data)> self.averagelimit+5000:self.cond_data.pop(0)
@@ -1161,7 +1184,7 @@ class Systemair(object):
 		self.inhibit= time.time()  # set inhibit time to prevent derivatives sensing when returning
 	    except:
 		#self.msg +=  "\nexit due to error"
-		traceback.print_exc()
+		traceback.print_exc(ferr)
 	    finally:
 		self.exchanger_mode=get_val()
 	  else:
@@ -1691,12 +1714,12 @@ if __name__  ==  "__main__":
 	    if "humidity" in sys.argv:
 		device.new_humidity = device.moisture_calcs(10.0)
 		device.get_local()
-	    starttime=time.time()
-	    print "System started:",time.ctime(starttime),";"
 	    sys.stdout.flush()
 	    if "ping" in sys.argv:report_alive()
 	    time.sleep(2)
 	    starttime=time.time()
+	    print "System started:",time.ctime(starttime),";"
+
 	    while Running:  ##### mainloop do each pass ###########
 		#do temps,energy and derivatives
 		device.update_temps()
@@ -1718,7 +1741,6 @@ if __name__  ==  "__main__":
 			if monitoring:
 				device.monitor()
 				device.shower_detect()
-	
 			device.print_json() # Print to json
 
 			if "humidity" in sys.argv and (device.system_name not in device.has_RH_sensor or not device.RH_valid) or "debug" in sys.argv:
@@ -1847,7 +1869,7 @@ if __name__  ==  "__main__":
 					data = int(str(data))
 				except:
 					device.msg += "stdin error\n"
-					traceback.print_exc()
+					traceback.print_exc(ferr)
 
 			if data <> -1:
 				if data == 1: # toggle auto monitor on/off
@@ -1889,7 +1911,7 @@ if __name__  ==  "__main__":
 						device.set_differential(inp)
 					except IOError:print "not used"
 					except:
-						traceback.print_exc()
+						traceback.print_exc(ferr)
 						#raw_input("break")
 				if data == 8:  # toggle forced vent timer
 					try:
@@ -1911,7 +1933,7 @@ if __name__  ==  "__main__":
 							device.timer=time.time()
 							tim.start()
 					except:
-						traceback.print_exc()
+						traceback.print_exc(ferr)
 						print "force vent error"
 				if data == 9: # 
 					if "daemon" not in sys.argv:raw_input("press enter to resume")
@@ -1960,4 +1982,5 @@ if __name__  ==  "__main__":
 	except TypeError: pass 
 	except KeyboardInterrupt:
 		exit_callback(2,None)
-
+	except:
+		traceback.print_exc(ferr)
