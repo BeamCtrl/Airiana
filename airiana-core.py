@@ -5,12 +5,14 @@ import airdata, numpy, select, threading
 import os, traceback, time, sys, signal, math
 import pickle, json
 from request import Request
-#from mail import *
+
+#numpy.seterr('ignore')
 #############################
 vers = "10.28"
 Running =True
 savecair=False
 mode = "RTU"
+
 if "TCP" in sys.argv:
 	mode = "TCP"
 # Register cleanup
@@ -65,16 +67,16 @@ if "daemon" in sys.argv:
 if os.path.lexists("/dev/ttyUSB0"):
 	print "Communication started on device ttyUSB0;"
 	unit = "/dev/ttyUSB0"
-	os.write(ferr, "Using /dev/ttyUSB0" +"\n")
+	os.write(ferr, "\n\nUsing /dev/ttyUSB0" +"\n")
 
 elif os.path.lexists("/dev/serial0"):
 	print "Communication started on device Serial0;"
 	unit = "/dev/serial0"
-	os.write(ferr, "Using /dev/serial0" +"\n")
+	os.write(ferr, "\n\nUsing /dev/serial0" +"\n")
 else :
 	print "Communication started on device ttyAMA0;"
 	unit = "/dev/ttyAMA0"
-	os.write(ferr, "Using /dev/ttyAMA0" +"\n")
+	os.write(ferr, "\n\nUsing /dev/ttyAMA0" +"\n")
 
 ################################# command socket setup
 import socket
@@ -160,8 +162,7 @@ def report_alive():
 		sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
 		sock.close()
 	except:
-		#traceback.print_exc(ferr)
-		os.write(ferr, "Error reporting alive at "+str(time.ctime())+"\n")
+		traceback.print_exc(ferr)
 
 #READ AVAIL SENSOR DATA
 def update_sensors():
@@ -196,6 +197,7 @@ def update_sensors():
 #WRITE TO DATA.LOG
 def logger ():
 	try:
+
 	    with open("./RAM/data.log","a+") as fdo:
 		#+str(device.extract_humidity*100)\
 		cmd = ""   		\
@@ -387,7 +389,7 @@ class Systemair(object):
 		self.cond_dev= 0
 		self.i_diff = []
 		self.time = []
-		self.extract_dt_list = []
+		self.extract_dt_list = [0]
 		self.humidity_comp = 0
 		self.pressure_diff = 0
 		self.prev_static_temp = 8
@@ -662,6 +664,9 @@ class Systemair(object):
 				extract = self.rawdata[0][1]
 		except IndexError:
 			pass
+                except TypeError:
+			os.write(ferr,"temp read type error at:"+str(target)+" "+str(time.ctime())+"\n")
+			traceback.print_exc(ferr)
 		except:
 			traceback.print_exc(ferr)
 
@@ -711,7 +716,7 @@ class Systemair(object):
 			diff = extract - inlet
 			dyn_coef =0
 			try:
-				if self.fanspeed :
+				if self.fanspeed and len(self.coef_dict) != 0:
 					dyn_coef = numpy.median(self.coef_dict[self.get_coef_mode()].values())* float(1)/(self.fanspeed)   #self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
 				if self.fanspeed == 3:
 					dyn_coef = 0
@@ -752,7 +757,7 @@ class Systemair(object):
 			else:
 				req.write_register(1130,target+1)
 		if self.get_fanspeed() <> target:
-			os.write(ferr,"Incorrectly set fanspeed "+str(self.get_fanspeed())+" to "+str(target)+" "+str(time.ctime())+"\n")		
+			os.write(ferr,"Incorrectly set fanspeed " + str(self.get_fanspeed()) + " to " + str(target) + " " + str(time.ctime())+"\n")
 		self.update_airflow()
 
 
@@ -809,11 +814,16 @@ class Systemair(object):
 		self.airdata_inst= airdata.Energy()
 
 	def update_xchanger(self):
-		self.inlet_ave = numpy.average(self.inlet)
-		self.supply_ave = numpy.average(self.supply)
-		self.extract_ave = numpy.average(self.extract)
-		if self.system_name == "VR400":
-			self.exhaust_ave = numpy.average(self.exhaust)
+		if len(self.inlet):
+			self.inlet_ave = numpy.average(self.inlet)
+			self.supply_ave = numpy.average(self.supply)
+			self.extract_ave = numpy.average(self.extract)
+		else:
+			self.inlet_ave = self.inlet[0]
+			self.supply_ave = self.supply[0]
+			self.extract_ave = self.extract[0]
+			if self.system_name == "VR400":
+				self.exhaust_ave = numpy.average(self.exhaust)
 		if self.fanspeed <> 0:
 			#self.availible_energy =  self.airdata_inst.energy_flow(self.ef,self.extract_ave,self.inlet_ave)+self.airdata_inst.condensation_energy((self.airdata_inst.vapor_max(self.exhaust_ave)-self.airdata_inst.vapor_max(self.inlet_ave))*((self.ef)/1000))
 
@@ -978,9 +988,9 @@ class Systemair(object):
 					self.set_fanspeed(self.initial_fanspeed)
 		if "debug" in sys.argv and self.shower and self.RH_valid:
 			self.msg="Shower wait state, "+str(round(self.extract_ave,2))+"C "+str(round(self.initial_temp+0.3,2))+"C RH: "+str(self.showerRH+5)+"\n"
-		if self.RH_valid == 1 and not self.shower: # Shower humidity sensor control
+		if  self.RH_valid == 1 and not self.shower: # Shower humidity sensor control
 			try:
-				if self.hum_list[0]-self.hum_list[-1] > 8  and \
+				if  self.hum_list[0]-self.hum_list[-1] > 8  and \
 				numpy.average(self.extract_dt_list)*60 > 0.0:
 					self.shower = True
                                         self.initial_temp = self.extract_ave
@@ -999,11 +1009,11 @@ class Systemair(object):
 					os.write(ferr,"Engaged Shower mode "+str(time.ctime())+"\n")
 					self.status_field[0] += 1
 			except IndexError: pass
-		elif not self.shower and not self.RH_valid:
+		elif  not self.shower and not self.RH_valid:
 			# SHOWER derivative CONTROLER
 			lim = 0.07
 			if self.ef >50: lim = 0.07
-			if self.extract_dt > lim + float(self.det_limit)/100 and self.inhibit == 0 and numpy.average(self.extract_dt_list)*60>1.40:
+			if len(self.extract_dt_list) and self.extract_dt > lim + float(self.det_limit)/100 and self.inhibit == 0 and numpy.average(self.extract_dt_list)*60>1.40:
 				self.msg = "Shower mode engaged\n"
 				if self.shower==False:
 					self.shower = True
@@ -1017,7 +1027,7 @@ class Systemair(object):
 					self.status_field[0] += 1
 					os.write(ferr,"Engaged Shower mode "+str(time.ctime())+"\n")
 
-		if numpy.average(self.extract_dt_list)*60 < 0.25	\
+		if len(self.extract_dt_list) != 0 and numpy.average(self.extract_dt_list)*60 < 0.25	\
 			and self.shower==True 				\
 			and self.shower_initial - time.time()<-60:
 			state = False
@@ -1059,6 +1069,7 @@ class Systemair(object):
 				tmp += str(sys.argv)+"\n"
 			 except: pass
 		try:
+		    if len(self.extract_dt_list):
 			tmp += "Inlet: <b>"+str("%.2f" % self.inlet_ave)+"C</b>\t\tSupply: "+str("%.2f" % self.supply_ave)+"C\td_in : "+str(round(self.supply_ave,2)-round(self.inlet_ave,2))+"C"
 			tmp += "\nExtract: <b>"+str("%.2f" % self.extract_ave)+"C</b>\tExhaust: "+str("%.2f" % self.exhaust_ave)+"C\td_out: "+str(round(self.extract_ave,2)-round(self.exhaust_ave,2))+"C\n"
 			tmp += "Extract dT/dt: "+str(round(self.extract_dt,3))+"degC/min dT/dt: "+str(round(numpy.average(self.extract_dt_list)*60,3))+"degC/hr\n\n"
@@ -1662,9 +1673,14 @@ if __name__  ==  "__main__":
 ############################ RUN MAIN loop ########################
 if __name__  ==  "__main__":
 	monitoring = True
+        reset_fans = False
 	def set_monitoring(bool):
 		global monitoring
 		monitoring = bool
+        def reset_fanspeed(speed):
+		global reset_fans
+	        os.write(ferr, "myset speed at: "+str(time.ctime()) +"\n")
+		reset_fans = speed
 	input = ""
 	print "Going in for first PASS;"
 	try:
@@ -1689,9 +1705,9 @@ if __name__  ==  "__main__":
 	    sys.stdout.flush()
 	    print "Generating historical graphs;"
 	    if "debug" in sys.argv:
-		os.system("sudo nice ./grapher.py debug &")
+	        os.system("sudo nice ./grapher.py debug &")
 	    else:
-		os.system("sudo nice ./grapher.py &")
+	    	os.system("sudo nice ./grapher.py &")
 	    sys.stdout.flush()
 	    if "debug" in sys.argv:
 		print "Checking for sensor data;"
@@ -1723,8 +1739,8 @@ if __name__  ==  "__main__":
 	    while Running:  ##### mainloop do each pass ###########
 		#do temps,energy and derivatives
 		device.update_temps()
-		device.update_xchanger()
-		device.derivatives()
+      		device.update_xchanger()
+          	device.derivatives()
 		## EXEC TREE, exec steps uniqe if prime##
 		#check states and flags
 		if device.iter%3 ==0:
@@ -1734,6 +1750,9 @@ if __name__  ==  "__main__":
 			if device.system_name == "VTR300" or device.system_name == "VSR300":
 				device.calc_exhaust()
 			device.check_ac_mode()
+			if reset_fans:
+				device.set_fanspeed(reset_fans)
+				reset_fans = 0
 		# update moisture
 		if device.iter%5==0:
 			if "debug" in sys.argv:
@@ -1913,22 +1932,29 @@ if __name__  ==  "__main__":
 					except:
 						traceback.print_exc(ferr)
 						#raw_input("break")
+                                def reset_fanspeed(speed):
+					global reset_fans
+				        os.write(ferr, "myset speed at: "+str(time.ctime()) +"\n")
+					reset_fans = speed
 				if data == 8:  # toggle forced vent timer
 					try:
 						if threading.enumerate()[-1].name == "Timer": 
-							tim.cancel()
-							tim2.cancel()
+							if tim.name == "Timer": tim.cancel()
+							if tim2.name == "Timer": tim2.cancel()
 							device.msg += "Removed Forced ventilation timer\n"
+						        os.write(ferr, "Vent Timer canceled at: "+str(time.ctime()) +"\n")
 							monitoring = True
+							device.timer = False
 
 						if threading.enumerate()[-1].name != "Timer":
+						        os.write(ferr, "Vent timer started at: "+str(time.ctime()) +"\n")
 							prev = device.fanspeed
 							device.set_fanspeed(3)
 							monitoring = False
 							device.msg += "Forced Ventilation on timer\n"
-							tim2 = threading.Timer(60.0*120,set_monitoring,[True] )
+							tim2 = threading.Timer(60.0 * 120 + 2, set_monitoring, [True])
 							tim2.start()
-							tim = threading.Timer(60.0*120,device.set_fanspeed,[prev])
+							tim = threading.Timer(60.0 * 120, reset_fanspeed, [prev])
 							tim.setName("Timer")
 							device.timer=time.time()
 							tim.start()
