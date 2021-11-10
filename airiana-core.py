@@ -149,6 +149,7 @@ def report_alive():
 								temp+= "\n\n"+reqlog.read()
 					except KeyboardInterrupt:pass
 					temp = temp.replace("\n","<br>")
+					temp = temp.replace("\t","&emsp;")
 					message += temp + "<br>"
 					message += os.popen("df |grep RAM").read()+"<br>"
 					message +=  os.popen("df |grep var").read()+"<br>"
@@ -162,7 +163,8 @@ def report_alive():
 		sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
 		sock.close()
 	except:
-		traceback.print_exc(ferr)
+		os.write(ferr,"unable to ping, network error\t"+time.ctime() + "\n")
+		#traceback.print_exc(ferr)
 
 #READ AVAIL SENSOR DATA
 def update_sensors():
@@ -252,7 +254,9 @@ def clear_screen():
                 os.fsync(fout)
         else:print chr(27) +"[2J\x1b[H"
 ##############################################
-
+class FileError(Exception):
+	"""Custom file exception"""
+	pass
 #################################################################################
 start = time.time() # START TIME
 sys.stdout.flush()
@@ -396,7 +400,7 @@ class Systemair(object):
 		self.prev_static_temp = 8
 		self.indoor_dewpoint = 0
 		self.target = 22
-		self.tomorrows_low = []
+		self.tomorrows_low = [0,0,0,0,0]
 		self.energy_diff=0
 		self.new_humidity=40.0
 		self.moist_in = 0
@@ -662,13 +666,14 @@ class Systemair(object):
 		req.modbusregister(12543,1)
 		extract = req.response
 		try: # replace erronous data input when temp diff exceeds 1C between samples
-			if extract - self.rawdata[0][1]>1:
+			if not "no Data" == extract and extract - self.rawdata[0][1]>1:
 				extract = self.rawdata[0][1]
 		except IndexError:
 			pass
                 except TypeError:
-			os.write(ferr,"temp read type error at:"+str(target)+" \t"+str(time.ctime())+"\n")
-			traceback.print_exc(ferr)
+			#os.write(ferr,"temp read type error at: "+str(extract)+"C \t"+str(time.ctime())+"\n")
+			#traceback.print_exc(ferr)
+                        pass
 		except:
 			traceback.print_exc(ferr)
 
@@ -1411,7 +1416,7 @@ class Systemair(object):
 			os.write(ferr, "Dynamic fanspeed 3 target+1.2C or dt long > 0.7C/h ("+str(self.extract_dt_long)+")\t"+str(time.ctime()) +"\n")
 
 		#Recover cold air if outside is hotter
-	    	if self.extract_ave < self.supply_ave and self.fanspeed <> 1:
+	    	if self.extract_ave < self.supply_ave and self.fanspeed <> 1 and self.cool_mode:
 			self.set_fanspeed(1)
 			self.msg += "Dynamic fanspeed, recover cool air\n"
 			os.write(ferr, "Dynamic fanspeed 1 recover cool air "+str(time.ctime()) +"\n"+str(self.extract_ave)+' '+str(self.supply_ave)+'\n')
@@ -1455,22 +1460,25 @@ class Systemair(object):
 		self.forcast[0]=float(forcast[0])
 		self.forcast[1]=float(forcast[1])
 		# get tomorrows-low values
-		tomorrows_low = os.popen("./forcast2.0.py tomorrows-low").read().split(" ")
+		tomorrows_low = os.popen("./forcast2.0.py tomorrows-low").read()[:-1].split(" ")
 		for index in range(len(tomorrows_low)):
 			self.tomorrows_low[index] = float(tomorrows_low[index])
-		print self.tomorrows_low
+		#print self.tomorrows_low
 		#get integral for comming days
-		self.integral_forcast = float(os.popen("./forcast2.0 integral "+str(self.cooling_limit)).read())
-		print self.integral_forcast
-		if os.stat("./RAM/forecast.json").st_ctime < time.time()-3600*24 :raise Exception("FileError")
+		self.integral_forcast = float(os.popen("./forcast2.0.py integral "+str(self.cooling_limit)).read())
+		#print self.integral_forcast
+		if os.stat("./RAM/forecast.json").st_ctime < time.time()-3600*24 :raise Exception("FileError: file too old")
 	    except IOError:
-		traceback.print_exc()
+		traceback.print_exc(ferr)
 		self.msg+= "error getting forecast.(io error)\n"+str(forcast)
        	        self.forcast=[-1,-1]
 	    except IndexError:
+		traceback.print_exc(ferr)
+		os.write(ferr,str(tomorrows_low) + " " + str(index) + " " + str(tomorrows_low[index]) + "\n")
 		self.msg+= "error getting forecast.(index error)\n"+str(forcast)
-       	        self.forcast=[-1,-1]
+       	        #self.forcast=[-1,-1]
 	    except FileError:
+		traceback.print_exc(ferr)
 		self.msg+= "error getting forecast.(file too old)\n"+str(forcast)
 
 	#set the fan pressure diff
@@ -1590,7 +1598,7 @@ class Systemair(object):
 					os.write(ferr, "Forcast does not return proper data."+" "+str(time.ctime()) +"\n")
 
 			else:
-				os.write(ferr, "forcast unavailible. "+" "+str(time.ctime()) +"\n")
+				os.write(ferr, "forcast unavailible. " + " " + str(self.forcast)  + str(time.ctime()) + "\n")
 				sun  = 7
 				comp = 0
 			try:
