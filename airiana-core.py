@@ -663,16 +663,20 @@ class Systemair(object):
 		self.time.insert(0,time.time())
 
 		##EXTRACT
-		req.modbusregister(12543,1)
-		extract = req.response
+		extract = "no data"
+		cnt = 0
+		while extract == "no data" and cnt < 10:
+			req.modbusregister(12543,1)
+			extract = req.response
 		try: # replace erronous data input when temp diff exceeds 1C between samples
-			if not "no Data" == extract and extract - self.rawdata[0][1]>1:
+			if extract - self.rawdata[0][1]>1:
 				extract = self.rawdata[0][1]
 		except IndexError:
 			pass
                 except TypeError:
-			#os.write(ferr,"temp read type error at: "+str(extract)+"C \t"+str(time.ctime())+"\n")
-			#traceback.print_exc(ferr)
+			os.write(ferr,"temp read type error at: "+str(extract)+"C \t"+str(time.ctime())+"\n")
+			traceback.print_exc(ferr)
+			extract = self.rawdata[1][1]
                         pass
 		except:
 			traceback.print_exc(ferr)
