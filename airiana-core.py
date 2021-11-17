@@ -8,7 +8,7 @@ from request import Request
 
 #numpy.seterr('ignore')
 #############################
-vers = "10.28"
+vers = "10.29"
 Running =True
 savecair=False
 mode = "RTU"
@@ -1549,7 +1549,7 @@ class Systemair(object):
 			if self.fanspeed == 1 and self.ef <> base+self.flowOffset[0] and not self.shower and not self.cool_mode:
 				req.write_register(1403,base+self.flowOffset[0])
 				req.write_register(1402,self.sf_base+self.flowOffset[0])
-		 	        os.write(ferr, "Updated extract flow offset to: "+str(self.flowOffset[0])+"\t"+str(time.ctime()) +"\n")
+		 	        os.write(ferr, "Extract flow offset to: "+str(self.flowOffset[0])+"\t"+str(time.ctime()) +"\n")
 				#self.msg += "Updated base extract flow to: "+str(base+self.flowOffset[0])+"\n"
 				self.ef = base+self.flowOffset[0]
 				self.sf = self.sf_base+self.flowOffset[0]
