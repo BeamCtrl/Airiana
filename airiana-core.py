@@ -8,7 +8,7 @@ from request import Request
 
 #numpy.seterr('ignore')
 #############################
-vers = "10.29"
+vers = "10.3"
 Running =True
 savecair=False
 mode = "RTU"
@@ -449,7 +449,7 @@ class Systemair(object):
 				self.has_RH_sensor += (self.system_name)
 
 			#setup airflow levels
-			if  self.system_name in ("VR400","VTR300","VSR300"):
+			if  self.system_name in ("VR400","VTR300",):
 				req.modbusregister(137,0)
 				if int(req.response) == 1:
 					req.write_register(137,0)
@@ -461,6 +461,20 @@ class Systemair(object):
                 		req.write_register(102,30)
                 		req.write_register(103,50)
                 		req.write_register(104,50)
+                		#req.write_register(105,107) 	#read only
+                		req.write_register(106,107)
+			if  self.system_name in ("VSR300"):
+				req.modbusregister(137,0)
+				if int(req.response) == 1:
+					req.write_register(137,0)
+				req.modbusregister(107,0)
+				if int(req.response) == 1:
+					req.write_register(107,0)
+				# SET BASE FLOW RATES
+				#req.write_register(101,30) 	#read only
+                		req.write_register(102,40)
+                		req.write_register(103,60)
+                		req.write_register(104,60)
                 		#req.write_register(105,107) 	#read only
                 		req.write_register(106,107)
 			if "VTR700" in self.system_name:
@@ -2037,3 +2051,4 @@ if __name__  ==  "__main__":
 		exit_callback(2,None)
 	except:
 		traceback.print_exc(ferr)
+
