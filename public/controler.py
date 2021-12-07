@@ -41,7 +41,7 @@ class myHandler (SocketServer.BaseRequestHandler):
 					os.system(" sudo reboot &")
 				if "update" in data[0]:
 					self.request.send("HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://"+str(ip)+"/\" /></head></html> \n\r")
-					os.system("sudo ./update.py")
+					os.system("sudo ./update")
 					if os.path.lexists("/dev/ttyAMA0"):
 						os.system("./restart &")
 					else:
