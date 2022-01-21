@@ -51,7 +51,11 @@ she keeps her self in check.
   -edit the ha-token file, add your server port and bearer token.
 
   -edit /etc/systemd/system/airiana.service, add "homeAss" to commandline option
-
+  
+  or
+  
+  use MQTT to push data to HomeAssistant via the json data file air.out.
+  This will require you to install a MQTT-publisher and a Broker to handle the data distribution.
 
 #### To run it against an Systemair Internet Access Module, 
 
