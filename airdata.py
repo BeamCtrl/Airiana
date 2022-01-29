@@ -8,6 +8,8 @@ import sys
 import math
 
 """ Energy class for handling airdata calculations"""
+
+
 class Energy(object):
     def __init__(self):
         try:
@@ -36,7 +38,7 @@ class Energy(object):
 
     # CALCULATE AIR DENSITY AT A GIVEN TEMPERATURE
     def get_mass(self, temp):
-        return (self.density(temp))  # kg/m3
+        return self.density(temp)  # kg/m3
 
     def temp_diff(self, energy, extract_temp, extract_flow):
         d_W = energy
@@ -71,7 +73,7 @@ class Energy(object):
         volume = float(litres) / 1000  # m3
         try:
             mass = volume * self.press * 100 / self.R * (math.log(self.T + high) - math.log(self.T + low)) / (
-                        high - low)
+                    high - low)
         except:
             mass = 0
         energy = mass * self.specific_heat * (high - low) * 1000  # kg * J/gK * K = J
