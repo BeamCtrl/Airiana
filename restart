@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import os
 import sys
 if "airiana-core.py" in sys.argv or len(sys.argv) == 1:
@@ -7,14 +7,14 @@ if "airiana-core.py" in sys.argv or len(sys.argv) == 1:
 	os.system("systemctl status airiana.service |tail -c 2000")
 if "controller" in sys.argv:
 	os.system("sudo systemctl restart controller.service")
-	#os.system("sleep 5")
+	# os.system("sleep 5")
 	os.system("sudo systemctl status controller.service |tail -c 2000")
 
 if "status.py" in sys.argv:
 	os.system("sudo pkill --signal 15 alive_logger.py")
 	os.system("sudo systemctl restart status.service&")
 	os.system("systemctl status status.service |tail -c 2000")
-	#os.system("sudo ./status.py & > /dev/null")
+	# os.system("sudo ./status.py & > /dev/null")
 
 if "envlogger.py" in sys.argv:
 	os.system("sudo pkill --signal 15 envlogger.py")
@@ -30,11 +30,7 @@ if "alive_logger.py" in sys.argv:
 	os.system("sudo ./alive_logger.py > /dev/null &")
 
 if "http" in sys.argv:
-	os.system("sudo pkill --signal 15 httpsrvr.py")
+	os.system("sudo pkill --signal 15 httpsrv.py")
 	os.system("./http")
 
 os.system("disown")
-
-
-
-
