@@ -468,7 +468,7 @@ class Systemair(object):
     def system_setup(self):
         try:
             if os.path.isfile("coeficients.dat"):
-                self.coef_dict = pickle.load(bytes(open("coeficients.dat")))
+                self.coef_dict = pickle.load(open("coeficients.dat"), encoding='latin1')
             else:
                 raise IOError
         except:
