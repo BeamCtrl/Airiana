@@ -32,7 +32,7 @@ she keeps her self in check.
 
 
 #### Installation:
-
+   ** INSTALLATION IS CURRENTLY BROKEN IN RASPBERRY OS DUE TO DEPRECATION OF python2. **
   -Install an Rs485 hat on your pi.
 
   -Connect A and B to your ventilation units Modbus connector.
