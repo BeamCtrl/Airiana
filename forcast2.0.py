@@ -22,10 +22,10 @@ def get_sun(lat, long):
     return ephem.localtime(o.next_rising(s)), ephem.localtime(o.next_setting(s))
 
 
-def print_weather(time, w, precep):
-    print(time, str(w["air_temperature"]) + "C", str(w["wind_speed"]) + "m/s", "at",
-          str(w["wind_from_direction"]) + "deg.", str(precep) + "mm", str(w["relative_humidity"]) + "%",
-          "Press.:" + str(w["air_pressure_at_sea_level"]) + "hPa")
+def print_weather(tm, weather, rain):
+    print(tm, str(weather["air_temperature"]) + "C", str(weather["wind_speed"]) + "m/s", "at",
+          str(weather["wind_from_direction"]) + "deg.", str(rain) + "mm", str(weather["relative_humidity"]) + "%",
+          "Press.:" + str(weather["air_pressure_at_sea_level"]) + "hPa")
 
 
 # weather types
