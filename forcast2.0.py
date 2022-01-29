@@ -5,9 +5,9 @@ import time
 import json
 import datetime
 import traceback
-import pathlib
 import math
 
+import pathlib
 path = pathlib.Path(__file__).parent.resolve()
 os.chdir(path)
 

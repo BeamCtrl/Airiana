@@ -1,10 +1,16 @@
-#!/usr/bin/python
-import os, time
+#!/usr/bin/python3
+import os
+import time
 import mail
-import sys, traceback
+import sys
+import traceback
 mailer = mail.Smtp()
-if not os.path.lexists("/home/pi/airiana/RAM/status.html"):
-	os.system("touch /home/pi/airiana/RAM/status.html" )
+import pathlib
+
+path = pathlib.Path(__file__).parent.resolve()
+os.chdir(path)
+if not os.path.lexists("./RAM/status.html"):
+	os.system("touch ./RAM/status.html" )
 def init():
 	from users import users
 	global users
@@ -13,19 +19,19 @@ def init():
 	status = {}
 	mail_sent = {}
 
-	for each in users.keys():
+	for each in list(users.keys()):
 		status[each]= 0
 
-	for each in users.keys():
+	for each in list(users.keys()):
 		mail_sent[each] = False
 init()
-for each in users.keys():
-	print users[each], each
-os.chdir("/home/pi/airiana")
+for each in list(users.keys()):
+	print(users[each], each)
+
 os.system("./alive_logger.py > /dev/null &")
 files = os.listdir("./public/local_links/")
 data = dict(enumerate(["token","exchanger","exectime","name","version","hash","uptime","inlet","extract","extractflow","rh","auto","cooling","supply","exhaust","pdiff","detlimit"]))
-data = {value : key for (key, value) in data.items()}
+data = {value : key for (key, value) in list(data.items())}
 
 #print data
 #for each in users.keys():
@@ -35,19 +41,19 @@ location= dict()
 def checkLocation(user):
 	try:
 		#print location
-		if len(location[user]) <>0:
+		if len(location[user]) !=0:
 			#print "user known",user, location[user]
 			return None
 	except KeyError:
 		with open("./public/local_links/"+user+".html") as log:
 			ip = log.read().split("Source:('")[-1].split("\'")[0]
 		#print "checking ip:",ip
-		loc = os.popen("/home/pi/airiana/geoloc.py " + ip ).read()
+		loc = os.popen("./geoloc.py " + ip ).read()
 		location.update( {user:loc})
 		#print "got new location", loc
 def analyse_stat(status,user):
-	#if "debug" in sys.argv:
-	#	print "Analyze", status, users[user]
+	# if "debug" in sys.argv:
+	# print "Analyze", status, users[user]
 	# Store Warnings in the stat_dict as {"user-MAC":{"alarmType":INT}}
 	# check if winter mode is on and exhaust is higher than supply
 	if len(status) > 1:
@@ -62,10 +68,10 @@ def analyse_stat(status,user):
 
 starttime = time.time()
 while True:
-    try:
+	try:
 		users_prev = users
 		from users import users
-		if len(users_prev) <> len(users):
+		if len(users_prev) != len(users):
 			init()
 		html = """<html>STATUS VIEW AIRIANA SYSTEMS<br>
 			<meta http-equiv="refresh" content="5" charset="UTF-8">
@@ -105,7 +111,7 @@ while True:
 						break
 				content = stat_field.replace("nan", " -1 ")
 				#print content
-				user =str(each.split(".")[0])
+				user = str(each.split(".")[0])
 				checkLocation(user)
 				#try: print "userID",user,"location:", location[user]
 				#except:
@@ -119,22 +125,22 @@ while True:
 				except:
 					lis=["data error"]
 				# CHECK IF USER REGISTERED #
-				if user in users.keys():
+				if user in list(users.keys()):
 					#print "Checking status of user ", users[user],"\n"
 					if int(time.time()-starttime)%1 == 0:
 						try:
 							analyse_stat(lis,user)
-						except IOError: print "analysis error"
+						except IOError: print("analysis error")
 					#print status[str(each.split(".")[0])], each
-					if (time.time()-mod)/3600>status[user]:
-						status[user] = round((time.time()-mod)/3600,2)
-					status[user] =status[user]*0.99
+					if (time.time()-mod)/3600 > status[user]:
+						status[user] = round((time.time() - mod) / 3600, 2)
+					status[user] = status[user] * 0.99
 					if (time.time()-mod)/3600<3:
 						flag = "<font color=\"green\"> Alive </font>"
 						if  mail_sent[user] == True:
-	                                                mail_sent[user] = False
-	                                                mailer.setup ("daniel.halling@outlook.com","airiana@outlook.com","Airiana user: "+str(users[user])+" has checked in and is now alive.")
-	                                                mailer.send()
+													mail_sent[user] = False
+													mailer.setup ("daniel.halling@outlook.com","airiana@outlook.com","Airiana user: "+str(users[user])+" has checked in and is now alive.")
+													mailer.send()
 					else:
 						flag = "<font color=\"red\"> Inactive </font>"
 						if not mail_sent[user]:
@@ -187,7 +193,7 @@ while True:
 					if (time.time()-mod)/3600 > 24:
 						os.system("rm -f ./public/local_links/"+each)
 			except KeyError:
-				print "Trying to look up unknown user error", user
+				print("Trying to look up unknown user error", user)
 				traceback.print_exc()
 				pass
 
@@ -220,9 +226,9 @@ while True:
 		html += html2
 		html +="<br></table></html>"
 
-		file = open("/home/pi/airiana/RAM/status.html","w+")
+		file = open("./RAM/status.html", "w+")
 		file.write(html)
 		file.close()
 		time.sleep(10)
-    except KeyboardInterrupt: break 
+	except KeyboardInterrupt: break
 
