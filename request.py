@@ -28,7 +28,7 @@ class Request:
         self.checksum_errors = 0
         self.multi_errors = 0
         self.write_errors = 0
-        self.buff = ""
+        self.buff = bytes()
         self.counter = 0
         self.error_time = time.time()
         self.wait_time = 0.01
@@ -162,7 +162,7 @@ class Request:
 
             try:
                 self.response = "no data"
-                self.buff += os.read(self.bus, 20)  # bus purge
+                self.buff += os.read(self.bus, 20) # bus purge
                 self.response = self.client.read_register(
                     address, decimals,
                     signed=True)

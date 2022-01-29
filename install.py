@@ -40,7 +40,7 @@ os.system("apt-get -y upgrade")
 
 # Enable UART for RS485 HAT
 boot_cmd = "enable_uart=1\n"
-boot_file = open("/boot/config.txt", "+")
+boot_file = open("/boot/config.txt", "r+")
 lines = boot_file.readlines()
 if boot_cmd in lines:
     print("Uart already enabled")
@@ -67,7 +67,7 @@ fstab_comment = "#temp filesystem only in RAM for use on Airiana tempfiles.\n"
 fstab_RAM = "tmpfs " + dir + "/RAM tmpfs defaults,noatime,nosuid,mode=0755,size=50m 0 0\n"
 # MAKE RAM DRIve for linux logs var/logs
 fstab_var = "tmpfs /var/log tmpfs defaults,noatime,nosuid,mode=0755,size=75m 0 0"
-fstab_file = open("/etc/fstab", "+")
+fstab_file = open("/etc/fstab", "r+")
 lines = fstab_file.readlines()
 
 # Write RAM tmpfs's to fstab
@@ -143,7 +143,7 @@ if "no crontab for user pi" in cron:
 crontab = ""
 updated = False
 for line in cron:
-    if line.find("updater.py") > 0
+    if line.find("updater.py") > 0:
         line = "0 */4 * * * sudo /usr/bin/python " + dir + "/updater.py\n"
         updated = True
     crontab += line

@@ -166,7 +166,7 @@ def report_alive():
                             os.close(log)
                         if os.path.lexists("./RAM/request.log"):
                             with open("./RAM/request.log") as reqlog:
-                                temp += "\n\n" + reqlog.read()
+                                temp += b"\n\n" + reqlog.read()
                     except KeyboardInterrupt:
                         pass
                     temp = temp.replace(b"\n", b"<br>")
