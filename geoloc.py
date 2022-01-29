@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# Geolocation API apility.net
+
 import os, sys
 
 ip = sys.argv[-1]
