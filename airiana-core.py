@@ -1864,7 +1864,7 @@ if __name__ == "__main__":
         conversion_table = {}
         device.status_field[3] = "VTR300/savecair"
         device.averagelimit = 3400
-        os.write(ferr, bytes("Savecair unit set\n"))
+        os.write(ferr, bytes("Savecair unit set\n", encoding='utf8'))
 ################
 ###################################################
 ############################ RUN MAIN loop ########################
