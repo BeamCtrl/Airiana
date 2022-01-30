@@ -121,7 +121,7 @@ def count_down(inhibit, target):
     if inhibit > 3600:
         hrs = inhibit / 3600
         inhibit = inhibit - (hrs * 3600)
-        return str(hrs) + "h " + str(inhibit / 60) + "min " + str(inhibit % 60).zfill(2) + "s"
+        return str(hrs) + "h " + str(math.floor(inhibit / 60)) + "min " + str(inhibit % 60).zfill(2) + "s"
     if inhibit % 60 == 0:
         return str(inhibit / 60) + "min"
     if inhibit > 60:
@@ -468,7 +468,7 @@ class Systemair(object):
     def system_setup(self):
         try:
             if os.path.isfile("coeficients.dat"):
-                self.coef_dict = pickle.load(open("coeficients.dat","rb"), encoding='latin1')
+                self.coef_dict = pickle.load(open("coeficients.dat","rb"))
             else:
                 raise IOError
         except:
@@ -1199,10 +1199,10 @@ class Systemair(object):
             if len(self.extract_dt_list):
                 tmp += "Inlet: <b>" + str("%.2f" % self.inlet_ave) + "C</b>\t\tSupply: " + str(
                     "%.2f" % self.supply_ave) + "C\td_in : " + str(
-                    round(self.supply_ave, 2) - round(self.inlet_ave, 2)) + "C"
+                    round(self.supply_ave - self.inlet_ave, 2)) + "C"
                 tmp += "\nExtract: <b>" + str("%.2f" % self.extract_ave) + "C</b>\tExhaust: " + str(
                     "%.2f" % self.exhaust_ave) + "C\td_out: " + str(
-                    round(self.extract_ave, 2) - round(self.exhaust_ave, 2)) + "C\n"
+                    round(self.extract_ave - self.exhaust_ave, 2)) + "C\n"
                 tmp += "Extract dT/dt: " + str(round(self.extract_dt, 3)) + "degC/min dT/dt: " + str(
                     round(numpy.average(self.extract_dt_list) * 60, 3)) + "degC/hr\n\n"
                 if "debug" in sys.argv:
@@ -2078,7 +2078,8 @@ if __name__ == "__main__":
                     try:
                         sock = cmd_socket.recvfrom(128)
                         data = sock[0]
-                        data = int(str(data))
+                        data = int.from_bytes(data, "big"))
+                        print(data)
                         sender = sock[1]
                     except:
                         pass
