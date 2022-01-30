@@ -345,7 +345,7 @@ class Systemair(object):
             49: "Light snow",
             13: "Snow",
             50: "Heavy snow",
-			33: "Light snow and thunder",
+            33: "Light snow and thunder",
             14: "Snow and thunder",
             34: "Heavy snow and thunder",
             15: "Fog", -1: "No weather data"}
@@ -745,7 +745,8 @@ class Systemair(object):
             except IndexError:
                 pass
             except TypeError:
-                os.write(ferr, bytes("temp read type error at: " + str(extract) + "C \t" + str(time.ctime()) + "\n", encoding='utf8'))
+                os.write(ferr, bytes("temp read type error at: " + str(extract) + "C \t" + str(time.ctime()) + "\n",
+                                     encoding='utf8'))
                 traceback.print_exc(ferr)
                 extract = self.rawdata[1][1]
                 pass
@@ -829,7 +830,8 @@ class Systemair(object):
         self.coef_inhibit = time.time()
         if target != self.fanspeed:  # add one to bucket
             self.status_field[0] += 1
-            os.write(ferr, bytes("Changing fanspeed to:" + str(target) + " \t\t" + str(time.ctime()) + "\n", encoding='utf8'))
+            os.write(ferr,
+                     bytes("Changing fanspeed to:" + str(target) + " \t\t" + str(time.ctime()) + "\n", encoding='utf8'))
         # print actual,"->",target
         if target >= 4: target = 0
         if target < 0: target = 0
@@ -842,8 +844,9 @@ class Systemair(object):
             else:
                 req.write_register(1130, target + 1)
         if self.get_fanspeed() != target:
-            os.write(ferr, bytes("Incorrectly set fanspeed " + str(self.get_fanspeed()) + " to " + str(target) + " \t" + str(
-                time.ctime()) + "\n", encoding='utf8'))
+            os.write(ferr,
+                     bytes("Incorrectly set fanspeed " + str(self.get_fanspeed()) + " to " + str(target) + " \t" + str(
+                         time.ctime()) + "\n", encoding='utf8'))
         self.update_airflow()
 
     def update_fan_rpm(self):
@@ -999,13 +1002,15 @@ class Systemair(object):
         if (self.sensor_exhaust >= 30 or (
                 self.exhaust_ave - self.inlet_ave > 5 and self.exhaust_ave > 30)) and not self.ac_active:
             self.ac_active = True
-            os.write(ferr, bytes("A/C mode engaged. Detected high exhaust temperatures at \t" + time.ctime() + "\n", encoding='utf8'))
+            os.write(ferr, bytes("A/C mode engaged. Detected high exhaust temperatures at \t" + time.ctime() + "\n",
+                                 encoding='utf8'))
             if self.fanspeed != 3:
                 self.set_fanspeed(3)
         if self.ac_active and (self.sensor_exhaust <= 30 or (
                 self.exhaust_ave - self.extract_ave < 5 and self.exhaust_ave < 30 and self.sensor_exhaust <= 30)):
             self.ac_active = False
-            os.write(ferr, bytes("A/C mode disengaged. no AC conditions detected at \t" + time.ctime() + "\n", encoding='utf8'))
+            os.write(ferr, bytes("A/C mode disengaged. no AC conditions detected at \t" + time.ctime() + "\n",
+                                 encoding='utf8'))
         if "sensors" in sys.argv and self.ac_active:
             self.exhaust_ave = self.sensor_exhaust
 
@@ -1167,7 +1172,8 @@ class Systemair(object):
                     self.det_limit += 1
                 try:
                     os.write(ferr, bytes("Leaving Shower mode dT: " + str(
-                        numpy.max(self.extract) - numpy.min(self.extract)) + " \t" + str(time.ctime()) + "\n", encoding='utf8'))
+                        numpy.max(self.extract) - numpy.min(self.extract)) + " \t" + str(time.ctime()) + "\n",
+                                         encoding='utf8'))
                     self.msg = "Shower mode off, returning to " + str(self.speeds[self.initial_fanspeed] + "\n")
                 except IOError:
                     pass
@@ -1260,7 +1266,7 @@ class Systemair(object):
 
             except:
                 pass
-            tmp += "diff. humidity partial pressure in-out: " + str(int(round(self.humdiff,0))) + "Pa\n"
+            tmp += "diff. humidity partial pressure in-out: " + str(int(round(self.humdiff, 0))) + "Pa\n"
 
         if "humidity" in sys.argv:
             tmp += "Pressure limit: " + str(round(self.indoor_dewpoint, 2)) + "C\n"
@@ -1423,28 +1429,35 @@ class Systemair(object):
                         and self.inlet_ave > 10:
                     self.cycle_exchanger(0)
                     self.modetoken = time.time()
-                    os.write(ferr, bytes("Exchange set to 0 inlet>10C and extr above target \t" + str(time.ctime()) + "\n", encoding='utf8'))
+                    os.write(ferr,
+                             bytes("Exchange set to 0 inlet>10C and extr above target \t" + str(time.ctime()) + "\n",
+                                   encoding='utf8'))
 
                 if self.supply_ave > self.target \
                         and self.exchanger_mode != 0 \
                         and self.shower == False:
                     self.cycle_exchanger(0)
                     self.modetoken = time.time()
-                    os.write(ferr, bytes("Exchange set to 0 supply>target \t" + str(time.ctime()) + "\n", encoding='utf8'))
+                    os.write(ferr,
+                             bytes("Exchange set to 0 supply>target \t" + str(time.ctime()) + "\n", encoding='utf8'))
 
                 if self.extract_ave < self.target - 1 \
                         and self.exchanger_mode != 5 \
                         and not self.cool_mode:
                     self.cycle_exchanger(5)
                     self.modetoken = time.time()
-                    os.write(ferr, bytes("1.Exchange set to 5. extract is less than target-1C \t" + str(time.ctime()) + "\n", encoding='utf8'))
+                    os.write(ferr,
+                             bytes("1.Exchange set to 5. extract is less than target-1C \t" + str(time.ctime()) + "\n",
+                                   encoding='utf8'))
 
                 if self.supply_ave < 10 \
                         and self.extract_ave < self.target \
                         and self.exchanger_mode != 5 \
                         and not self.cool_mode:
                     self.cycle_exchanger(5)
-                    os.write(ferr, bytes("2.Exchange set to 5 supply<10C and extract< target \t" + str(time.ctime()) + "\n", encoding='utf8'))
+                    os.write(ferr,
+                             bytes("2.Exchange set to 5 supply<10C and extract< target \t" + str(time.ctime()) + "\n",
+                                   encoding='utf8'))
                     self.modetoken = time.time()
                 if self.exchanger_mode != 5 \
                         and self.inlet_ave < 10 \
@@ -1455,7 +1468,8 @@ class Systemair(object):
                         and not self.shower:
                     self.modetoken = time.time()
                     self.cycle_exchanger(5)
-                    os.write(ferr, bytes("3.Exchange set to 5 inlet<10C \t" + str(time.ctime()) + "\n", encoding='utf8'))
+                    os.write(ferr,
+                             bytes("3.Exchange set to 5 inlet<10C \t" + str(time.ctime()) + "\n", encoding='utf8'))
 
             # FORECAST RELATED COOLING
             try:
@@ -1477,24 +1491,30 @@ class Systemair(object):
                     os.write(ferr, bytes("Cooling activated \t" + str(time.ctime()) + "\n", encoding='utf8'))
 
             except:
-                os.write(ferr, bytes("Forecast cooling error " + str(self.integral_forcast) + ' ' + str(time.ctime()) + "\n", encoding='utf8'))
+                os.write(ferr,
+                         bytes("Forecast cooling error " + str(self.integral_forcast) + ' ' + str(time.ctime()) + "\n",
+                               encoding='utf8'))
 
             if self.cool_mode and not self.inhibit and not self.shower and not self.ac_active:
                 if (self.extract_ave < 20.7) and self.fanspeed != 1:
                     self.set_fanspeed(1)
                     self.msg += "Cooling complete\n"
-                    os.write(ferr, bytes("Cooling complete 20.7C reached \t" + str(time.ctime()) + "\n", encoding='utf8'))
+                    os.write(ferr,
+                             bytes("Cooling complete 20.7C reached \t" + str(time.ctime()) + "\n", encoding='utf8'))
 
                 if self.fanspeed == 3 and (self.supply_ave < 12 and self.extract_ave < 22):
                     self.set_fanspeed(2)
                     self.msg += "Cooling reduced\n"
-                    os.write(ferr, bytes("Cooling reduced to medium, supply below 12C \t" + str(time.ctime()) + "\n", encoding='utf8'))
+                    os.write(ferr, bytes("Cooling reduced to medium, supply below 12C \t" + str(time.ctime()) + "\n",
+                                         encoding='utf8'))
 
                 if self.fanspeed == 2 and self.supply_ave > 13:
                     self.set_fanspeed(3)
                     self.msg += "Cooling returned to High.\n"
                     os.write(ferr,
-                             bytes("Cooling returned to high from medium, supply above 13C \t" + str(time.ctime()) + "\n", encoding='utf8'))
+                             bytes(
+                                 "Cooling returned to high from medium, supply above 13C \t" + str(time.ctime()) + "\n",
+                                 encoding='utf8'))
 
                 if self.fanspeed == 1 and self.extract_ave > 21 and self.extract_ave + 0.1 > self.inlet_ave:
                     self.set_fanspeed(3)
@@ -1531,9 +1551,11 @@ class Systemair(object):
                         self.msg += "Dynamic fanspeed 2\n"
                         if self.humdiff > 500:
                             self.flowOffset = [self.flowOffset[0] + 5, time.time()]
-                            os.write(ferr, bytes("Dynamic fanspeed 2 with RH \t" + str(time.ctime()) + "\n", encoding='utf8'))
+                            os.write(ferr,
+                                     bytes("Dynamic fanspeed 2 with RH \t" + str(time.ctime()) + "\n", encoding='utf8'))
                         else:
-                            os.write(ferr, bytes("Dynamic fanspeed 2 no RH\t" + str(time.ctime()) + "\n", encoding='utf8'))
+                            os.write(ferr,
+                                     bytes("Dynamic fanspeed 2 no RH\t" + str(time.ctime()) + "\n", encoding='utf8'))
                     if self.fanspeed == 2 \
                             and ((self.extract_ave < self.target + 0.5
                                   and self.extract_ave - self.supply_ave > 0.1
@@ -1543,10 +1565,12 @@ class Systemair(object):
                         self.set_fanspeed(1)
                         if self.humdiff < 350:
                             self.msg += "Dynamic fanspeed 1, Air quality Good\n"
-                            os.write(ferr, bytes("Dynamic fanspeed 1 with RH\t" + str(time.ctime()) + "\n", encoding='utf8'))
+                            os.write(ferr,
+                                     bytes("Dynamic fanspeed 1 with RH\t" + str(time.ctime()) + "\n", encoding='utf8'))
                         else:
                             self.msg += "Dynamic fanspeed 1\n"
-                            os.write(ferr, bytes("Dynamic fanspeed 1 no RH\t" + str(time.ctime()) + "\n", encoding='utf8'))
+                            os.write(ferr,
+                                     bytes("Dynamic fanspeed 1 no RH\t" + str(time.ctime()) + "\n", encoding='utf8'))
                 # dynamic without Rhsensor
                 else:
                     if self.fanspeed == 2 \
@@ -1554,14 +1578,17 @@ class Systemair(object):
                             and self.extract_ave - self.supply_ave > 0.1:
                         self.set_fanspeed(1)
                         self.msg += "Dynamic fanspeed 1\n"
-                        os.write(ferr, bytes("Dynamic fanspeed 1 without RH\t" + str(time.ctime()) + "\n", encoding='utf8'))
+                        os.write(ferr,
+                                 bytes("Dynamic fanspeed 1 without RH\t" + str(time.ctime()) + "\n", encoding='utf8'))
 
                     if self.fanspeed == 1 \
                             and (self.extract_ave > self.target + 0.6
                                  and self.extract_ave - self.supply_ave > 0.1):
                         self.set_fanspeed(2)
                         self.msg += "Dynamic fanspeed 2\n"
-                        os.write(ferr, bytes("Dynamic fanspeed 2 extr > target +0.5C without RH\t" + str(time.ctime()) + "\n", encoding='utf8'))
+                        os.write(ferr,
+                                 bytes("Dynamic fanspeed 2 extr > target +0.5C without RH\t" + str(time.ctime()) + "\n",
+                                       encoding='utf8'))
                 # dynamic 3 if temp is climbing and exchanger is off, and extract is above target +1.2C
                 if self.fanspeed == 2 \
                         and self.extract_ave - 0.1 > self.supply_ave \
@@ -1590,7 +1617,8 @@ class Systemair(object):
                             and self.extract_dt_long < -0.5):
                     self.set_fanspeed(2)
                     self.msg += "Dynamic fanspeed 2 with long dt\n"
-                    os.write(ferr, bytes("Dynamic fanspeed 2 with long dt from 3\t" + str(time.ctime()) + "\n", encoding='utf8'))
+                    os.write(ferr, bytes("Dynamic fanspeed 2 with long dt from 3\t" + str(time.ctime()) + "\n",
+                                         encoding='utf8'))
 
             # Dynamic pressure control
             if not self.shower:
@@ -1648,7 +1676,8 @@ class Systemair(object):
 
     # set the fan pressure diff
     def set_differential(self, percent):
-        os.write(ferr, bytes("Pressure difference set to: " + str(percent) + "%\t" + str(time.ctime()) + "\n", encoding='utf8'))
+        os.write(ferr, bytes("Pressure difference set to: " + str(percent) + "%\t" + str(time.ctime()) + "\n",
+                             encoding='utf8'))
         self.coef_inhibit = time.time()
         if percent > 20: percent = 20
         if percent < -20: percent = -20
@@ -1710,7 +1739,9 @@ class Systemair(object):
             if self.fanspeed == 1 and self.ef != base + self.flowOffset[0] and not self.shower and not self.cool_mode:
                 req.write_register(1403, base + self.flowOffset[0])
                 req.write_register(1402, self.sf_base + self.flowOffset[0])
-                os.write(ferr, bytes("Extract flow offset to: " + str(self.flowOffset[0]) + "\t" + str(time.ctime()) + "\n", encoding='utf8'))
+                os.write(ferr,
+                         bytes("Extract flow offset to: " + str(self.flowOffset[0]) + "\t" + str(time.ctime()) + "\n",
+                               encoding='utf8'))
                 # self.msg += "Updated base extract flow to: "+str(base+self.flowOffset[0])+"\n"
                 self.ef = base + self.flowOffset[0]
                 self.sf = self.sf_base + self.flowOffset[0]
@@ -1721,7 +1752,8 @@ class Systemair(object):
                 req.write_register(101, 30 + self.flowOffset[0])
                 # self.msg += "Updated base extract flow to: "+str(base+self.flowOffset[0])+"\n"
                 os.write(ferr,
-                         "Updated extract flow offset to: " + str(self.flowOffset[0]) + "\t" + str(time.ctime()) + "\n", encoding='utf8')
+                         "Updated extract flow offset to: " + str(self.flowOffset[0]) + "\t" + str(time.ctime()) + "\n",
+                         encoding='utf8')
                 self.ef = base + self.flowOffset[0]
                 self.sf = 30 + self.flowOffset[0]
 
@@ -1733,7 +1765,8 @@ class Systemair(object):
                     self.prev_static_temp = float(os.popen("cat RAM/latest_static").readline().split("\n")[0])
                 except:
                     self.prev_static_temp = self.inlet_ave
-                    os.write(ferr, bytes("Unable to load latest_static temp\t" + str(time.ctime()) + "\n", encoding='utf8'))
+                    os.write(ferr,
+                             bytes("Unable to load latest_static temp\t" + str(time.ctime()) + "\n", encoding='utf8'))
             else:
                 fd = os.open("RAM/latest_static", os.O_WRONLY | os.O_CREAT | os.O_TRUNC)
                 os.write(fd, bytes(str(self.prev_static_temp), encoding='utf8'))
@@ -1757,14 +1790,17 @@ class Systemair(object):
             # comp = float(wthr[0])-(float(wthr[2])/8) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/8
             except ValueError:
                 sun = 7
-                os.write(ferr, bytes("Unable set weather or sunrise " + "\t" + str(time.ctime()) + "\n", encoding='utf8'))
+                os.write(ferr,
+                         bytes("Unable set weather or sunrise " + "\t" + str(time.ctime()) + "\n", encoding='utf8'))
             # wthr = [self.prev_static_temp, 0, 0,100]
             # comp = float(wthr[0])-(float(wthr[2])/8) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/8
             except IndexError:
-                os.write(ferr, bytes("Forcast does not return proper data." + " " + str(time.ctime()) + "\n", encoding='utf8'))
+                os.write(ferr, bytes("Forcast does not return proper data." + " " + str(time.ctime()) + "\n",
+                                     encoding='utf8'))
 
         else:
-            os.write(ferr, bytes("forcast unavailible. " + " " + str(self.forcast) + str(time.ctime()) + "\n", encoding='utf8'))
+            os.write(ferr, bytes("forcast unavailible. " + " " + str(self.forcast) + str(time.ctime()) + "\n",
+                                 encoding='utf8'))
             sun = 7
             comp = 0
         try:
@@ -1786,7 +1822,7 @@ class Systemair(object):
         if self.prev_static_temp - self.kinetic_compensation > self.inlet_ave:
             # self.prev_static_temp = self.inlet_ave+self.kinetic_compensation
             self.kinetic_compensation = self.kinetic_compensation * 0.98
-        #if "debug" in sys.argv:
+        # if "debug" in sys.argv:
         #    self.msg += "Comp set to: " + str(round(comp, 4)) + " Calc RH%: " + str(
         #        self.local_humidity) + "% prev_static: " + str(self.prev_static_temp) + "C 24h-low: " + str(
         #        saturation_point) + "C tomorrows low: " + str(wthr[0]) + "c\n"
@@ -1837,19 +1873,22 @@ class Systemair(object):
         os.write(air_out, bytes(tmp, encoding='utf8'))
 
     def check_coef(self):
-        """ CHECK IF COEF IS AVAILIBLE AND IF NOT in inhibit and current fans are at 1 ,
-			 run a set of max speed fans to generate new coef data"""
+        """ CHECK IF COEF IS AVAILABLE AND IF NOT in inhibit and current fans are at 1 ,
+            run a set of max speed fans to generate new coef data
+        """
         try:
             self.coef_dict[int(self.get_coef_mode())][int(self.extract_ave - self.inlet_ave)]
         except KeyError:
-            if self.get_fanspeed() == 1 and not self.inhibit and not self.coef_inhibit and self.monitor and not self.cool_mode:
-                os.write(ferr, bytes("Starting coefAI test @  " + str(int(self.extract_ave - self.inlet_ave)) + "C\t" + str(
-                    time.ctime()) + "\n"))
+            if self.get_fanspeed() == 1 and not self.inhibit \
+                    and not self.coef_inhibit and self.monitor and not self.cool_mode:
+                os.write(ferr,
+                         bytes("Starting coefAI test @  " + str(int(self.extract_ave - self.inlet_ave)) + "C\t" + str(
+                             time.ctime()) + "\n"))
                 self.set_fanspeed(3)
                 self.coef_debug()
 
 
-## Init base class ##
+# Init base class
 if __name__ == "__main__":
     print("Reporting system start;")
     report_alive()
@@ -1868,9 +1907,9 @@ if __name__ == "__main__":
         device.status_field[3] = "VTR300/savecair"
         device.averagelimit = 3400
         os.write(ferr, bytes("Savecair unit set\n", encoding='utf8'))
-################
-###################################################
-############################ RUN MAIN loop ########################
+
+
+#  RUN MAIN loop
 if __name__ == "__main__":
     monitoring = True
     reset_fans = False
@@ -2153,6 +2192,7 @@ if __name__ == "__main__":
                         except:
                             traceback.print_exc(ferr)
 
+
                     def reset_fanspeed(speed):
                         global reset_fans
                         reset_fans = speed
@@ -2164,12 +2204,14 @@ if __name__ == "__main__":
                                 if tim.name == "Timer": tim.cancel()
                                 if tim2.name == "Timer": tim2.cancel()
                                 device.msg += "Removed Forced ventilation timer\n"
-                                os.write(ferr, bytes(bytes("Vent Timer canceled at:\t" + str(time.ctime()) + "\n", encoding='utf8')))
+                                os.write(ferr, bytes(
+                                    bytes("Vent Timer canceled at:\t" + str(time.ctime()) + "\n", encoding='utf8')))
                                 monitoring = True
                                 device.timer = False
 
                             if threading.enumerate()[-1].name != "Timer":
-                                os.write(ferr, bytes("Vent timer started at:\t" + str(time.ctime()) + "\n", encoding='utf8'))
+                                os.write(ferr,
+                                         bytes("Vent timer started at:\t" + str(time.ctime()) + "\n", encoding='utf8'))
                                 prev = device.fanspeed
                                 device.set_fanspeed(3)
                                 monitoring = False
@@ -2229,7 +2271,8 @@ if __name__ == "__main__":
             except ValueError:
                 os.write(ferr, bytes("ValueError occured at:\t" + str(time.ctime()) + "\n", encoding='utf8'))
             except IOError:
-                os.write(ferr, bytes("Connection to the systemAir unit has been lost at:\t" + str(time.ctime()) + "\n", encoding='utf8'))
+                os.write(ferr, bytes("Connection to the systemAir unit has been lost at:\t" + str(time.ctime()) + "\n",
+                                     encoding='utf8'))
     except TypeError:
         pass
     except KeyboardInterrupt:
