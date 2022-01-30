@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import threading
 import numpy
 import math
@@ -49,8 +49,6 @@ def covariance(x,y):
 	ty.start()
 	tx.join()
 	ty.join()
-	#xm= mean(x)
-	#ym= mean(y)
 	sum =0
 	for each in range(len(x)):
 		sum+= (x[each]-tx.mean)*(y[each]-ty.mean)
@@ -69,16 +67,13 @@ def correlation(x,y):
 	return covariance(x,y)/(tx.dev*ty.dev)
 
 class threaded_mean(threading.Thread):
-	#self.__init__(self)
 	def run (self):
 		self.data
 		self.mean=mean(self.data)
-		#print "threaded mean:",self.mean
 class threaded_stddev(threading.Thread):
 	def run(self):
 		self.data
 		self.ave, self.dev = stddev(self.data)
-		#print "threaded stddev:",self.dev
 def chi2test(measured, calculated):
 	chi = 0
 	for x,y in zip( measured, calculated):
