@@ -2271,8 +2271,8 @@ if __name__ == "__main__":
                     if data == 14:
                         device.set_fanspeed(3)
                         device.coef_debug()
-            except TypeError:
-                os.write(ferr, bytes("TypeError occured at:\t" + str(time.ctime()) + "\n", encoding='utf8'))
+            except TypeError as e:
+                os.write(ferr, bytes("TypeError occured at:\t" + str(time.ctime()) + "\n" + e, encoding='utf8'))
             except ValueError:
                 os.write(ferr, bytes("ValueError occured at:\t" + str(time.ctime()) + "\n", encoding='utf8'))
             except IOError:
