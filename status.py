@@ -2,10 +2,10 @@
 import os
 import time
 import mail
-import sys
 import traceback
-mailer = mail.Smtp()
 import pathlib
+mailer = mail.Smtp()
+
 
 path = pathlib.Path(__file__).parent.resolve()
 os.chdir(path)
