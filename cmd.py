@@ -23,7 +23,7 @@ try:
 		if sys.stdin in input[0]:
 			cmd = sys.stdin.read(2)
 			print(cmd+chr(27)+"[2J")
-			sock.sendto(cmd,("127.0.0.1",9876))
+			sock.sendto(cmd.encode("utf-8"),("127.0.0.1",9876))
 		print(chr(27) +"\x1b[H")
 		#chr(27) +"[2J\x1b[H"
 		page = open("./RAM/out").read()
