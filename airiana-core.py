@@ -2087,8 +2087,7 @@ if __name__ == "__main__":
                         log = "echo \"" + str(time.ctime()) + ":" + str(sender) + ":" + str(data) + "\" >> netlog.log &"
                         os.write(ferr, bytes(f"{sender}:{data} at\t{time.ctime()}\n", "utf-8"))
                         os.system(log)
-                    # device.msg += log+"\n"+str(data)+" "+str(type(data))+" "+str(len(data))+"\n"
-                    except IOError:
+                    except:
                         device.msg += "net log error\n"
                         traceback.print_exc()
 
@@ -2151,12 +2150,8 @@ if __name__ == "__main__":
                         except:
                             traceback.print_exc(ferr)
 
-
-                    # raw_input("break")
-
                     def reset_fanspeed(speed):
                         global reset_fans
-
                         reset_fans = speed
 
 
