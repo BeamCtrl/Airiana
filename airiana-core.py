@@ -472,7 +472,7 @@ class Systemair(object):
             if os.path.isfile("coeficients.dat"):
                 self.coef_dict = pickle.load(open("coeficients.dat", "rb"))
             else:
-                raise IOError
+                pickle.dump(self.coef_dict, open("coeficients.dat", "w"))
         except:
             traceback.print_exc(ferr)
 
