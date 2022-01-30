@@ -575,7 +575,7 @@ class Systemair(object):
         if self.fanspeed == 3 and not self.coef_test_bool and self.inhibit and not self.shower:
             self.press_inhibit = time.time()
             self.modetoken = time.time() - 3000
-            fd = open("coeficients.dat", "r")
+            fd = open("coeficients.dat", "rb")
             self.coef_dict = pickle.load(fd)
             fd.close()
             self.coef_test_bool = True
@@ -978,9 +978,12 @@ class Systemair(object):
                         (self.supply_power + self.extract_combined) / 2)) * 100)
             except ZeroDivisionError:
                 pass
+
             if len(self.diff_ave) > self.averagelimit: self.diff_ave.pop(-1)
             self.i_diff.append((self.extract_combined - self.supply_power) * -1)
-            if len(self.i_diff) > 15: self.i_diff.pop(0)
+            if len(self.i_diff) > 15: self.i_diff.pop(0)os.write(ferr,
+                         bytes(str((self.extract_combined, self.supply_power),
+                        (self.supply_power, self.extract_combined)) + "\n", encoding='utf8'))
             try:
                 self.dur = self.time[0] - self.time[1]
                 if self.rotor_active == "Yes":
