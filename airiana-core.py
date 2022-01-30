@@ -2078,18 +2078,17 @@ if __name__ == "__main__":
                     try:
                         sock = cmd_socket.recvfrom(128)
                         data = sock[0]
-                        data = int.from_bytes(data, sys.byteorder, signed = False)
-                        print(data)
+                        data = int(data.decode("utf-8"))
                         sender = sock[1]
                     except:
                         pass
                     try:
                         device.msg += "\nNetwork command recieved: Processing... " + str(data) + "\n"
                         log = "echo \"" + str(time.ctime()) + ":" + str(sender) + ":" + str(data) + "\" >> netlog.log &"
-                        os.write(ferr, bytes(str(sender) + ":" + str(data) + " at\t " + time.ctime() + '\n'))
+                        os.write(ferr, bytes(f"{sender}:{data} at\t{time.ctime()}\n", "utf-8"))
                         os.system(log)
                     # device.msg += log+"\n"+str(data)+" "+str(type(data))+" "+str(len(data))+"\n"
-                    except:
+                    except IOError:
                         device.msg += "net log error\n"
                         traceback.print_exc()
 
