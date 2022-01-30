@@ -177,7 +177,7 @@ def report_alive():
                     message += os.popen("df |grep RAM").read() + "<br>"
                     message += os.popen("df |grep var").read() + "<br>"
                     if os.path.lexists("RAM/error_rate"): message += os.popen("cat RAM/error_rate").read() + "<br>"
-                except IOError:
+                except:
                     os.write(ferr, bytes("Ping error " + str(traceback.print_exc()) + "\n", encoding='utf8'))
                     os.close(fd)
         # if "debug" in sys.argv: device.msg +=  message + "\n"
@@ -185,7 +185,7 @@ def report_alive():
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
         sock.sendto(message.encode("utf-8"), (socket.gethostbyname("lappy.asuscomm.com"), 59999))
         sock.close()
-    except IOError:
+    except:
         os.write(ferr, bytes("unable to ping, network error\t" + time.ctime() + "\n", encoding='utf8'))
 
 
@@ -1259,7 +1259,7 @@ class Systemair(object):
 
             except:
                 pass
-            tmp += "diff. humidity partial pressure in-out: " + str(round(self.humdiff,0)) + "Pa\n"
+            tmp += "diff. humidity partial pressure in-out: " + str(int(round(self.humdiff,0))) + "Pa\n"
 
         if "humidity" in sys.argv:
             tmp += "Pressure limit: " + str(round(self.indoor_dewpoint, 2)) + "C\n"
