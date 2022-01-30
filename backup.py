@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 import time as tm
 import os
-## make backup of datafile if large##
+# make backup of datafile if large##
 logfile = ""
 try:
-	logfile = open("./RAM/data.log","r")
+	logfile = open("./RAM/data.log", "r")
 except FileNotFoundError:
 	print("no datafile found, creating")
 	os.system("touch ./RAM/data.log")
@@ -12,13 +12,13 @@ except FileNotFoundError:
 loglines = logfile.readlines()
 buffer = []
 buffer_len = -1
-while buffer_len != len(buffer) :
+while buffer_len != len(buffer):
 	buffer_len = len(buffer)
 	for each in loglines:
 		line = each.split(":")
 		if float(line[0]) < (tm.time()-(25*60*60)):
 			os.system("echo -n \"" + each + "\">> ./data.log")
-			buffer.append (loglines.pop(loglines.index(each)))
+			buffer.append(loglines.pop(loglines.index(each)))
 
 os.system("rm -f ./RAM/data.log")
 targetfile = open("./RAM/data.log", "w")
