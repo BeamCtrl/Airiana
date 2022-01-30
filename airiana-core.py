@@ -1284,7 +1284,7 @@ class Systemair(object):
             tmp += "AC-energy: " + str(round(self.AC_energy / 1000, 3)) + "kWh\n"
         if self.rotor_active == "Yes" or "debug" in sys.argv:
             tmp += "Temperature Efficiency: " + str(round(numpy.average(self.eff_ave), 2)) + "%\n"
-        tmp += "Filter has been installed for " + str(self.filter) + " days ," + str(
+        tmp += "Filter has been installed for " + str(math.ceil(self.filter)) + " days ," + str(
             self.filter_remaining) + "% remaining. \n\n"
         tmp += "Ambient Pressure:" + str(self.airdata_inst.press) + "hPa\n"
         if self.forcast[1] != -1: tmp += "Weather forecast: " + str(self.forcast[0]) + "C " + str(
@@ -1783,10 +1783,10 @@ class Systemair(object):
         if self.prev_static_temp - self.kinetic_compensation > self.inlet_ave:
             # self.prev_static_temp = self.inlet_ave+self.kinetic_compensation
             self.kinetic_compensation = self.kinetic_compensation * 0.98
-        if "debug" in sys.argv:
-            self.msg += "Comp set to: " + str(round(comp, 4)) + " Calc RH%: " + str(
-                self.local_humidity) + "% prev_static: " + str(self.prev_static_temp) + "C 24h-low: " + str(
-                saturation_point) + "C tomorrows low: " + str(wthr[0]) + "c\n"
+        #if "debug" in sys.argv:
+        #    self.msg += "Comp set to: " + str(round(comp, 4)) + " Calc RH%: " + str(
+        #        self.local_humidity) + "% prev_static: " + str(self.prev_static_temp) + "C 24h-low: " + str(
+        #        saturation_point) + "C tomorrows low: " + str(wthr[0]) + "c\n"
         # nightly refresh
         if time.localtime().tm_hour == sun and time.localtime().tm_min < 5 or self.prev_static_temp == 8:
             self.prev_static_temp = saturation_point
