@@ -39,6 +39,6 @@ while True:
         for_file.replace("\n", "<br>##")
         try:
             if len(mac) != 0:
-                open(filename, "+").write(for_file)
+                open(filename, "w").write(for_file)
         except IOError:
             print("file missing", filename)
