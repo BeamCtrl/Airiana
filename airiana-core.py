@@ -913,12 +913,15 @@ class Systemair(object):
             self.inlet_ave = numpy.average(self.inlet)
             self.supply_ave = numpy.average(self.supply)
             self.extract_ave = numpy.average(self.extract)
+            if self.system_name == "VR400":
+                self.exhaust_ave = numpy.average(self.exhaust)
         else:
             self.inlet_ave = self.inlet[0]
             self.supply_ave = self.supply[0]
             self.extract_ave = self.extract[0]
             if self.system_name == "VR400":
-                self.exhaust_ave = numpy.average(self.exhaust)
+                self.exhaust_ave = self.exhaust[0]
+
         if self.fanspeed != 0:
             # self.availible_energy =  self.airdata_inst.energy_flow(self.ef,self.extract_ave,self.inlet_ave)+self.airdata_inst.condensation_energy((self.airdata_inst.vapor_max(self.exhaust_ave)-self.airdata_inst.vapor_max(self.inlet_ave))*((self.ef)/1000))
 
@@ -1343,14 +1346,14 @@ class Systemair(object):
                     self.current_mode = get_val()
                 i = 0
                 if self.current_mode != 0 or to == 0:
-                    while set_val(0) == False:
+                    while not set_val(0):
                         # self.msg += "\nwrite error"
                         time.sleep(0.2)  # set summer mode
                         i += 1
                         if i > 10:
                             os.write(ferr, bytes("Exchanger write failed\n"))
                 else:
-                    while set_val(5) == False:
+                    while not set_val(5):
                         # self.msg +="\nwrite error"
                         time.sleep(0.2)  # set winter mode
                         i += 1
