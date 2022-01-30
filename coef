@@ -50,4 +50,4 @@ for i in range(min_index, max_index + 1):
 
 # WRITE TO FILE
 if "-r" in sys.argv or "-i" in sys.argv:
-    pickle.dump(a, open("coeficients.dat", "w"))
+    pickle.dump(a, open("coeficients.dat", "wb"))
