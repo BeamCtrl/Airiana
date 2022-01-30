@@ -574,8 +574,9 @@ class Systemair(object):
         if self.fanspeed == 3 and not self.coef_test_bool and self.inhibit and not self.shower:
             self.press_inhibit = time.time()
             self.modetoken = time.time() - 3000
-            fd = open("coeficients.dat", "a")
+            fd = open("coeficients.dat", "r")
             self.coef_dict = pickle.load(fd)
+            fd.close()
             self.coef_test_bool = True
             self.coef_prev_temp = 0
             for each in self.rawdata:
