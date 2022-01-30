@@ -123,9 +123,9 @@ def count_down(inhibit, target):
         inhibit = inhibit - (hrs * 3600)
         return str(hrs) + "h " + str(math.floor(inhibit / 60)) + "min " + str(inhibit % 60).zfill(2) + "s"
     if inhibit % 60 == 0:
-        return str(inhibit / 60) + "min"
+        return str(math.floor(inhibit / 60)) + "min"
     if inhibit > 60:
-        return str(inhibit / 60) + "min " + str(inhibit % 60).zfill(2) + "s"
+        return str(math.floor(inhibit / 60)) + "min " + str(inhibit % 60).zfill(2) + "s"
     if inhibit < 60:
         return str(inhibit).zfill(2) + "s"
 
@@ -1257,7 +1257,7 @@ class Systemair(object):
 
             except:
                 pass
-            tmp += "diff. humidity partial pressure in-out: " + str(self.humdiff) + "Pa\n"
+            tmp += "diff. humidity partial pressure in-out: " + str(round(self.humdiff,0)) + "Pa\n"
 
         if "humidity" in sys.argv:
             tmp += "Pressure limit: " + str(round(self.indoor_dewpoint, 2)) + "C\n"
