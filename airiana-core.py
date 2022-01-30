@@ -603,10 +603,10 @@ class Systemair(object):
                 self.coef_dict[self.get_coef_mode()][int(temp_diff)] = new_coef
             else:
                 self.coef_dict[self.get_coef_mode()][int(temp_diff)] += (new_coef -
-                                                                         self.coef_dict[self.get_coef_mode()][
-                                                                             int(temp_diff)]) * 0.1  # add 10% of diff from new coef to dict
+                                                    self.coef_dict[self.get_coef_mode()][
+                                                    int(temp_diff)]) * 0.1  # add 10% of diff from new coef to dict
             if len(self.coef_dict) != 0:
-                pickle.dump(self.coef_dict, open("coeficients.dat", "w"))
+                pickle.dump(self.coef_dict, open("coeficients.dat", "wb"))
             self.coef_test_bool = False
             self.set_fanspeed(1)
 
@@ -981,9 +981,7 @@ class Systemair(object):
 
             if len(self.diff_ave) > self.averagelimit: self.diff_ave.pop(-1)
             self.i_diff.append((self.extract_combined - self.supply_power) * -1)
-            if len(self.i_diff) > 15: self.i_diff.pop(0)os.write(ferr,
-                         bytes(str((self.extract_combined, self.supply_power),
-                        (self.supply_power, self.extract_combined)) + "\n", encoding='utf8'))
+            if len(self.i_diff) > 15: self.i_diff.pop(0)
             try:
                 self.dur = self.time[0] - self.time[1]
                 if self.rotor_active == "Yes":
@@ -1302,7 +1300,7 @@ class Systemair(object):
             tmp += "Temperature Efficiency: " + str(round(numpy.average(self.eff_ave), 2)) + "%\n"
         tmp += "Filter has been installed for " + str(math.ceil(self.filter)) + " days ," + str(
             self.filter_remaining) + "% remaining. \n\n"
-        tmp += "Ambient Pressure:" + str(self.airdata_inst.press) + "hPa\n"
+        tmp += "Ambient Pressure:" + str(round(self.airdata_inst.press, 2)) + "hPa\n"
         if self.forcast[1] != -1: tmp += "Weather forecast: " + str(self.forcast[0]) + "C " + str(
             self.forcast[1] / 8 * 100) + "% cloud cover RH:" + str(self.forcast[2]) + "%\n\n"
         if "Timer" in threading.enumerate()[-1].name: tmp += "Ventilation timer on: " + count_down(self.timer,
