@@ -162,28 +162,30 @@ def report_alive():
                         if os.path.lexists("update.log"):
                             log = os.open("update.log", os.O_RDONLY)
                             logdata = os.read(log, 5000)
-                            temp += "\n\n" + bytes(logdata, encoding='utf8')
+                            temp += bytes("\n\n", "utf-8")
+                            temp += logdata
                             os.close(log)
                         if os.path.lexists("./RAM/request.log"):
                             with open("./RAM/request.log") as reqlog:
-                                temp += b"\n\n" + reqlog.read()
+                                temp += bytes("\n\n", "utf-8")
+                                temp += bytes(reqlog.read(), "utf-8")
                     except KeyboardInterrupt:
                         pass
                     temp = temp.replace(b"\n", b"<br>")
                     temp = temp.replace(b"\t", b"&emsp;")
-                    message += temp + b"<br>"
+                    message += temp.decode("utf-8") + "<br>"
                     message += os.popen("df |grep RAM").read() + "<br>"
                     message += os.popen("df |grep var").read() + "<br>"
                     if os.path.lexists("RAM/error_rate"): message += os.popen("cat RAM/error_rate").read() + "<br>"
-                except:
+                except IOError:
                     os.write(ferr, bytes("Ping error " + str(traceback.print_exc()) + "\n", encoding='utf8'))
                     os.close(fd)
         # if "debug" in sys.argv: device.msg +=  message + "\n"
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
-        sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
+        sock.sendto(message.encode("utf-8"), (socket.gethostbyname("lappy.asuscomm.com"), 59999))
         sock.close()
-    except:
+    except IOError:
         os.write(ferr, bytes("unable to ping, network error\t" + time.ctime() + "\n", encoding='utf8'))
 
 
