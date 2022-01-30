@@ -2078,7 +2078,7 @@ if __name__ == "__main__":
                     try:
                         sock = cmd_socket.recvfrom(128)
                         data = sock[0]
-                        data = int.from_bytes(data, "big")
+                        data = int.from_bytes(data, "little")
                         print(data)
                         sender = sock[1]
                     except:
