@@ -468,13 +468,12 @@ class Systemair(object):
     def system_setup(self):
         try:
             if os.path.isfile("coeficients.dat"):
-                self.coef_dict = pickle.load(open("coeficients.dat", "r+"))
+                self.coef_dict = pickle.load(open("coeficients.dat", "rb"))
             else:
                 raise IOError
         except:
             traceback.print_exc(ferr)
-            with open("coeficients.dat", 'w') as f:
-                pickle.dump(self.coef_dict, f)
+
         if savecair:
             req.write_register(1400, 16)
             req.write_register(1401, 16)
@@ -573,7 +572,7 @@ class Systemair(object):
         if self.fanspeed == 3 and not self.coef_test_bool and self.inhibit and not self.shower:
             self.press_inhibit = time.time()
             self.modetoken = time.time() - 3000
-            fd = open("coeficients.dat", "a+")
+            fd = open("coeficients.dat", "a")
             self.coef_dict = pickle.load(fd)
             self.coef_test_bool = True
             self.coef_prev_temp = 0
@@ -602,7 +601,8 @@ class Systemair(object):
                 self.coef_dict[self.get_coef_mode()][int(temp_diff)] += (new_coef -
                                                                          self.coef_dict[self.get_coef_mode()][
                                                                              int(temp_diff)]) * 0.1  # add 10% of diff from new coef to dict
-            pickle.dump(self.coef_dict, open("coeficients.dat", "w"))
+            if len(self.coef_dict) != 0:
+                pickle.dump(self.coef_dict, open("coeficients.dat", "w"))
             self.coef_test_bool = False
             self.set_fanspeed(1)
 
