@@ -1532,7 +1532,7 @@ class Systemair(object):
                     self.set_fanspeed(1)
                     self.msg += "No cooling posible due to temperature conditions\n"
                     os.write(ferr, bytes("Cooling will wait, will try to recycle cold air by low fanspeed \t" + str(
-                        time.ctime()) + "\n"))
+                        time.ctime()) + "\n", "utf-8"))
 
                 try:
                     if self.integral_forcast < 0 and time.localtime().tm_hour > 12 and self.inlet_ave < 24.9:
@@ -1846,7 +1846,7 @@ class Systemair(object):
                         self.kinetic_compensation = 0
                 except:
                     os.write(ferr, bytes("Unable to update morning low with wind/fog compensation" + "\t" + str(
-                        time.ctime()) + "\n"))
+                        time.ctime()) + "\n", "utf-8"))
 
             self.prev_static_temp -= self.kinetic_compensation
             fd = os.open("RAM/latest_static", os.O_WRONLY | os.O_CREAT | os.O_TRUNC)
