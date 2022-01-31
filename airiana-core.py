@@ -603,8 +603,8 @@ class Systemair(object):
                 self.coef_dict[self.get_coef_mode()][int(temp_diff)] = new_coef
             else:
                 self.coef_dict[self.get_coef_mode()][int(temp_diff)] += (new_coef -
-                                                                         self.coef_dict[self.get_coef_mode()][
-                                                                             int(temp_diff)]) * 0.1  # add 10% of diff from new coef to dict
+                                                    self.coef_dict[self.get_coef_mode()][
+                                                    int(temp_diff)]) * 0.1  # add 10% of diff from new coef to dict
             if len(self.coef_dict) != 0:
                 pickle.dump(self.coef_dict, open("coeficients.dat", "wb"))
             self.coef_test_bool = False
@@ -1300,7 +1300,7 @@ class Systemair(object):
             tmp += "Temperature Efficiency: " + str(round(numpy.average(self.eff_ave), 2)) + "%\n"
         tmp += "Filter has been installed for " + str(math.ceil(self.filter)) + " days ," + str(
             self.filter_remaining) + "% remaining. \n\n"
-        tmp += "Ambient Pressure:" + str(self.airdata_inst.press) + "hPa\n"
+        tmp += "Ambient Pressure:" + str(round(self.airdata_inst.press, 2)) + "hPa\n"
         if self.forcast[1] != -1: tmp += "Weather forecast: " + str(self.forcast[0]) + "C " + str(
             self.forcast[1] / 8 * 100) + "% cloud cover RH:" + str(self.forcast[2]) + "%\n\n"
         if "Timer" in threading.enumerate()[-1].name: tmp += "Ventilation timer on: " + count_down(self.timer,
