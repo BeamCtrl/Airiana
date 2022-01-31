@@ -606,7 +606,7 @@ class Systemair(object):
                                                                          self.coef_dict[self.get_coef_mode()][
                                                                              int(temp_diff)]) * 0.1  # add 10% of diff from new coef to dict
             if len(self.coef_dict) != 0:
-                pickle.dump(self.coef_dict, open("coeficients.dat", "w"))
+                pickle.dump(self.coef_dict, open("coeficients.dat", "wb"))
             self.coef_test_bool = False
             self.set_fanspeed(1)
 
@@ -981,9 +981,7 @@ class Systemair(object):
 
             if len(self.diff_ave) > self.averagelimit: self.diff_ave.pop(-1)
             self.i_diff.append((self.extract_combined - self.supply_power) * -1)
-            if len(self.i_diff) > 15: self.i_diff.pop(0)os.write(ferr,
-                         bytes(str((self.extract_combined, self.supply_power),
-                        (self.supply_power, self.extract_combined)) + "\n", encoding='utf8'))
+            if len(self.i_diff) > 15: self.i_diff.pop(0)
             try:
                 self.dur = self.time[0] - self.time[1]
                 if self.rotor_active == "Yes":
@@ -1890,7 +1888,7 @@ class Systemair(object):
                     and not self.coef_inhibit and self.monitor and not self.cool_mode:
                 os.write(ferr,
                          bytes("Starting coefAI test @  " + str(int(self.extract_ave - self.inlet_ave)) + "C\t" + str(
-                             time.ctime()) + "\n"))
+                             time.ctime()) + "\n", "utf-8"))
                 self.set_fanspeed(3)
                 self.coef_debug()
 
@@ -2198,7 +2196,6 @@ if __name__ == "__main__":
                             print("not used")
                         except:
                             traceback.print_exc(ferr)
-
 
                     def reset_fanspeed(speed):
                         global reset_fans
