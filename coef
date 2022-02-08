@@ -32,19 +32,19 @@ for each in (a[0], a[1], a[2], a[3]):
 for i in range(min_index, max_index + 1):
     try:
         print(i, "C\t\t", end="")
-        print(round(float(a[0][i]), 2), " \t\t", end=' ')
+        print(round(float(a[0][i]), 3), " \t\t", end=' ')
     except:
         print("\t\t", end=' ')
     try:
-        print(round(float(a[1][i]), 2), "\t\t", end=' ')
+        print(round(float(a[1][i]), 3), "\t\t", end=' ')
     except:
         print("\t\t", end=' ')
     try:
-        print(round(float(a[2][i]), 2), "\t\t", end=' ')
+        print(round(float(a[2][i]), 3), "\t\t", end=' ')
     except:
         print("\t\t", end=' ')
     try:
-        print(round(float(a[3][i]), 2), "\t\t")
+        print(round(float(a[3][i]), 3), "\t\t")
     except:
         print("\t\t")
 
