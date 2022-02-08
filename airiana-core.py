@@ -2197,11 +2197,6 @@ if __name__ == "__main__":
                         except:
                             traceback.print_exc(ferr)
 
-                    def reset_fanspeed(speed):
-                        global reset_fans
-                        reset_fans = speed
-
-
                     if data == 8:  # toggle forced vent timer
                         try:
                             if threading.enumerate()[-1].name == "Timer":
