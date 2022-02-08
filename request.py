@@ -217,7 +217,7 @@ class Request:
 
             if tries == 0:
                 fd = os.open("RAM/err", os.O_WRONLY)
-                os.write(fd, bytes(f"Write error, no tries left on register:{reg}\n"))
+                os.write(fd, bytes(f"Write error, no tries left on register:{reg}\n", "utf-8"))
                 os.close(fd)
         else:
             try:
