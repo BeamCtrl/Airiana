@@ -139,7 +139,7 @@ class Request:
             fd = os.open("RAM/err", os.O_WRONLY)
             os.lseek(fd, os.SEEK_SET, os.SEEK_END)
             os.write(fd, bytes("""read error high rate,
-            possible no comms with unit error rate over 90%\n""", "utf-8")
+            possible no comms with unit error rate over 90%\n""", "utf-8"))
             os.close(fd)
             exit(-1)
         os.system("echo " + str(rate)
