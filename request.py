@@ -219,6 +219,7 @@ class Request:
                 fd = os.open("RAM/err", os.O_WRONLY)
                 os.write(fd, bytes(f"Write error, no tries left on register:{reg}\n", "utf-8"))
                 os.close(fd)
+        else:
             try:
                 self.response = self.client.write_single_register(reg, 1)
             except:
