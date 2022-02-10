@@ -177,7 +177,7 @@ while True:
 					else:
 						flag = "<font color=\"red\"> Inactive </font>"
 
-					status_table= ""
+					status_table = ""
 					for item in lis:
 						status_table += str(item) +"</td><td>"
 					html2 += "<tr><td><a href=\"/local_links/"\
@@ -185,6 +185,8 @@ while True:
 						+"</a></td><td>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td>"+flag\
 						+"</td><td> "\
 						+status_table
+					if len(lis) == 0:
+						html2 += 17 * "<td></td>"
 					try:
 						html2 += " </td><td>"+location[user]+"</td></tr>\n"
 					except:
