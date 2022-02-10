@@ -222,5 +222,5 @@ class Request:
             try:
                 self.response = self.client.write_single_register(reg, 1)
             except:
-                with open("RAM/err", "w") as fd:
+                with os.open("RAM/err", os.O_WRONLY) as fd:
                     os.write(fd, bytes("TCP write error on addrs:" + str(reg) + "\n", "utf-8"))
