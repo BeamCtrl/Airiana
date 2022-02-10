@@ -1757,8 +1757,8 @@ class Systemair(object):
                 req.write_register(101, 30 + self.flowOffset[0])
                 # self.msg += "Updated base extract flow to: "+str(base+self.flowOffset[0])+"\n"
                 os.write(ferr,
-                         "Updated extract flow offset to: " + str(self.flowOffset[0]) + "\t" + str(time.ctime()) + "\n",
-                         encoding='utf8')
+                        bytes("Updated extract flow offset to: " +
+                              str(self.flowOffset[0]) + "\t" + str(time.ctime()) + "\n", 'utf8'))
                 self.ef = base + self.flowOffset[0]
                 self.sf = 30 + self.flowOffset[0]
 
@@ -2045,7 +2045,7 @@ if __name__ == "__main__":
                 device.get_heater()
             # if "humidity" in sys.argv and (device.system_name not in device.has_RH_sensor or not device.RH_valid):
             # calc local humidity and exec logger
-            if device.iter % int(float(120) / device.avg_frame_time) == 0:
+            if device.iter % math.floor(120 / device.avg_frame_time) == 0:
                 device.msg = ""
                 logger()
             # send local tempt to temperatur.nu
