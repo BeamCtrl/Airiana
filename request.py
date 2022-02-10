@@ -81,17 +81,17 @@ class Request:
         fd = os.open("RAM/request.log", os.O_WRONLY | os.O_CREAT)
         self.modbusregister(101, 0)  # Read non savecair flow address
         first = self.response
-        os.write(fd, b"Testing Non-savecair address 101:" + bytes(first) + b"\n")
+        os.write(fd, bytes("Testing Non-savecair address 101:" + str(first) + "\n", "utf-8"))
         print("Testing Non-savecair address 101:" + str(first) + ";")
         self.modbusregister(12543, 0)  # Read savecair address space
         seccond = self.response
         print("Testing savecair address 12543:" + str(seccond) + ";")
-        os.write(fd, b"Testing savecair address 12543:" + bytes(seccond) + b"\n")
+        os.write(fd, bytes("Testing savecair address 12543:" + str(seccond) + "\n", "utf-8"))
         if first == 0 and seccond == 0 or (first == "no data" and seccond == "no data"):
-            os.write(fd, b"Request object Failed communications test.\n")
+            os.write(fd, bytes("Request object Failed communications test.\n", "utf-8"))
             os.close(fd)
             return False
-        os.write(fd, b"Request object Passed communications test.\n")
+        os.write(fd, bytes("Request object Passed communications test.\n", "utf-8"))
         os.close(fd)
         return True
 
@@ -138,8 +138,8 @@ class Request:
             time.sleep(1)
             fd = os.open("RAM/err", os.O_WRONLY)
             os.lseek(fd, os.SEEK_SET, os.SEEK_END)
-            os.write(fd, b"""read error high rate,
-            possible no comms with unit error rate over 90%\n""")
+            os.write(fd, bytes("""read error high rate,
+            possible no comms with unit error rate over 90%\n""", "utf-8")
             os.close(fd)
             exit(-1)
         os.system("echo " + str(rate)
@@ -219,9 +219,8 @@ class Request:
                 fd = os.open("RAM/err", os.O_WRONLY)
                 os.write(fd, bytes(f"Write error, no tries left on register:{reg}\n", "utf-8"))
                 os.close(fd)
-        else:
             try:
                 self.response = self.client.write_single_register(reg, 1)
             except:
                 with open("RAM/err", "w") as fd:
-                    fd.write("TCP write error on addrs:" + str(reg) + "\n")
+                    os.write(fd, bytes("TCP write error on addrs:" + str(reg) + "\n", "utf-8"))
