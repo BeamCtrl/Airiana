@@ -34,7 +34,6 @@ def exit_callback(self, arg):
     print("Gracefull shutdown\nexiting on signal", self)
     sys.stdout.flush()
     Running = False
-    time.sleep(3)
     os.system("cp ./RAM/data.log ./data.save")
     if threading.enumerate()[-1].name == "Timer":
         threading.enumerate()[-1].cancel()
@@ -1981,7 +1980,6 @@ if __name__ == "__main__":
             device.get_local()
         sys.stdout.flush()
         if "ping" in sys.argv: report_alive()
-        time.sleep(2)
         starttime = time.time()
         print("System started:", time.ctime(starttime), ";")
 
