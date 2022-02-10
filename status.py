@@ -185,8 +185,8 @@ while True:
 						+"</a></td><td>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td>"+flag\
 						+"</td><td> "\
 						+status_table
-					if len(lis) == 0:
-						html2 += 17 * "<td></td>"
+					if len(lis) == 1:
+						html2 += 16 * "<td></td>"
 					try:
 						html2 += " </td><td>"+location[user]+"</td></tr>\n"
 					except:
