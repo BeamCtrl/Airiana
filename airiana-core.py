@@ -672,6 +672,7 @@ class Systemair(object):
 
     def print_attributes(self):
         for each in dir(self):
+            obj = None
             exec(str("obj = self." + each))
             if isinstance(obj, (int, float, str, list)): exec(str("print each,  self." + each))
         if not "daemon" in sys.argv:
@@ -1900,7 +1901,7 @@ if __name__ == "__main__":
     req = Request()
     req.setup(unit, mode)
 
-    os.write(ferr, bytes("System started\t" + str(time.ctime()) + "\n", encoding='utf8'))
+    os.write(ferr, bytes("System started\t" + str(time.ctime()) + "\n", 'utf8'))
 
     device = Systemair()
     req.modbusregister(12543, 0)  # test for savecair extended address range
@@ -1910,7 +1911,7 @@ if __name__ == "__main__":
         conversion_table = {}
         device.status_field[3] = "VTR300/savecair"
         device.averagelimit = 3400
-        os.write(ferr, bytes("Savecair unit set\n", encoding='utf8'))
+        os.write(ferr, bytes("Savecair unit set\n", 'utf8'))
 
 
 #  RUN MAIN loop
