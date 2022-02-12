@@ -118,8 +118,8 @@ sensor_dict = {}
 def count_down(inhibit, target):
     inhibit = int(target - (time.time() - inhibit))
     if inhibit > 3600:
-        hrs = inhibit / 3600
-        inhibit = inhibit - (hrs * 3600)
+        hrs = math.floor(inhibit / 3600)
+        inhibit = int(inhibit - (hrs * 3600))
         return str(hrs) + "h " + str(math.floor(inhibit / 60)) + "min " + str(inhibit % 60).zfill(2) + "s"
     if inhibit % 60 == 0:
         return str(math.floor(inhibit / 60)) + "min"
