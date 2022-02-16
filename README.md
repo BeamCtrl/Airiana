@@ -43,7 +43,7 @@ she keeps her self in check.
 
   -Run  "sudo python ./install.py"
 
-  -Update the latlong.json file with your position to enable the forcast for your position.  
+  -When the forcasting reciever is first run it will create a latlong.json file based on IP geolocation. If you want a more precise location forcast update the latlong.json file with your position.   
 
 
 #### To enable HomeAssitant integration:
@@ -55,13 +55,13 @@ she keeps her self in check.
   or
   
   use MQTT to push data to HomeAssistant via the json data file air.out.
-  This will require you to install a MQTT-publisher and a Broker to handle the data distribution.
+  This will require you to install a MQTT-publisher and a broker to handle the data distribution.
 
 #### To run it against an Systemair Internet Access Module, 
 
   -edit /etc/systemd/system/airiana.service, add "TCP" to commandline option.
 
-  -edit the ip-config file.
+  -edit the ipconfig file.
   
 
 # Feature details.
