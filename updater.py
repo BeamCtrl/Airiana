@@ -4,6 +4,14 @@ import sys
 
 import pathlib
 path = pathlib.Path(__file__).parent.resolve()
+deb_versions = ("wheezy", "jessie", "stretch", "buster", "bullseye",
+                "bookworm", "trixie", "focal", "next_wierd_release_name")
+
+for system in enumerate(deb_versions):
+    os_name = os.popen("./osname.py").readline()[:-1]
+    if os_name in system:
+        print("current", system[1])
+        print("future", deb_versions[system[0]+1])
 os.chdir(path)
 
 os.system("git fetch && git checkout -m origin/master ./public/current_version")
@@ -17,7 +25,7 @@ for each in tmp:
 
 if "debug" in sys.argv:
     print(vers, "->", ver, "will update", vers not in ver[0])
-if vers not in ver[0] and "Valid" in ver[1] :
+if vers not in ver[0] and "Valid" in ver[1]:
     print("Updating Airiana system software to", ver[0])
     if "debug" not in sys.argv or len(sys.argv) > 1:
         os.system("./update&")
