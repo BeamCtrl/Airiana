@@ -5,6 +5,10 @@ __pycache__/
 
 # XML temp data
 *.xml
+# Current position
+latlong.json
+# external sensors file
+sensors
 # pyc, compiled python objects
 *.pyc
 #RAM dir not tracked
@@ -108,6 +112,8 @@ ENV/
 # Rope project settings
 .ropeproject
 
+# pycharm
+.idea/
 # intermittent files
 *.save*
 coeficients.dat*
