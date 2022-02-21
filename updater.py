@@ -1,6 +1,14 @@
 #!/usr/bin/python
 import os, sys
 os.chdir("/home/pi/airiana/")
+deb_versions = ("wheezy", "jessie", "stretch", "buster", "bullseye",
+                "bookworm", "trixie")
+
+for system in enumerate(deb_versions):
+    os_name = os.popen("./osname.py").readline()[:-1]
+    if os_name in system:
+        print("current", system[1])
+        print("future", deb_versions[system[0]+1])
 
 os.system("git fetch && git checkout -m origin/master ./public/current_version" )
 ver = os.popen("cat ./public/current_version").read()
