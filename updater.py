@@ -5,7 +5,7 @@ import sys
 import pathlib
 path = pathlib.Path(__file__).parent.resolve()
 deb_versions = ("wheezy", "jessie", "stretch", "buster", "bullseye",
-                "bookworm", "trixie", "focal", "next_wierd_release_name")
+                "bookworm", "trixie")
 
 for system in enumerate(deb_versions):
     os_name = os.popen("./osname.py").readline()[:-1]
