@@ -1,8 +1,7 @@
 #!/usr/bin/python2.7
 import os, sys
 #os.chdir("/home/pi/airiana/")
-deb_versions = ("wheezy", "jessie", "stretch", "buster", "bullseye",
-                "bookworm", "trixie", "focal")
+deb_versions = ("wheezy", "jessie", "stretch", "buster", "bullseye")
 
 os_name = os.popen("./osname.py").readline()[:-1]
 for system in enumerate(deb_versions):
