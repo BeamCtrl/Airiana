@@ -11,8 +11,8 @@ export DEBIAN_PRIORITY=critical
 
 #Get the latest from current distro release
 sudo -E apt-get -yq update
-sudo -E apt-get update --fix-missing
-sudo -E apt-get -q upgrade --download-only
+sudo -E apt-get -yq update --fix-missing
+sudo -E apt-get -yq upgrade --download-only
 sudo -E apt-get -yq --force-yes -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confnew" upgrade
 sudo -E apt-get -yq autoremove
 sudo -E apt-get -yq autoclean
@@ -26,10 +26,12 @@ sudo echo $apt2 |tee  /etc/apt/sources.list.d/raspi.list
 # update/upgrade/dist-upgrade
 sudo -E apt-get -yq update
 sudo -E apt-get update --fix-missing
+sudo -E apt-get -yq upgrade --download-only
 sudo -E apt-get -yq --force-yes -o "Dpkg::Options::=--force-confdef" -o "Dpkg:if [}]:Options::=--force-confnew" upgrade
 sudo -E apt-get -yq --fix-broken install
 sudo -E apt-get -yq autoremove
 sudo -E apt-get -yq autoclean
+sudo -E apt-get -yq upgrade --download-only
 sudo -E apt-get -yq --force-yes  -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confnew" dist-upgrade
 sudo -E apt-get -yq --fix-missing
 sudo -E apt-get -yq autoremove
