@@ -2,8 +2,8 @@
 import os
 import sys
 
-import pathlib
-path = pathlib.Path(__file__).parent.resolve()
+path = os.path.abspath(__file__).replace(__file__,"")
+
 deb_versions = ("wheezy", "jessie", "stretch", "buster", "bullseye",
                 "bookworm", "trixie")
 

@@ -3,11 +3,10 @@ import os
 import time
 import mail
 import traceback
-import pathlib
 mailer = mail.Smtp()
 
 
-path = pathlib.Path(__file__).parent.resolve()
+path = os.path.abspath(__file__).replace(__file__,"")
 os.chdir(path)
 if not os.path.lexists("./RAM/status.html"):
 	os.system("touch ./RAM/status.html" )

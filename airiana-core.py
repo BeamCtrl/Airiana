@@ -16,7 +16,7 @@ import pickle
 from request import Request
 import pathlib
 
-path = pathlib.Path(__file__).parent.resolve()
+path = os.path.abspath(__file__).replace(__file__,"")
 os.chdir(path)
 # numpy.seterr('ignore')
 #############################
