@@ -46,8 +46,8 @@ signal.signal(signal.SIGINT, exit_callback)
 
 try:
 
-    syslog.syslog("file is" + __file__)
-    path = os.path.abspath(__file__).replace(__file__.replace("./", ""), "")
+    syslog.syslog("file is " + __file__)
+    path = os.path.abspath(__file__).replace("airiana-core.py", "")
     syslog.syslog("changing to " + path)
     os.chdir(path)
 
