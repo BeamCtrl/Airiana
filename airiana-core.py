@@ -52,7 +52,7 @@ try:
     os.chdir(path)
 
 except:
-    syslog.syslog("unable to chdir to: "+ path )
+    syslog.syslog("unable to chdir to: " + path)
     exit(22)
 
 # exec util fnctns
