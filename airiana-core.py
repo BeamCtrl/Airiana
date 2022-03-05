@@ -15,12 +15,7 @@ import math
 import pickle
 from request import Request
 
-try:
-    path = os.path.abspath(__file__).replace(__file__.replace("./", ""), "")
-    os.chdir(path)
-except:
-    print("Unable to switch to working dir", path)
-    exit(22)
+
 # numpy.seterr('ignore')
 #############################
 
@@ -47,6 +42,13 @@ def exit_callback(self, arg):
 
 signal.signal(signal.SIGTERM, exit_callback)
 signal.signal(signal.SIGINT, exit_callback)
+
+try:
+    path = os.path.abspath(__file__).replace(__file__.replace("./", ""), "")
+    os.chdir(path)
+except:
+    print("Unable to switch to working dir", path)
+    exit(path)
 
 # exec util fnctns
 os.chdir(path + "/public")
