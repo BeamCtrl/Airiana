@@ -45,8 +45,12 @@ signal.signal(signal.SIGTERM, exit_callback)
 signal.signal(signal.SIGINT, exit_callback)
 
 try:
+
+    syslog.syslog("file is" + __file__)
     path = os.path.abspath(__file__).replace(__file__.replace("./", ""), "")
+    syslog.syslog("changing to " + path)
     os.chdir(path)
+
 except:
     syslog.syslog("unable to chdir to: "+ path )
     exit(22)
