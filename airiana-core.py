@@ -13,6 +13,7 @@ import sys
 import signal
 import math
 import pickle
+import syslog
 from request import Request
 
 
@@ -47,8 +48,8 @@ try:
     path = os.path.abspath(__file__).replace(__file__.replace("./", ""), "")
     os.chdir(path)
 except:
-    print("Unable to switch to working dir", path)
-    exit(path)
+    syslog.syslog("unable to chdir to: "+ path )
+    exit(22)
 
 # exec util fnctns
 os.chdir(path + "/public")
