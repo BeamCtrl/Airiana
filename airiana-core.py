@@ -16,7 +16,8 @@ import pickle
 from request import Request
 
 try:
-    path = os.path.abspath(__file__).replace(__file__,"")
+    path = os.path.abspath(__file__).replace(__file__.replace("./", ""), "")
+    print(path.replace(__file__, ""), __file__)
     os.chdir(path)
 except:
     print("Unable to switch to working dir", path)
@@ -49,7 +50,7 @@ signal.signal(signal.SIGTERM, exit_callback)
 signal.signal(signal.SIGINT, exit_callback)
 
 # exec util fnctns
-os.chdir(path.joinpath("public"))
+os.chdir(path + "/public")
 os.system("./ip-replace.sh")  # reset ip-addresses on buttons.html
 os.chdir(path)
 os.system("./http &> /dev/null")  ## START WEB SERVICE
