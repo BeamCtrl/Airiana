@@ -14,10 +14,13 @@ import signal
 import math
 import pickle
 from request import Request
-import pathlib
 
-path = os.path.abspath(__file__).replace(__file__,"")
-os.chdir(path)
+try:
+    path = os.path.abspath(__file__).replace(__file__,"")
+    os.chdir(path)
+except:
+    print("Unable to switch to working dir", path)
+    exit(22)
 # numpy.seterr('ignore')
 #############################
 
