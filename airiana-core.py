@@ -17,7 +17,6 @@ from request import Request
 
 try:
     path = os.path.abspath(__file__).replace(__file__.replace("./", ""), "")
-    print(path.replace(__file__, ""), __file__)
     os.chdir(path)
 except:
     print("Unable to switch to working dir", path)
