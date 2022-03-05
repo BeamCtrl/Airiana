@@ -35,7 +35,7 @@ os.system("pip3 install setuptools")
 os.system("pip3 install pyephem")
 os.system("pip3 install numpy")
 os.system("apt-get -y install ntp")
-os.system("apt-get -y upgrade")
+os.system("apt-get -yq --force-yes upgrade")
 # NEED TO SET LOCALE
 # os.system("cp ./systemfiles/timezone /etc/")
 
