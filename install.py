@@ -1,10 +1,10 @@
 #!/usr/bin/python
 #################################################################
-#		                                 						#
+#   	                                 						#
 #  Installation script for airiana system            			#
-#								                                #
-#								                                #
-#								                                #
+#   							                                #
+#   							                                #
+#   							                                #
 #################################################################
 #
 #
@@ -12,12 +12,13 @@
 # git clone https://github.com/beamctrl/airiana/
 #
 #################################################################
-import os, sys
+import os
+import sys
 
 print("Installing the AirianaCores")
 reboot = False
 os.system("apt-get update")
-dir = os.getcwd()
+path = os.getcwd()
 if "clean" in sys.argv:
     os.system("systemctl disable controller.service")
     os.system("systemctl disable airiana.service")
@@ -35,7 +36,7 @@ os.system("pip3 install setuptools")
 os.system("pip3 install pyephem")
 os.system("pip3 install numpy")
 os.system("apt-get -y install ntp")
-os.system("apt-get -yq --force-yes upgrade")
+os.system("apt-get -yq --force-yes -o \"Dpkg::Options::=--force-confnew\"  upgrade")
 # NEED TO SET LOCALE
 # os.system("cp ./systemfiles/timezone /etc/")
 
@@ -53,19 +54,19 @@ else:
 sys.stdout.flush()
 
 # replace static paths with install path
-os.system("sed -i 's-/home/pi/airiana/-" + dir + "/-g' airiana-core.py")
-os.system("sed -i 's-/home/pi/airiana/-" + dir + "/-g' public/ip-replace.sh")
-os.system("sed -i 's-/home/pi/airiana/-" + dir + "/-g' public/controler.py")
-os.system("sed -i 's-/home/pi/airiana/-" + dir + "/-g' forcast2.0.py")
-os.system("sed -i 's-/home/pi/airiana/-" + dir + "/-g' humtest.py")
-os.system("sed -i 's-/home/pi/airiana/-" + dir + "/-g' updater.py")
-os.system("sed -i 's-/home/pi/airiana/-" + dir + "/-g' systemfiles/controller.service")
-os.system("sed -i 's-/home/pi/airiana/-" + dir + "/-g' systemfiles/airiana.service")
-os.system("sed -i 's-/home/pi/airiana/-" + dir + "/-g' public/ip-util.sh")
+os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' airiana-core.py")
+os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' public/ip-replace.sh")
+os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' public/controler.py")
+os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' forcast2.0.py")
+os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' humtest.py")
+os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' updater.py")
+os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' systemfiles/controller.service")
+os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' systemfiles/airiana.service")
+os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' public/ip-util.sh")
 
 # MAKE RAM DRIVE IN FSTAB#
 fstab_comment = "#temp filesystem only in RAM for use on Airiana tempfiles.\n"
-fstab_RAM = "tmpfs " + dir + "/RAM tmpfs defaults,noatime,nosuid,mode=0755,size=50m 0 0\n"
+fstab_RAM = "tmpfs " + path + "/RAM tmpfs defaults,noatime,nosuid,mode=0755,size=50m 0 0\n"
 # MAKE RAM DRIve for linux logs var/logs
 fstab_var = "tmpfs /var/log tmpfs defaults,noatime,nosuid,mode=0755,size=75m 0 0"
 fstab_file = open("/etc/fstab", "r+")
@@ -113,8 +114,8 @@ if boot_cmd not in open("/boot/cmdline.txt").read():
     print("adding boot cmdline config")
     os.system("echo " + boot_cmd + "> /boot/cmdline.txt")
     reboot = True
-##
-## setup airiana as host#
+
+# setup airiana as host#
 print("Copy hosts file")
 os.system("cp ./systemfiles/hosts /etc/")
 sys.stdout.flush()
@@ -145,16 +146,16 @@ crontab = ""
 updated = False
 for line in cron:
     if line.find("updater.py") > 0:
-        line = "0 */4 * * * sudo /usr/bin/python " + dir + "/updater.py\n"
+        line = "0 */4 * * * sudo /usr/bin/python " + path + "/updater.py\n"
         updated = True
     crontab += line
 if not updated:
-    crontab += "0 */4 * * * sudo /usr/bin/python " + dir + "/updater.py\n"
+    crontab += "0 */4 * * * sudo /usr/bin/python " + path + "/updater.py\n"
 os.system("echo \"" + crontab + "\" | crontab -u pi -")
 sys.stdout.flush()
 
 # reboot if needed
-if not "update" in sys.argv or reboot or "reboot" in sys.argv:
+if "update" not in sys.argv or reboot or "reboot" in sys.argv:
     # Reboot after installation
     print("Installation completed, reboot in 15 sec")
     sys.stdout.flush()
