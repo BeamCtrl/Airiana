@@ -27,7 +27,7 @@ sudo echo $apt2 |sudo tee  /etc/apt/sources.list.d/raspi.list
 sudo -E apt-get -q update
 sudo -E apt-get update --fix-missing
 sudo -E apt-get -yq upgrade --download-only
-sudo -E apt-get -yq --force-yes  -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confnew" dist-upgrade
+sudo -E apt-get -yq --force-yes -o "Dpkg::Options::=--force-confnew" dist-upgrade
 sudo -E apt-get update --fix-missing
 sudo -E apt-get -yq autoremove
 sudo -E apt-get -yq autoclean
