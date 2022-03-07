@@ -4,8 +4,7 @@ import sys
 
 path = os.path.abspath(__file__).replace(__file__,"")
 
-deb_versions = ("wheezy", "jessie", "stretch", "buster", "bullseye",
-                "bookworm", "trixie")
+deb_versions = ("wheezy", "jessie", "stretch", "buster")
 
 for system in enumerate(deb_versions):
     os_name = os.popen("./osname.py").readline()[:-1]
