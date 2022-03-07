@@ -2,8 +2,8 @@
 import os
 import sys
 
-path = os.path.abspath(__file__).replace(__file__,"")
-
+path = os.path.abspath(__file__).replace(__file__, "")
+os.chdir(path)
 deb_versions = ("wheezy", "jessie", "stretch", "buster")
 
 for system in enumerate(deb_versions):
@@ -15,7 +15,7 @@ for system in enumerate(deb_versions):
         print("./systemfiles/upgrade.sh " + system[1] + " " + deb_versions[system[0] + 1])
         os.system("./systemfiles/upgrade.sh " + system[1] + " " + deb_versions[system[0]+1] + " && sudo reboot")
 
-os.chdir(path)
+
 
 os.system("git fetch && git checkout -m origin/master ./public/current_version")
 ver = os.popen("cat ./public/current_version").read()
