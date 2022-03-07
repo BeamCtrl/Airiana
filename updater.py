@@ -2,7 +2,7 @@
 import os
 import sys
 
-path = os.path.abspath(__file__).replace(__file__, "")
+path = os.path.abspath(__file__).replace("updater.py", "")
 os.chdir(path)
 deb_versions = ("wheezy", "jessie", "stretch", "buster")
 
