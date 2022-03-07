@@ -16,7 +16,6 @@ for system in enumerate(deb_versions):
         os.system("./systemfiles/upgrade.sh " + system[1] + " " + deb_versions[system[0]+1] + " && sudo reboot")
 
 
-
 os.system("git fetch && git checkout -m origin/master ./public/current_version")
 ver = os.popen("cat ./public/current_version").read()
 ver = ver.split(" ")
