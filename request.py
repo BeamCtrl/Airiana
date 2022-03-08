@@ -244,4 +244,5 @@ if "__main__" == __name__:
 
     req = Request()
     req.setup(unit, "RTU")
+    req = Request()
     req.setup(unit, "TCP")
