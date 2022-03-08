@@ -230,6 +230,18 @@ class Request:
 
 
 if "__main__" == __name__:
+    # Setup serial, RS 485 to machine
+    if os.path.lexists("/dev/ttyUSB0"):
+        print("Communication started on device ttyUSB0;")
+        unit = "/dev/ttyUSB0"
+
+    elif os.path.lexists("/dev/serial0"):
+        print("Communication started on device Serial0;")
+        unit = "/dev/serial0"
+    else:
+        print("Communication started on device ttyAMA0;")
+        unit = "/dev/ttyAMA0"
+
     req = Request()
-    req.setup(0, "RTU")
-    req.setup(0, "TCP")
+    req.setup(unit, "RTU")
+    req.setup(unit, "TCP")
