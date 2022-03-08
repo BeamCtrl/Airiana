@@ -87,7 +87,9 @@ class Request:
         seccond = self.response
         print("Testing savecair address 12543:" + str(seccond) + ";")
         os.write(fd, bytes("Testing savecair address 12543:" + str(seccond) + "\n", "utf-8"))
-        if first == 0 and seccond == 0 or (first == "no data" and seccond == "no data"):
+        if (first == 0 and seccond == 0) \
+                or (first == "no data" and seccond == "no data") \
+                or (first == '' and seccond == ''):
             os.write(fd, bytes("Request object Failed communications test.\n", "utf-8"))
             os.close(fd)
             return False
