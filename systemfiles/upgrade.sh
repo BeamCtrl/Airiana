@@ -13,7 +13,7 @@ export DEBIAN_PRIORITY=critical
 sudo -E apt-get -q update
 sudo -E apt-get -q update --fix-missing
 sudo -E apt-get -yq upgrade --download-only
-sudo -E apt-get -yq --force-yes -o "Dpkg::Options::=--force-confnew" upgrade
+sudo -E apt-get -yq --allow-downgrades --allow-remove-essential --allow-change-held-packages --allow-releaseinfo-change -o "Dpkg::Options::=--force-confnew" upgrade
 sudo -E apt-get -q autoremove
 sudo -E apt-get -q autoclean
 
@@ -27,7 +27,7 @@ sudo echo $apt2 |sudo tee  /etc/apt/sources.list.d/raspi.list
 sudo -E apt-get -q update
 sudo -E apt-get update --fix-missing
 sudo -E apt-get -yq upgrade --download-only
-sudo -E apt-get -yq --force-yes -o "Dpkg::Options::=--force-confnew" dist-upgrade
+sudo -E apt-get -yq  --allow-downgrades --allow-remove-essential --allow-change-held-packages --allow-releaseinfo-change -o "Dpkg::Options::=--force-confnew" dist-upgrade
 sudo -E apt-get update --fix-missing
 sudo -E apt-get -yq autoremove
 sudo -E apt-get -yq autoclean
