@@ -227,3 +227,9 @@ class Request:
             except:
                 with os.open("RAM/err", os.O_WRONLY) as fd:
                     os.write(fd, bytes("TCP write error on addrs:" + str(reg) + "\n", "utf-8"))
+
+
+if "__main__" == __name__:
+    req = Request()
+    req.setup(0, "RTU")
+    req.setup(0, "TCP")
