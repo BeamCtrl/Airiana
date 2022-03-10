@@ -46,11 +46,11 @@ class Request:
         self.unit = unit
         self.mode = mode
         if self.mode == "TCP":
-            print("Using TCP backend\n")
+            print("Using TCP backend")
             # TCP auto connect on first modbus request
             try:
                 config = open("ipconfig", "r").readline()
-                print("Reading ip configuration file for IAM access", config)
+                print("Reading ip configuration file for IAM access", config[:-1])
                 config = eval(config)
                 self.client = pyModbusTCP.client.ModbusClient(host=config["ip"], port=config["port"], auto_open=True)
             except:
