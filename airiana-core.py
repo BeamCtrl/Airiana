@@ -473,7 +473,7 @@ class Systemair(object):
         self.unit_comp = []
         self.coef_dict = {0: {}, 1: {}, 2: {}, 3: {}}
         self.coef_test_bool = False
-        self.coef_inhibit = 0
+        self.coef_inhibit = time.time()
         self.sensor_exhaust = -60
 
     def system_setup(self):
