@@ -19,7 +19,7 @@ class MyHandler(socketserver.BaseRequestHandler):
                 command = req[1]
                 command = command.split("?")
                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                s.sendto(str(command[-1]), ("127.0.0.1", 9876))
+                s.sendto(bytes(command[-1],"utf-8"), ("127.0.0.1", 9876))
                 s.close()
                 self.request.send(
                     "HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://"
@@ -31,7 +31,7 @@ class MyHandler(socketserver.BaseRequestHandler):
                 command = req[1]
                 command = command.split("?")
                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                s.sendto(str(command[-1]), ("127.0.0.1", 9876))
+                s.sendto(bytes(command[-1],"utf-8"), ("127.0.0.1", 9876))
                 s.close()
                 # self.request.send("HTTP/1.1 HTTP/1.1 303 See Other Location: buttons.html \n\r")
                 self.request.send(
