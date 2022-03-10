@@ -6,7 +6,7 @@ import traceback
 mailer = mail.Smtp()
 
 
-path = os.path.abspath(__file__).replace(__file__,"")
+path = os.path.abspath(__file__).replace("status.py", "")
 os.chdir(path)
 if not os.path.lexists("./RAM/status.html"):
 	os.system("touch ./RAM/status.html" )
