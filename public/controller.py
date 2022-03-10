@@ -11,7 +11,7 @@ hostname = os.popen("hostname").read()[:-1]
 class MyHandler(socketserver.BaseRequestHandler):
     def handle(self):
         ip = os.popen("hostname -I").readline().split(" ")[0]
-        data = self.request.recv(1024).strip().split("\r\n")
+        data = str(self.request.recv(1024), "utf-8").strip().split("\r\n")
         print(data[0])
         if "GET" in data[0]:
             if "command" in data[0]:
