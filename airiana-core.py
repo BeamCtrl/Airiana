@@ -2139,7 +2139,7 @@ if __name__ == "__main__":
                     except:
                         pass
                     try:
-                        device.msg += "\nNetwork command recieved: Processing... " + str(data) + "\n"
+                        #device.msg += "\nNetwork command recieved: Processing... " + str(data) + "\n"
                         log = "echo \"" + str(time.ctime()) + ":" + str(sender) + ":" + str(data) + "\" >> netlog.log &"
                         os.write(ferr, bytes(f"{sender}:{data} at\t{time.ctime()}\n", "utf-8"))
                         os.system(log)
