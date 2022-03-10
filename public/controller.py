@@ -12,9 +12,9 @@ class MyHandler(socketserver.BaseRequestHandler):
     def send_ok(self):
         self.request.send(bytes(
             "HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://"
-            + ip + "/\" /></head></html> \n\r", "utf-8"))
+            + self.ip + "/\" /></head></html> \n\r", "utf-8"))
     def handle(self):
-        ip = os.popen("hostname -I").readline().split(" ")[0]
+        self.ip = os.popen("hostname -I").readline().split(" ")[0]
         data = str(self.request.recv(1024), "utf-8").strip().split("\r\n")
         print(data[0])
         if "GET" in data[0]:
