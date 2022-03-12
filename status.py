@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import os
+import sys
 import time
 import mail
 import traceback
@@ -29,10 +30,10 @@ for each in list(users.keys()):
 
 os.system("./alive_logger.py > /dev/null &")
 files = os.listdir("./public/local_links/")
-data = dict(enumerate(["token","exchanger","exectime","name","version","hash","uptime","inlet","extract","extractflow","rh","auto","cooling","supply","exhaust","pdiff","detlimit"]))
+data = dict(enumerate(["token","exchanger","exectime","name","version","hash","uptime","inlet","extract","extractflow","rh","auto","cooling","supply","exhaust","pdiff","detlimit","Location"]))
 data = {value : key for (key, value) in list(data.items())}
 
-#print data
+print(data)
 #for each in users.keys():
 #	print each, ": ",users[each]
 stat_dict = {}
@@ -74,27 +75,31 @@ while True:
 			init()
 		html = """<html>STATUS VIEW AIRIANA SYSTEMS<br>
 			<meta http-equiv="refresh" content="5" charset="UTF-8">
-			<table style="width: 100%;"><tr>
-			<th>Name</th>
-			<th>Ping</th>
-			<th>Status</th>
-			<th>Shr</th>
-			<th>Ex</th>
-			<th>tm</th>
-			<th>Unit</th>
-			<th>Vr</th>
-			<th>hash</th>
-			<th>uTm</th>
-			<th>In</th>
-			<th>Out</th>
-			<th>flw</th>
-			<th>RH</th>
-			<th>Auto ON</th>
-			<th>Cooling active</th>
-			<th>Supply</th>
-			<th>Exhaust</th>
-			<th>P.diff</th>
-			<th>detLimit</th>
+			<table style="width: 100%;><tr>
+			<th style="text-align:left">Name</th>
+			<th style="text-align:left">Name</th>
+			<th style="text-align:left">Ping</th>
+			<th style="text-align:left">Status</th>
+			<th style="text-align:left"> </th>
+			<th style="text-align:left">Shr</th>
+			<th style="text-align:left width:250px">Ex</th>
+			<th style="text-align:left">tm</th>
+			<th style="text-align:left">Unit</th>
+			<th style="text-align:left">Vr</th>
+			<th style="text-align:left">hash</th>
+			<th style="text-align:left">uTm</th>
+			<th style="text-align:left">In</th>
+			<th style="text-align:left">Out</th>
+			<th style="text-align:left">flw</th>
+			<th style="text-align:left">RH</th>
+			<th style="text-align:left">Auto ON</th>
+			<th style="text-align:left">Cooling active</th>
+			<th style="text-align:left">Supply</th>
+			<th style="text-align:left">Exhaust</th>
+			<th style="text-align:left">P.diff</th>
+			<th style="text-align:left">DetLimit</th>
+			<th style="text-align:left">Active error</th>
+			<th style="text-align:left">Location</th>
 			</tr>"""
 		flag = "unknown"
 		files = os.listdir("./public/local_links/")
@@ -122,7 +127,7 @@ while True:
 						#print lis
 					else: lis =["no data"]
 				except:
-					lis=["data error"]
+					lis=["-1","-1","-1","-1","-1","-1","-1","-1","-1","-1","-1","-1","-1","-1","-1","-1","data error"]
 				# CHECK IF USER REGISTERED #
 				if user in list(users.keys()):
 					#print "Checking status of user ", users[user],"\n"
@@ -142,31 +147,31 @@ while True:
 													mailer.send()
 					else:
 						flag = "<font color=\"red\"> Inactive </font>"
-						if not mail_sent[user]:
+						if not mail_sent[user] and not "no-mail" in sys.argv:
 							mail_sent[user] = True
 							mailer.setup ("daniel.halling@outlook.com","airiana@outlook.com","Airiana user: "+str(users[user])+" has changed status to inactive.")
 							mailer.send()
-					status_table= ""
+					status_table= "<td nowrap>"
 					for item in lis:
-						status_table += str(item) +"</td><td>"
+						status_table += str(item) +"</td><td nowrap>"
 					if (time.time()-mod)/3600<3:
-						html += "<tr><td><a href=\"/local_links/"\
+						html += "<tr><td nowrap><a href=\"/local_links/"\
 							+each+"\">"+users[user]\
-							+"</a></td><td>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td>"+flag\
-							+"</td><td> "\
+							+"</a></td><td nowrap>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td nowrap>"+flag\
+							+"</td><td nowrap> "\
 							+status_table
 					else:
-						html += "<tr style=\"font-style:italic\" ><td><a href=\"/local_links/"\
+						html += "<tr style=\"font-style:italic\" ><td nowrap><a href=\"/local_links/"\
 							+each+"\">"+users[user]\
-							+"</a></td><td>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td>"+flag\
-							+"</td><td> "\
+							+"</a></td><td nowrap>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td nowrap>"+flag\
+							+"</td><td nowrap> "\
 							+status_table
 
 					try:
 						html += " " +str(stat_dict[user])
 					except KeyError: pass #print "No error state"
 					try:
-						html += " </td><td>"+location[user]+"</td></tr>\n"
+						html += " </td><td nowrap>"+location[user]+"</td></tr>\n"
 					except:
 						html += "</td></tr>\n"
 
@@ -178,16 +183,16 @@ while True:
 
 					status_table = ""
 					for item in lis:
-						status_table += str(item) +"</td><td>"
+						status_table += str(item) +"</td><td nowrap>"
 					html2 += "<tr><td><a href=\"/local_links/"\
 						+each+"\">"+user\
-						+"</a></td><td>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td>"+flag\
-						+"</td><td> "\
+						+"</a></td><td nowrap>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td nowrap>"+flag\
+						+"</td><td nowrap> "\
 						+status_table
 					if len(lis) == 1:
-						html2 += 16 * "<td></td>"
+						html2 += 16 * "<td nowrap></td>"
 					try:
-						html2 += " </td><td>"+location[user]+"</td></tr>\n"
+						html2 += " </td><td nowrap>"+location[user]+"</td></tr>\n"
 					except:
 						html2 += "</td></tr>\n"
 
@@ -221,7 +226,8 @@ while True:
 			<th>Supply</th>
 			<th>Exhaust</th>
 			<th>P.diff</th>
-			<th>detLimit</th>
+			<th>DetLimit</th>
+			<th>Location</th>
 			</tr>"""
 
 		html += html2
