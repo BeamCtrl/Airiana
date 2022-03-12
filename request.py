@@ -223,13 +223,12 @@ class Request:
                 os.close(fd)
         else:
             try:
-                valid = 0
-                if tries > 0:
-                    valid = self.client.write_single_register(reg, 1)
-                    if not valid:
-                        tries -= 1
-                        self.write_errors += 1
-                        self.write_register(reg, value, tries)
+                valid = self.client.write_single_register(reg, 1)
+                self.modbusregister(reg, 0)
+                if value != self.response and tries > 0:
+                    tries -= 1
+                    self.write_errors += 1
+                    self.write_register(reg, value, tries)
                 if tries == 0:
                     fd = os.open("RAM/err", os.O_WRONLY)
                     os.write(fd, bytes(f"Write error, no tries left on register:{reg} {valid}\n", "utf-8"))
