@@ -25,10 +25,18 @@ try:
 except NameError:
     # Try another api if the first test fails
     try:
-        location = os.popen(" curl https://api.apility.net/geoip/" + ip).read()
+        location = os.popen(" curl http://ip-api.com/json/" + ip).read()
         loc = eval(location)
-        print(loc["ip"]["city_names"]["en"], ",", loc["ip"]["country_names"]["en"])
+        print(loc["city"], ",", loc["country"])
         if "debug" in sys.argv:
             print(loc)
-    except:
+        # test for location file and create if not availible
+        if not os.path.lexists("./latlong.json"):
+            pos = "{\"lat\":\"" + str(loc["lat"]) + "\",\"long\":\"" + str(loc["lon"]) + "\"}"
+            # print pos
+            with open("latlong.json", "w") as f:
+                f.write(pos)
+    except IOError:
         print("unknown")
+        if "debug" in sys.argv:
+            print(loc)
