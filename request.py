@@ -223,7 +223,18 @@ class Request:
                 os.close(fd)
         else:
             try:
-                self.response = self.client.write_single_register(reg, 1)
+                valid = 0
+                if tries > 0:
+                    valid = self.client.write_single_register(reg, 1)
+                    if not valid:
+                        tries -= 1
+                        self.write_errors += 1
+                        self.write_register(reg, value, tries)
+                if tries == 0:
+                    fd = os.open("RAM/err", os.O_WRONLY)
+                    os.write(fd, bytes(f"Write error, no tries left on register:{reg} {valid}\n", "utf-8"))
+                    os.close(fd)
+
             except:
                 with os.open("RAM/err", os.O_WRONLY) as fd:
                     os.write(fd, bytes("TCP write error on addrs:" + str(reg) + "\n", "utf-8"))
