@@ -475,6 +475,14 @@ class Systemair(object):
         self.coef_test_bool = False
         self.coef_inhibit = time.time()
         self.sensor_exhaust = -60
+        self.admin_password = ""
+
+    def get_password(self):
+        req.modbusregister(16000,0)
+        self.admin_password = "{0}{1}{2}{3}".format(str(req.response & 0b1),
+                                                    str(req.response & 0b1000 >> 4),
+                                                    str(req.response & 0b10000000 >> 8),
+                                                    str(req.response & 0b100000000000 >> 12))
 
     def system_setup(self):
         try:
@@ -487,6 +495,7 @@ class Systemair(object):
             pickle.dump(self.coef_dict, open("coeficients.dat", "wb"))
 
         if savecair:
+            self.get_password()
             req.write_register(1400, 16)
             req.write_register(1401, 16)
             req.write_register(1402, 20)
@@ -1215,6 +1224,7 @@ class Systemair(object):
                     req.checksum_errors) + " Write: " + str(req.write_errors) + " drain: " + str(
                     len(req.buff)) + " Multi: " + str(req.multi_errors) + "\n"
                 tmp += "temp sensor state: " + str(bin(self.temp_state)) + " Heater:" + str(self.heater) + "\n"
+                tmp += "Unit admin password: " + self.admin_password + "\n"
                 if len(req.buff) > 50: req.buff = ""
                 tmp += str(sys.argv) + "\n"
             except:
