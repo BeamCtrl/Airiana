@@ -36,7 +36,7 @@ except NameError:
             # print pos
             with open("latlong.json", "w") as f:
                 f.write(pos)
-    except IOError:
+    except NameError:
         print("unknown")
         if "debug" in sys.argv:
             print(loc)
