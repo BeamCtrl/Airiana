@@ -480,9 +480,9 @@ class Systemair(object):
     def get_password(self):
         req.modbusregister(16000,0)
         self.admin_password = "{0}{1}{2}{3}".format(str(req.response & 0b1),
-                                                    str(req.response & 0b1000 >> 4),
-                                                    str(req.response & 0b10000000 >> 8),
-                                                    str(req.response & 0b100000000000 >> 12))
+                                                    str(req.response & 0b1000 >> 3),
+                                                    str(req.response & 0b10000000 >> 7),
+                                                    str(req.response & 0b100000000000 >> 11))
 
     def system_setup(self):
         try:
