@@ -1891,8 +1891,8 @@ class Systemair(object):
                          "referenceHumidity": self.local_humidity, "measuredHumidity": self.hum_list[0],
                          "electricPower": self.electric_power}
             tmp = str(json_vars).replace("'", "\"")
-        except OSError:
-           os.write(ferr, bytes(f"json-writer error {self.hum_list}\n", "utf-8"))
+        except IndexError:
+            os.write(ferr, bytes(f"json-writer error {self.hum_list}\n", "utf-8"))
         os.ftruncate(air_out, 0)
         os.lseek(air_out, 0, os.SEEK_SET)
         os.write(air_out, bytes(tmp, encoding='utf8'))
