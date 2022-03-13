@@ -693,7 +693,7 @@ class Systemair(object):
         for each in dir(self):
             obj = None
             exec(str("obj = self." + each))
-            if isinstance(obj, (int, float, str, list)): exec(str("print each,  self." + each))
+            if isinstance(obj, (int, float, str, list)): exec(str("print (each,  self." + each +")"))
         if not "daemon" in sys.argv:
             input("press enter to resume")
         else:
