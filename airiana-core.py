@@ -322,7 +322,7 @@ class Systemair(object):
         self.system_types = {0: "VR400", 1: "VR700", 2: "VR700DK", 3: "VR400DE", 4: "VTC300", 5: "VTC700",
                              12: "VTR150K", 13: "VTR200B", 14: "VSR300", 15: "VSR500", 16: "VSR150",
                              17: "VTR300", 18: "VTR500", 19: "VSR300DE", 20: "VTC200", 21: "VTC100"}
-        self.has_RH_sensor = ("VTR300")
+        self.has_RH_sensor = ("VTR300", "VSR300", "Savecair" )
         self.rotor_states = {0: "Normal", 1: "Rotor Fault", 2: "Rotor Fault Detected"
             , 3: "Summer Mode transitioning", 4: "Summer Mode"
             , 5: "Leaving Summer Mode", 6: "Manual Summer Mode"
@@ -2015,7 +2015,7 @@ if __name__ == "__main__":
                 if "debug" in sys.argv:
                     os.system("echo \"3\" >./RAM/exec_tree")
                 device.check_flags()
-                if device.system_name == "VTR300" or device.system_name == "VSR300":
+                if device.system_name == "VTR300" or device.system_name == "VSR300" or device.system_name == "Savecair":
                     device.calc_exhaust()
                 device.check_ac_mode()
                 if reset_fans:
