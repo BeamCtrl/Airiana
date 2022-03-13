@@ -1927,9 +1927,9 @@ if __name__ == "__main__":
     req.modbusregister(12543, 0)  # test for savecair extended address range
     if device.system_name == "VR400" and req.response != "no data":
         savecair = True
-        device.system_name = "VTR300"
+        device.system_name = "Savecair"
         conversion_table = {}
-        device.status_field[3] = "VTR300/savecair"
+        device.status_field[3] = "Savecair"
         device.averagelimit = 3400
         os.write(ferr, bytes("Savecair unit set\n", 'utf8'))
 
