@@ -463,7 +463,7 @@ class Systemair(object):
         self.div = 0
         self.set_system_name()
         self.RH_valid = 0
-        self.hum_list = []
+        self.hum_list = [40]
         self.status_field = [-1, self.exchanger_mode, 0, self.system_name, vers,
                              os.popen("git log --pretty=format:'%h' -n 1").read(), 0, self.inlet_ave, self.extract_ave,
                              self.ef, self.new_humidity, 0, self.cool_mode, self.supply_ave, self.exhaust_ave,
