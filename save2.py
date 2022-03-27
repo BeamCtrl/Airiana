@@ -69,7 +69,7 @@ if "list" in sys.argv:
     for each in range(1000, 21000):
         res = client.read_register(each, 0, signed=True)
         if res:
-            print(each, ":", res)
+            print(each+1, ":", res)
             sys.stdout.flush()
     # else: print each
     # if int(res) == 25:
