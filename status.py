@@ -73,16 +73,15 @@ while True:
 		from users import users
 		if len(users_prev) != len(users):
 			init()
-		html = """<html>STATUS VIEW AIRIANA SYSTEMS<br>
+		headers = """<html>STATUS VIEW AIRIANA SYSTEMS<br>
 			<meta http-equiv="refresh" content="5" charset="UTF-8">
-			<table style="width: 100%;><tr>
-			<th style="text-align:left">Name</th>
-			<th style="text-align:left">Name</th>
+			<table style="width: 100%;"><tr>
+			<th style="text-align:left;">Name&emsp;&emsp;&emsp;&emsp;&emsp;</th>
 			<th style="text-align:left">Ping</th>
 			<th style="text-align:left">Status</th>
-			<th style="text-align:left"> </th>
+			<th style="text-align:left">  </th>
 			<th style="text-align:left">Shr</th>
-			<th style="text-align:left width:250px">Ex</th>
+			<th style="text-align:left">Ex</th>
 			<th style="text-align:left">tm</th>
 			<th style="text-align:left">Unit</th>
 			<th style="text-align:left">Vr</th>
@@ -101,6 +100,7 @@ while True:
 			<th style="text-align:left">Active error</th>
 			<th style="text-align:left">Location</th>
 			</tr>"""
+		html = "" + headers
 		flag = "unknown"
 		files = os.listdir("./public/local_links/")
 		html2 = ""
@@ -140,13 +140,13 @@ while True:
 						status[user] = round((time.time() - mod) / 3600, 2)
 					status[user] = status[user] * 0.99
 					if (time.time()-mod)/3600<3:
-						flag = "<font color=\"green\"> Alive </font>"
+						flag = "<font color=\"green\">Alive  </font>"
 						if  mail_sent[user] == True:
 													mail_sent[user] = False
 													mailer.setup ("daniel.halling@outlook.com","airiana@outlook.com","Airiana user: "+str(users[user])+" has checked in and is now alive.")
 													mailer.send()
 					else:
-						flag = "<font color=\"red\"> Inactive </font>"
+						flag = "<font color=\"red\">Inactive</font>"
 						if not mail_sent[user] and not "no-mail" in sys.argv:
 							mail_sent[user] = True
 							mailer.setup ("daniel.halling@outlook.com","airiana@outlook.com","Airiana user: "+str(users[user])+" has changed status to inactive.")
@@ -158,13 +158,13 @@ while True:
 						html += "<tr><td nowrap><a href=\"/local_links/"\
 							+each+"\">"+users[user]\
 							+"</a></td><td nowrap>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td nowrap>"+flag\
-							+"</td><td nowrap> "\
+							+"</td><td nowrap>"\
 							+status_table
 					else:
 						html += "<tr style=\"font-style:italic\" ><td nowrap><a href=\"/local_links/"\
 							+each+"\">"+users[user]\
 							+"</a></td><td nowrap>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td nowrap>"+flag\
-							+"</td><td nowrap> "\
+							+"</td><td nowrap>"\
 							+status_table
 
 					try:
@@ -177,11 +177,11 @@ while True:
 
 				else:
 					if (time.time()-mod)/3600<3:
-						flag = "<font color=\"green\"> Alive </font>"
+						flag = "<font color=\"green\">Alive  </font>"
 					else:
-						flag = "<font color=\"red\"> Inactive </font>"
+						flag = "<font color=\"red\">Inactive</font>"
 
-					status_table = ""
+					status_table = "<td nowrap>"
 					for item in lis:
 						status_table += str(item) +"</td><td nowrap>"
 					html2 += "<tr><td><a href=\"/local_links/"\
@@ -204,31 +204,7 @@ while True:
 				pass
 
 		html +="<br></table><br>"
-		html += """	<table style="width: 100%">
-			<caption style="text-align:left"><strong>Not registered users:</strong></caption>
-			<tr>
-			<th style="text-align:left">Name</th>
-			<th>Ping</th>
-			<th>Status</th>
-			<th>Shr</th>
-			<th>Ex</th>
-			<th>tm</th>
-			<th>Unit</th>
-			<th>Vr</th>
-			<th>hash</th>
-			<th>uTm</th>
-			<th>In</th>
-			<th>Out</th>
-			<th>flw</th>
-			<th>RH</th>
-			<th>Auto ON</th>
-			<th>Cooling active</th>
-			<th>Supply</th>
-			<th>Exhaust</th>
-			<th>P.diff</th>
-			<th>DetLimit</th>
-			<th>Location</th>
-			</tr>"""
+		html += headers
 
 		html += html2
 		html +="<br></table></html>"
