@@ -1,13 +1,13 @@
 [Unit]
 Description=Airiana Core executive
 After=network-online.target
-Type=idle
 
 [Service]
+Type=idle
 ExecStart=/usr/bin/python3 /home/pi/airiana/airiana-core.py daemon ping humidity
 #cmdl.options:daemon debug humidity moisture sensors exhaust ping temperatur.nu keep-log homeAss TCP
 Restart=always
 User=root
-KillSignal = SIGKILL
+KillSignal=SIGTERM
 [Install]
 WantedBy=multi-user.target
