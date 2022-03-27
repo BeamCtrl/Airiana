@@ -1975,9 +1975,9 @@ if __name__ == "__main__":
         sys.stdout.flush()
         print("Generating historical graphs;")
         if "debug" in sys.argv:
-            os.system("sudo nice ./grapher.py debug &")
+            os.system("nice ./grapher.py debug &")
         else:
-            os.system("sudo nice ./grapher.py &")
+            os.system("nice ./grapher.py &")
         sys.stdout.flush()
         if "debug" in sys.argv:
             print("Checking for sensor data;")
