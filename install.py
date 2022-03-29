@@ -35,17 +35,17 @@ def setUart():
 
 # INSTALL DEPS #
 def install_deps():
-    os.system("apt-get update")
+    os.system("sudo apt-get update")
     os.system("sudo apt-get -y install python3-pip")
     os.system("sudo apt-get -y install python3-dev")
     os.system("sudo apt-get -y install python3-matplotlib")
-    os.system("pip3 install minimalmodbus")
-    os.system("pip3 install progressbar")
-    os.system("pip3 install requests")
-    os.system("pip3 install pyModbusTCP")
-    os.system("pip3 install setuptools")
-    os.system("pip3 install pyephem")
-    os.system("pip3 install numpy")
+    os.system("pip3 install minimalmodbus --user")
+    os.system("pip3 install progressbar --user")
+    os.system("pip3 install requests --user")
+    os.system("pip3 install pyModbusTCP --user")
+    os.system("pip3 install setuptools --user")
+    os.system("pip3 install pyephem --user")
+    os.system("pip3 install numpy --user")
     os.system("sudo apt-get -y install ntp")
     os.system("sudo apt-get -yq --force-yes -o \"Dpkg::Options::=--force-confdef\"  upgrade")
 
@@ -208,4 +208,4 @@ if "update" not in sys.argv or reboot or "reboot" in sys.argv:
     os.system("reboot")
 
 if "update" in sys.argv:
-    print("System update sucessfull")
+    print("System update successful")
