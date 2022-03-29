@@ -96,8 +96,8 @@ def clean_paths():
     os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' public/ip-util.sh")
 
 
-user_id = pwd.getpwuid()
 user_name = os.getlogin()
+user_id = pwd.getpwuid(user_name)
 group_id = os.getgid()
 
 print("Installing the AirianaCores")
