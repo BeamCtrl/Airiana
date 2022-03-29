@@ -120,7 +120,7 @@ if len(sys.argv) == 1:
 if user_id == 0 and --set-uart in sys.argv:
     setUart()
 else:
-    os.popen("sudo ./install.py --set-uart")
+    os.popen("sudo python3 ./install.py --set-uart")
 # Fix static paths
 clean_paths()
 
@@ -130,7 +130,7 @@ if user_id == 0 and --set-fstab in sys.argv():
     group_id = sys.argv[-1]
     setFstab()
 else:
-    os.popen("sudo ./install.py --set-fstab " + user_id + group_id)
+    os.popen("sudo python3 ./install.py --set-fstab " + user_id + group_id)
 
 # install system services for airaina and controller
 if not os.path.lexists("/etc/systemd/system/airiana.service"):
