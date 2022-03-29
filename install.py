@@ -158,7 +158,8 @@ if boot_cmd not in open("/boot/cmdline.txt").read():
     if user_id == 0 and "--redirect-console" in sys.argv:
         redirectConsole(boot_cmd)
         reboot = True
-
+    else:
+        os.popen("sudo python3 ./install.py --redirect-console")
 # setup airiana as host#
 print("Copy hosts file and set hostname")
 os.system("sudo cp ./systemfiles/hosts /etc/")
