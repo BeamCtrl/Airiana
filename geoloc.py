@@ -40,3 +40,5 @@ except NameError:
         print("unknown")
         if "debug" in sys.argv:
             print(loc)
+    except KeyError:
+        print("unknown")
