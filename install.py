@@ -97,7 +97,7 @@ def clean_paths():
 
 
 user_name = os.getlogin()
-user_id = pwd.getpwuid(user_name)
+user_id = os.getuid()
 group_id = os.getgid()
 
 print("Installing the AirianaCores")
