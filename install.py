@@ -127,7 +127,7 @@ else:
 clean_paths()
 
 # update the fstab file with RAM-drives for /var/log and ~/airiana/RAM
-if user_id == 0 and "--set-fstab" in sys.argv():
+if user_id == 0 and "--set-fstab" in sys.argv:
     user_id = sys.argv[-2]
     group_id = sys.argv[-1]
     setFstab()
