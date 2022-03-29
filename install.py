@@ -30,7 +30,7 @@ def setUart():
         boot_file.close()
         reboot = True
     #sys.stdout.flush()
-    exit(0)
+
 
 
 # INSTALL DEPS #
@@ -82,7 +82,6 @@ def setFstab():
     else:
         print("fstab  already installed")
     #sys.stdout.flush()
-    exit(0)
 
 
 def clean_paths():
@@ -111,7 +110,7 @@ if "clean" in sys.argv:
     os.system("sudo systemctl disable controller.service")
     os.system("sudo systemctl disable airiana.service")
     os.system("sudo rm /etc/systemd/airiana.service /etc/systemd/system/controller.service")
-    exit(0)
+    exit()
 
 if len(sys.argv) == 1 and user_id != 0:
     install_deps()
