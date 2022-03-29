@@ -1766,8 +1766,11 @@ class Systemair(object):
                 req.write_register(1403, base + self.flowOffset[0])
                 req.write_register(1402, self.sf_base + self.flowOffset[0])
                 os.write(ferr,
-                         bytes("Extract flow offset to: " + str(self.flowOffset[0]) + "\t" + str(time.ctime()) + "\n",
-                               encoding='utf8'))
+                         bytes("Extract flow offset to: " + str(self.flowOffset[0])
+                               + "/" + str(self.flowOffset[0])
+                               + "/" + str(base)
+                               + "\t" + str(time.ctime())
+                               + "\n", encoding='utf8'))
                 # self.msg += "Updated base extract flow to: "+str(base+self.flowOffset[0])+"\n"
                 self.ef = base + self.flowOffset[0]
                 self.sf = self.sf_base + self.flowOffset[0]

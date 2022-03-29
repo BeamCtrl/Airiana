@@ -13,8 +13,9 @@ sensors
 *.pyc
 #RAM dir not tracked
 RAM/
+#images
+*.png
 # dont track logs
-*.log
 *.save
 err
 out
