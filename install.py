@@ -205,7 +205,7 @@ if "update" not in sys.argv or reboot or "reboot" in sys.argv:
     print("Installation completed, reboot in 15 sec")
     sys.stdout.flush()
     os.system("sleep 15")
-    os.system("reboot")
+    os.system("sudo reboot")
 
 if "update" in sys.argv:
     print("System update successful")
