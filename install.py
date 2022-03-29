@@ -35,9 +35,9 @@ def setUart():
 
 # INSTALL DEPS #
 def install_deps():
-    os.system("apt-get -y install python3-pip")
-    os.system("apt-get -y install python3-dev")
-    os.system("apt-get -y install python3-matplotlib")
+    os.system("sudo apt-get -y install python3-pip")
+    os.system("sudo apt-get -y install python3-dev")
+    os.system("sudo apt-get -y install python3-matplotlib")
     os.system("pip3 install minimalmodbus")
     os.system("pip3 install progressbar")
     os.system("pip3 install requests")
@@ -45,8 +45,8 @@ def install_deps():
     os.system("pip3 install setuptools")
     os.system("pip3 install pyephem")
     os.system("pip3 install numpy")
-    os.system("apt-get -y install ntp")
-    os.system("apt-get -yq --force-yes -o \"Dpkg::Options::=--force-confdef\"  upgrade")
+    os.system("sudo apt-get -y install ntp")
+    os.system("sudo apt-get -yq --force-yes -o \"Dpkg::Options::=--force-confdef\"  upgrade")
 
 
 def setFstab():
@@ -130,7 +130,7 @@ if user_id == 0 and --set-fstab in sys.argv():
     group_id = sys.argv[-1]
     setFstab()
 else:
-    os.popen("sudo python3 ./install.py --set-fstab " + user_id + group_id)
+    os.popen("sudo python3 ./install.py --set-fstab " + str(user_id) + " " + str(group_id))
 
 # install system services for airaina and controller
 if not os.path.lexists("/etc/systemd/system/airiana.service"):
