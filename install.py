@@ -29,7 +29,7 @@ def setUart():
         boot_file.write(boot_cmd)
         boot_file.close()
         reboot = True
-    sys.stdout.flush()
+    #sys.stdout.flush()
     exit(0)
 
 
@@ -81,7 +81,7 @@ def setFstab():
         reboot = True
     else:
         print("fstab  already installed")
-    sys.stdout.flush()
+    #sys.stdout.flush()
     exit(0)
 
 
@@ -121,6 +121,7 @@ if len(sys.argv) == 1 and user_id != 0:
 
 if user_id == 0 and "--set-uart" in sys.argv:
     setUart()
+    exit()
 else:
     os.popen("sudo python3 ./install.py --set-uart")
 # Fix static paths
@@ -131,6 +132,7 @@ if user_id == 0 and "--set-fstab" in sys.argv:
     user_id = sys.argv[-2]
     group_id = sys.argv[-1]
     setFstab()
+    exit()
 else:
     os.popen("sudo python3 ./install.py --set-fstab " + str(user_id) + " " + str(group_id))
 
@@ -155,9 +157,10 @@ def redirectConsole(boot_cmd):
 
 
 if boot_cmd not in open("/boot/cmdline.txt").read():
+    reboot = True
     if user_id == 0 and "--redirect-console" in sys.argv:
         redirectConsole(boot_cmd)
-        reboot = True
+        exit()
     else:
         os.popen("sudo python3 ./install.py --redirect-console")
 # setup airiana as host#
