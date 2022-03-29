@@ -35,6 +35,7 @@ def setUart():
 
 # INSTALL DEPS #
 def install_deps():
+    os.system("apt-get update")
     os.system("sudo apt-get -y install python3-pip")
     os.system("sudo apt-get -y install python3-dev")
     os.system("sudo apt-get -y install python3-matplotlib")
@@ -103,7 +104,7 @@ group_id = os.getgid()
 
 print("Installing the AirianaCores")
 reboot = False
-os.system("apt-get update")
+
 path = os.getcwd()
 
 if "clean" in sys.argv:
