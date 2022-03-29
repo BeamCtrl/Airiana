@@ -54,7 +54,7 @@ def setFstab():
     global lines, reboot, user_id, group_id
     # MAKE RAM DRIVE IN FSTAB#
     fstab_comment = "#temp filesystem only in RAM for use on Airiana tempfiles.\n"
-    fstab_RAM = "tmpfs " + path + "/RAM tmpfs defaults, noatime, nosuid, uid=" + user_id + ", gid=" + group_id + ", mode=0755, size=50m 0 0\n"
+    fstab_RAM = "tmpfs " + path + "/RAM tmpfs defaults,noatime,nosuid,uid=" + user_id + ",gid=" + group_id + ",mode=0755,size=50m 0 0\n"
     # MAKE RAM DRIve for linux logs var/logs
     fstab_var = "tmpfs /var/log tmpfs defaults, noatime, nosuid, mode=0755, size=75m 0 0"
     fstab_file = open("/etc/fstab", "r+")
