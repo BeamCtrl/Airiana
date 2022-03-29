@@ -14,6 +14,11 @@
 #################################################################
 import os
 import sys
+import pwd
+
+user_id = pwd.pwuid()
+user_name = os.getlogin()
+group_id = os.getgid()
 
 print("Installing the AirianaCores")
 reboot = False
@@ -36,7 +41,7 @@ os.system("pip3 install setuptools")
 os.system("pip3 install pyephem")
 os.system("pip3 install numpy")
 os.system("apt-get -y install ntp")
-os.system("apt-get -yq --force-yes -o \"Dpkg::Options::=--force-confnew\"  upgrade")
+os.system("apt-get -yq --force-yes -o \"Dpkg::Options::=--force-confdef\"  upgrade")
 # NEED TO SET LOCALE
 # os.system("cp ./systemfiles/timezone /etc/")
 
