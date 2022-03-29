@@ -83,6 +83,7 @@ def setFstab():
     sys.stdout.flush()
     exit(0)
 
+
 def clean_paths():
     # replace static paths with install path
     os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' airiana-core.py")
@@ -117,7 +118,7 @@ if len(sys.argv) == 1:
 # NEED TO SET LOCALE
 # os.system("cp ./systemfiles/timezone /etc/")
 
-if user_id == 0 and --set-uart in sys.argv:
+if user_id == 0 and "--set-uart" in sys.argv:
     setUart()
 else:
     os.popen("sudo python3 ./install.py --set-uart")
@@ -125,7 +126,7 @@ else:
 clean_paths()
 
 # update the fstab file with RAM-drives for /var/log and ~/airiana/RAM
-if user_id == 0 and --set-fstab in sys.argv():
+if user_id == 0 and "--set-fstab" in sys.argv():
     user_id = sys.argv[-2]
     group_id = sys.argv[-1]
     setFstab()
