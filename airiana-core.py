@@ -1896,7 +1896,7 @@ class Systemair(object):
                          "electricPower": self.electric_power}
             tmp = str(json_vars).replace("'", "\"")
         except IndexError:
-            os.write(ferr, bytes(f"json-writer error {self.hum_list}\n", "utf-8"))
+            os.write(ferr, bytes("json-writer error\n", "utf-8"))
         os.ftruncate(air_out, 0)
         os.lseek(air_out, 0, os.SEEK_SET)
         os.write(air_out, bytes(tmp, encoding='utf8'))
@@ -2155,7 +2155,6 @@ if __name__ == "__main__":
                     try:
                         #device.msg += "\nNetwork command recieved: Processing... " + str(data) + "\n"
                         log = "echo \"" + str(time.ctime()) + ":" + str(sender) + ":" + str(data) + "\" >> netlog.log &"
-                        os.write(ferr, bytes(f"{sender}:{data} at\t{time.ctime()}\n", "utf-8"))
                         os.system(log)
                     except:
                         device.msg += "net log error\n"
