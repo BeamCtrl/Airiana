@@ -36,9 +36,9 @@ def setUart():
 # INSTALL DEPS #
 def install_deps():
     os.system("sudo apt-get update")
-    os.system("sudo apt-get -y install python3-pip")
-    os.system("sudo apt-get -y install python3-dev")
-    os.system("sudo apt-get -y install python3-matplotlib")
+    os.system("sudo apt-get -y --force-yes install python3-pip")
+    os.system("sudo apt-get -y --force-yes install python3-dev")
+    os.system("sudo apt-get -y --force-yes install python3-matplotlib")
     os.system("pip3 install minimalmodbus --user")
     os.system("pip3 install progressbar --user")
     os.system("pip3 install requests --user")
@@ -46,7 +46,7 @@ def install_deps():
     os.system("pip3 install setuptools --user")
     os.system("pip3 install pyephem --user")
     os.system("pip3 install numpy --user")
-    os.system("sudo apt-get -y install ntp")
+    os.system("sudo apt-get -y --force-yes install ntp")
     os.system("sudo apt-get -yq --force-yes -o \"Dpkg::Options::=--force-confdef\"  upgrade")
 
 
@@ -56,7 +56,7 @@ def setFstab():
     fstab_comment = "#temp filesystem only in RAM for use on Airiana tempfiles.\n"
     fstab_RAM = "tmpfs " + path + "/RAM tmpfs defaults,noatime,nosuid,uid=" + user_id + ",gid=" + group_id + ",mode=0755,size=50m 0 0\n"
     # MAKE RAM DRIve for linux logs var/logs
-    fstab_var = "tmpfs /var/log tmpfs defaults, noatime, nosuid, mode=0755, size=75m 0 0"
+    fstab_var = "tmpfs /var/log tmpfs defaults,noatime,nosuid,mode=0755,size=75m 0 0"
     fstab_file = open("/etc/fstab", "r+")
     lines = fstab_file.readlines()
     # Write RAM tmpfs's to fstab
