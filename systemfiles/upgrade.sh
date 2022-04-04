@@ -14,9 +14,9 @@ sudo -E apt-get -q update
 sudo -E apt-get -q update --fix-missing
 sudo -E apt-get -yq upgrade --download-only
 #sudo -E apt-get -yq --allow-downgrades --allow-remove-essential --allow-change-held-packages --allow-releaseinfo-change -o "Dpkg::Options::=--force-confnew" upgrade
-sudo -E apt-get -yq --allow-remove-essential --allow-change-held-packages -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confnew" upgrade
-sudo -E apt-get -q autoremove
-sudo -E apt-get -q autoclean
+sudo -E apt-get -yq -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confnew" upgrade
+sudo -E apt-get -yq autoremove
+sudo -E apt-get -yq autoclean
 
 #update the distro sources
 apt=$(sed "s/$1/$2/g" /etc/apt/sources.list)

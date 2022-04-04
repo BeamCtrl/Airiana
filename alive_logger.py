@@ -22,8 +22,10 @@ sock.bind(("0.0.0.0", 59999))
 while True:
     if sock in select.select([sock], [], [], 1)[0]:
         incomming_msg, addr = sock.recvfrom(37000)
-        incomming_msg = incomming_msg.decode("utf-8")
-
+        try:
+            incomming_msg = incomming_msg.decode("utf-8")
+        except:
+            print("Data error: ", incomming_msg)
         if incomming_msg.find("ether") > 0:
             ip = incomming_msg[61:75]
             mac = incomming_msg[14:31]
