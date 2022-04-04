@@ -46,6 +46,7 @@ def install_deps():
     os.system("pip3 install setuptools --user")
     os.system("pip3 install pyephem --user")
     os.system("pip3 install numpy --user")
+    os.system("sudo apt-get -y install libatlas-dev")
     os.system("sudo apt-get -y --force-yes install ntp")
     os.system("sudo apt-get -yq --force-yes -o \"Dpkg::Options::=--force-confdef\"  upgrade")
 
