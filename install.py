@@ -158,6 +158,7 @@ boot_cmd = "dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext
 if boot_cmd not in open("/boot/cmdline.txt").read():
     reboot = True
     if user_id == 0 and "--redirect-console" in sys.argv:
+        print("Redirecting console")
         redirectConsole(boot_cmd)
         sys.exit()
     else:
