@@ -1919,8 +1919,7 @@ class Systemair(object):
 
 # Init base class
 if __name__ == "__main__":
-    print("Reporting system start;")
-    report_alive()
+
     # init request class for communication
     req = Request()
     req.setup(unit, mode)
@@ -1928,6 +1927,8 @@ if __name__ == "__main__":
     os.write(ferr, bytes("System started\t" + str(time.ctime()) + "\n", 'utf8'))
 
     device = Systemair()
+    print("Reporting system start;")
+    report_alive()
     req.modbusregister(12543, 0)  # test for savecair extended address range
     if device.system_name == "VR400" and req.response != "no data":
         savecair = True
