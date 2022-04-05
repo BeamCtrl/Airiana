@@ -46,7 +46,7 @@ def install_deps():
     os.system("pip3 install pyModbusTCP --user")
     os.system("pip3 install setuptools --user")
     os.system("pip3 install pyephem --user")
-    os.system("sudo apt-get -y install libatlas-dev")
+    os.system("sudo apt-get -y --force-yes install libatlas-dev")
     os.system("sudo apt-get -y --force-yes install ntp")
     os.system("sudo apt-get -yq --force-yes -o \"Dpkg::Options::=--force-confdef\"  upgrade")
 
@@ -152,7 +152,6 @@ sys.stdout.flush()
 
 # redir console from uart
 def redirectConsole(boot_cmd):
-    print("adding boot cmdline config")
     os.system("echo " + boot_cmd + "> /boot/cmdline.txt")
 
 boot_cmd = "dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait"
