@@ -14,12 +14,12 @@ sudo -E apt-get -q update
 sudo -E apt-get -q update --fix-missing
 sudo -E apt-get -yq upgrade --download-only
 
-if [ $osname == "jessie" ]
+if [ "$osname" == "jessie" ]
 then
 sudo -E apt-get -y --force-yes  -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confnew" upgrade
 fi
 
-if [ $osname == "stretch" ]
+if [ "$osname" == "stretch" ]
 then
 sudo -E apt-get -y -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confnew" upgrade
 fi
@@ -38,12 +38,12 @@ sudo echo $apt2 |sudo tee  /etc/apt/sources.list.d/raspi.list
 sudo -E apt-get -q update
 sudo -E apt-get update --fix-missing
 sudo -E apt-get -yq upgrade --download-only
-if [ $osname == "jessie" ]
+if [ "$osname" == "jessie" ]
 then
 sudo -E apt-get -y --force-yes  -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confnew" dist-upgrade
 fi
 
-if [ $osname == "stretch" ]
+if [ "$osname" == "stretch" ]
 then
 sudo -E apt-get -y  --allow-downgrades --allow-remove-essential --allow-change-held-packages --allow-releaseinfo-change -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confnew" dist-upgrade
 fi
