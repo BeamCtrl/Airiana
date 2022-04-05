@@ -162,6 +162,7 @@ if boot_cmd not in open("/boot/cmdline.txt").read():
         redirectConsole(boot_cmd)
         exit()
     else:
+        print ("Sudo console redirect")
         os.popen("sudo python3 ./install.py --redirect-console")
 # setup airiana as host#
 print("Copy hosts file and set hostname")
