@@ -111,7 +111,7 @@ if "clean" in sys.argv:
     os.system("sudo systemctl disable controller.service")
     os.system("sudo systemctl disable airiana.service")
     os.system("sudo rm /etc/systemd/airiana.service /etc/systemd/system/controller.service")
-    exit()
+    sys.exit()
 
 if len(sys.argv) == 1 and user_id != 0:
     install_deps()
@@ -121,7 +121,7 @@ if len(sys.argv) == 1 and user_id != 0:
 
 if user_id == 0 and "--set-uart" in sys.argv:
     setUart()
-    exit()
+    sys.exit()
 else:
     os.popen("sudo python3 ./install.py --set-uart")
 # Fix static paths
@@ -132,7 +132,7 @@ if user_id == 0 and "--set-fstab" in sys.argv:
     user_id = sys.argv[-2]
     group_id = sys.argv[-1]
     setFstab()
-    exit()
+    sys.exit()
 else:
     os.popen("sudo python3 ./install.py --set-fstab " + str(user_id) + " " + str(group_id))
 
@@ -159,10 +159,10 @@ if boot_cmd not in open("/boot/cmdline.txt").read():
     reboot = True
     if user_id == 0 and "--redirect-console" in sys.argv:
         redirectConsole(boot_cmd)
-        exit()
+        sys.exit()
     else:
         print("Sudo console redirect")
-os.popen("sudo python3 ./install.py --redirect-console")
+        os.popen("sudo python3 ./install.py --redirect-console")
 # setup airiana as host#
 print("Copy hosts file and set hostname")
 os.system("sudo cp ./systemfiles/hosts /etc/")
