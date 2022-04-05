@@ -1,3 +1,4 @@
+#!/bin/bash
 #usage upgrade.sh [current release codename] [next release codename]
 # test to make sure there are two arguments
 if [ $# -ne 2 ]
@@ -5,6 +6,7 @@ then
   exit 2
 fi
 osname=`./osname.py`
+
 #set headless
 export DEBIAN_FRONTEND=noninteractive
 export DEBIAN_PRIORITY=critical
