@@ -149,21 +149,21 @@ if not os.path.lexists("/etc/systemd/system/controller.service"):
 sys.stdout.flush()
 
 
-boot_cmd = "dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait"
+
 # redir console from uart
 def redirectConsole(boot_cmd):
     print("adding boot cmdline config")
     os.system("echo " + boot_cmd + "> /boot/cmdline.txt")
 
-
+boot_cmd = "dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait"
 if boot_cmd not in open("/boot/cmdline.txt").read():
     reboot = True
     if user_id == 0 and "--redirect-console" in sys.argv:
         redirectConsole(boot_cmd)
         exit()
     else:
-        print ("Sudo console redirect")
-        os.popen("sudo python3 ./install.py --redirect-console")
+        print("Sudo console redirect")
+os.popen("sudo python3 ./install.py --redirect-console")
 # setup airiana as host#
 print("Copy hosts file and set hostname")
 os.system("sudo cp ./systemfiles/hosts /etc/")
