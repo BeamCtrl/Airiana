@@ -2276,10 +2276,6 @@ if __name__ == "__main__":
                         except:
                             traceback.print_exc(ferr)
                             print("fire starter error")
-                        if "daemon" not in sys.argv:
-                            input("press enter to resume")
-                        else:
-                            print("break")
                     if data == 0:  # cycle exchanger mode
                         device.cycle_exchanger(None)
                         device.modetoken = time.time()
