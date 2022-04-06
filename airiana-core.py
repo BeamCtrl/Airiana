@@ -1324,8 +1324,8 @@ class Systemair(object):
         tmp += "Ambient Pressure:" + str(round(self.airdata_inst.press, 2)) + "hPa\n"
         if self.forcast[1] != -1: tmp += "Weather forecast: " + str(self.forcast[0]) + "C " + str(
             self.forcast[1] / 8 * 100) + "% cloud cover RH:" + str(self.forcast[2]) + "%\n\n"
-        if "Timer" in threading.enumerate()[-1].name: tmp += "Ventilation timer on: " + count_down(self.timer,
-                                                                                                   120 * 60) + "\n"
+        if "Timer" in threading.enumerate()[-1].name:
+           tmp += "Ventilation timer on: " + count_down(self.timer, 120 * 60) + "\n"
         if self.shower: tmp += "Shower mode engaged at:" + time.ctime(self.shower_initial) + "\n"
         if self.inhibit > 0: tmp += "Status change inhibited (" + count_down(self.inhibit, 600) + ")\n"
         if self.press_inhibit > 0: tmp += "Pressure change inhibited (" + count_down(self.press_inhibit, 1800) + ")\n"
@@ -2247,7 +2247,35 @@ if __name__ == "__main__":
                         except:
                             traceback.print_exc(ferr)
                             print("force vent error")
+
                     if data == 9:  #
+                        try:
+                            if threading.enumerate()[-1].name == "fire":
+                                if tim.name == "fire": tim.cancel()
+                                if tim2.name == "fire": tim2.cancel()
+                                device.msg += "Removed fire starter ventilation timer\n"
+                                os.write(ferr, bytes(
+                                    bytes("Fire timer canceled at:\t" + str(time.ctime()) + "\n", encoding='utf8')))
+                                device.press_inhibit = 0
+                                monitoring = True
+
+                            if threading.enumerate()[-1].name != "fire":
+                                os.write(ferr,
+                                         bytes("Fire start at:\t" + str(time.ctime()) + "\n", encoding='utf8'))
+                                monitoring = False
+                                prev = device.fanspeed
+                                device.set_differential(-10)
+                                device.press_inhibit = 0
+                                device.set_fanspeed(3)
+                                device.msg += "Fire start Ventilation on timer\n"
+                                tim2 = threading.Timer(60.0 * 10 + 2, set_monitoring, [True])
+                                tim2.start()
+                                tim = threading.Timer(60.0 * 10, reset_fanspeed, [prev])
+                                tim.setName("fire")
+                                tim.start()
+                        except:
+                            traceback.print_exc(ferr)
+                            print("fire starter error")
                         if "daemon" not in sys.argv:
                             input("press enter to resume")
                         else:
