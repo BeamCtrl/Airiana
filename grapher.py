@@ -132,7 +132,8 @@ grid(True)
 ax = gca()
 ax.set_ylim(int(min(inlet)) - 1, int(max(extract + inlet + exhaust + supply + outside)) + 2)
 low, high = ax.get_ylim()
-ax.yaxis.set_ticks(np.arange(int(low), int(high + 1), 1))
+step = floor((high - low)/30)+1
+ax.yaxis.set_ticks(np.arange(int(low), int(high + 1), step))
 ax.set_xlim(min(time[-day:-1]), max(time[-day:-1]))
 ax.xaxis.set_ticks(np.arange(tm.time() % 3600, max(time[-day:-1]) + 4 * 3600, day / 24 * 4))
 ax.set_xticklabels(np.arange(tm.time() % 3600, max(time[-day:-1]) + 4 * 3600, day / 24 * 4))
@@ -209,4 +210,4 @@ fig.subplots_adjust(right=0.90)
 # draw the image
 fig.canvas.draw()
 # save to file
-savefig("./RAM/history.png", bbox_extra_artists=(lgd,), bbox_inches='tight')
+savefig("./RAM/history.png", bbox_extra_artists=(lgd,), bbox_inches='tight', pad_inches=1)
