@@ -33,6 +33,7 @@ she keeps her self in check.
 
 #### Installation:
    ** INSTALLATION IS CURRENTLY BROKEN IN RASPBERRY OS DUE TO DEPRECATION OF python2. **
+   ** optional install in branch python3-migration, ""May contain bugs, is a work in progress"" ** 
   -Install an Rs485 hat on your pi.
 
   -Connect A and B to your ventilation units Modbus connector.
@@ -40,8 +41,9 @@ she keeps her self in check.
   -Set comms on Ventilation unit to 19200baud no pairity 1 stopbit. 
 
   -Clone this repo.
+  -'git checkout python3-migration'
 
-  -Run  "sudo python ./install.py"
+  -Run  "python3 ./install.py"
 
   -When the forcasting reciever is first run it will create a latlong.json file based on IP geolocation. If you want a more precise location forcast update the latlong.json file with your position.   
 
