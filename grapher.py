@@ -213,4 +213,4 @@ fig.subplots_adjust(right=0.90)
 # draw the image
 fig.canvas.draw()
 # save to file
-savefig("./RAM/history.png", bbox_extra_artists=(lgd,), bbox_inches='tight')
+savefig("./RAM/history.png", bbox_extra_artists=(lgd,), bbox_inches='tight', pad_inches=1)
