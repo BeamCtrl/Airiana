@@ -130,8 +130,12 @@ if "debug" in sys.argv:
     ob = axhline(y=float(os.popen("cat RAM/latest_static").read()))
 grid(True)
 ax = gca()
-ax.set_ylim(int(min(inlet)) - 1, int(max(extract + inlet + exhaust + supply + outside)) + 2)
+try:
+    ax.set_ylim(int(min(inlet)) - 1, int(max(extract + inlet + exhaust + supply + outside)) + 2)
+except ValueError:
+    exit(0)
 low, high = ax.get_ylim()
+step = floor((high - low)/30)+1
 ax.yaxis.set_ticks(np.arange(int(low), int(high + 1), 1))
 ax.set_xlim(min(time[-day:-1]), max(time[-day:-1]))
 ax.xaxis.set_ticks(np.arange(tm.time() % 3600, max(time[-day:-1]) + 4 * 3600, day / 24 * 4))
