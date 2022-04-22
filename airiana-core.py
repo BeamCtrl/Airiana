@@ -318,6 +318,8 @@ sys.stdout.flush()
 ############DEVICE CLASS FOR SYSTEMAIR VR400DCV#############################
 class Systemair(object):
     def __init__(self):
+        self.showerRH = None
+        self.initial_temp = None
         self.fanspeed = 1
         self.system_types = {0: "VR400", 1: "VR700", 2: "VR700DK", 3: "VR400DE", 4: "VTC300", 5: "VTC700",
                              12: "VTR150K", 13: "VTR200B", 14: "VSR300", 15: "VSR500", 16: "VSR150",
@@ -1074,7 +1076,7 @@ class Systemair(object):
         self.status_field[1] = self.exchanger_mode
 
     # do moisture calculations
-    def moisture_calcs(self, data="None"):  ## calculate moisure/humidities
+    def moisture_calcs(self, data=None):  ## calculate moisure/humidities
         self.moist_in = 1000 * self.airdata_inst.sat_vapor_press(
             self.airdata_inst.dew_point(self.new_humidity, self.extract_ave))
         self.moist_out = 1000 * self.airdata_inst.sat_vapor_press(
@@ -1104,7 +1106,7 @@ class Systemair(object):
         # if "debug" in sys.argv:
         #	self.msg += str(self.new_humidity)+"  "+str( self.local_humidity)+"\n"
         # query for a ref humidity at temp
-        if data != "None":
+        if data != None:
             max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
             low_pw = self.airdata_inst.sat_vapor_press(data)
         return ((low_pw) / max_pw) * 100
@@ -2315,7 +2317,7 @@ if __name__ == "__main__":
                         device.set_fanspeed(3)
                         device.coef_debug()
             except TypeError as e:
-                os.write(ferr, bytes("TypeError occured at:\t" + str(time.ctime()) + "\n" + e, encoding='utf8'))
+                os.write(ferr, bytes("TypeError occured at:\t" + str(time.ctime()) + "\n" + str(e), encoding='utf8'))
             except ValueError:
                 os.write(ferr, bytes("ValueError occured at:\t" + str(time.ctime()) + "\n", encoding='utf8'))
             except IOError:
