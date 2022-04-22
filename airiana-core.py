@@ -1762,7 +1762,7 @@ class Systemair(object):
             self.flowOffset[0] = 20
         if savecair:
             base = self.ef_base + self.pressure_diff
-            req.modbusregister(1403)
+            req.modbusregister(1403, 0)
             ef = int(req.response)
             if self.fanspeed == 1 and ef != base + self.flowOffset[0] and not self.shower and not self.cool_mode:
                 req.write_register(1403, base + self.flowOffset[0])
