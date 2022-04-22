@@ -1762,16 +1762,17 @@ class Systemair(object):
             self.flowOffset[0] = 20
         if savecair:
             base = self.ef_base + self.pressure_diff
-            if self.fanspeed == 1 and self.ef != base + self.flowOffset[0] and not self.shower and not self.cool_mode:
+            req.modbusregister(1403)
+            ef = int(req.response)
+            if self.fanspeed == 1 and ef != base + self.flowOffset[0] and not self.shower and not self.cool_mode:
                 req.write_register(1403, base + self.flowOffset[0])
                 req.write_register(1402, self.sf_base + self.flowOffset[0])
                 os.write(ferr,
-                         bytes("Extract flow offset to: " + str(self.ef)
+                         bytes("Extract flow offset to: " + str(ef)
                                + "/" + str(self.flowOffset[0])
                                + "/" + str(base)
                                + "\t" + str(time.ctime())
                                + "\n", encoding='utf8'))
-                # self.msg += "Updated base extract flow to: "+str(base+self.flowOffset[0])+"\n"
                 self.ef = base + self.flowOffset[0]
                 self.sf = self.sf_base + self.flowOffset[0]
         if self.has_RH_sensor and not savecair:
