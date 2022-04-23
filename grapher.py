@@ -192,7 +192,7 @@ for i in range(len(labels)):
         if not tm.localtime().tm_isdst:
             labels[i] = tm.strftime("%H:%M - %a", tm.gmtime(tm.time() - (float(labels[i])) - (tm.altzone) - 3600))
         else:
-            labels[i] = tm.strftime("%d/%m %H:%M", tm.gmtime(tm.time() - (float(labels[i])) - (tm.altzone)))
+            labels[i] = tm.strftime("%H:%M - %a", tm.gmtime(tm.time() - (float(labels[i])) - (tm.altzone)))
     except:
         pass  # print "label error"
 # TEMPS
