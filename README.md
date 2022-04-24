@@ -34,6 +34,7 @@ she keeps her self in check.
 #### Installation:
    ** INSTALLATION IS CURRENTLY BROKEN IN RASPBERRY OS DUE TO DEPRECATION OF python2. **
    ** optional install in branch python3-migration, ""May contain bugs, is a work in progress"" ** 
+   
   -Install an Rs485 hat on your pi.
 
   -Connect A and B to your ventilation units Modbus connector.
@@ -111,7 +112,7 @@ It will be forced off if the suppy temperature is above target.
 
 #### Auto update:
 
-Airana will every 4hrs check if ther is a new stable release availible in this git repo. If there is, it will be automatically fetched and the system will restart.
+Airana will every 4hrs check if there is a new stable release availible in this git repo. If there is, it will be automatically fetched and the system will restart.
 
 #### Interface:
 
@@ -119,12 +120,15 @@ System control and monitoring is done via a web-page at http://airana.local. fro
 
 Tips and Tricks: if you want to run fans at low on a timer set forced ventilation and then manually set low speed. the timer inhibits the automation for 2 hrs
 
-#### HomeAssistant http-sensor:
+#### HomeAssistant:
 If configured the ha-token file can contain the ip, port and token of your runnning homeAssistant server. Airiana will then send temperature/humidity and extract fan rpm as http sensors and they śhould pop up in you HomeAssistant.
+
+Example config file for use with json data over MQTT, availible in file airiana_config.yml
 
 ### Json data:
 There is a json file availible for thrid-party integrations which contain a limited set of data för use as anyone sees fit to do. I use it as a data source for publishing on MQTT for homeassistant to read.
 This file is availible at "./RAM/air.out"
+
 
 
 ### Tools:
@@ -133,8 +137,8 @@ Restart: "./restart" restarts the airiana core service.
 
 Watch: "./watch" outputs the running parameters to terminal.
 
-Grapher: "sudo ./grapher.py #number of days#" will generate a new graph with an arbitrary number of days to be plotted.
-use "humidity" as an added argument if you also want the humidity graph added to the *.png
+Grapher: "./grapher.py #number of days#" will generate a new graph with an arbitrary number of days to be plotted.
+use "hasRH" as an added argument if you also want the humidity graph added to the *.png
 
 A runnning log file is availble in ./RAM/err.
 
