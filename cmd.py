@@ -7,14 +7,18 @@ import os
 sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 
 def cmds ():
-	now = time.ctime(time.time())
-	print(f"""{now}        CTRL-C to exit,
-1: Toggle Auto Monitoring        6:
-2: Toggle fanspeed               7: Toggle pressure diff
-3: Print all device attributes   8: Run fans for 120min at Max
-4: Display link settings         9:
-5: show/update values           10: Toggle shower mode
-                enter commands:""")
+        now = time.ctime(time.time())
+        print("""
+        CTRL-C to exit,
+1: Toggle auto Monitoring        6: Not implemented
+2: Toggle fanspeed               7: Set flow differential
+3: Print all device attributes   8: Run fans for 15min at Max
+4: Display link settings         9: Run the Firestarter mode
+5: toggle flowOffset             0: cycle winter/summer mode
+10: Not implemented             11: Toggle electric heater
+12: Start shower mode           13: Engage Cool mode
+14: Enagage AI test
+                enter commands:""", end=' ')
 print(chr(27)+"[2J")
 #cmds()
 try:
