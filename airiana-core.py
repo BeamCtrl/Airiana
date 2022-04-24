@@ -32,14 +32,18 @@ if "TCP" in sys.argv:
 def exit_callback(self, arg):
     print("Gracefull shutdown\nexiting on signal", self)
     sys.stdout.flush()
+    now = device.iter
+    shutdown = time.time()
     Running = False
     os.system("cp ./RAM/data.log ./data.save")
     if threading.enumerate()[-1].name == "Timer":
         threading.enumerate()[-1].cancel()
     cmd_socket.close()
     os.write(ferr, bytes("Exiting in a safe way" + "\n", encoding='utf8'))
+    # Sleep untill one iteration has passed or we've been in shutdown for 3 sec.
+    while not (device.iter > now) or not (time.time() < shutdown + 3):
+        time.sleep(0.1)
     sys.exit(0)
-
 
 signal.signal(signal.SIGTERM, exit_callback)
 signal.signal(signal.SIGINT, exit_callback)
@@ -2132,11 +2136,14 @@ if __name__ == "__main__":
                 timeout = 0.1
                 print("""
 	CTRL-C to exit,
-1: Toggle auto Monitoring	 6: 
+1: Toggle auto Monitoring	 6: Not implemented
 2: Toggle fanspeed		 7: Set flow differential
 3: Print all device attributes	 8: Run fans for 15min at Max
-4: Display link settings	 9: 
-5: show/update values		 0: cycle winter/summer mode
+4: Display link settings	 9: Run the Firestarter mode
+5: toggle flowOffset		 0: cycle winter/summer mode
+10: Not implemented		11: Toggle electric heater
+12: Start shower mode		13: Engage Cool mode
+14: Enagage AI test
 		enter commands:""", end=' ')
             else:
                 timeout = 0.05
@@ -2201,7 +2208,11 @@ if __name__ == "__main__":
                         else:
                             print("break")
                         recent = 4
-
+                    if data == 5:
+                       if device.flowOffset[0] == 0:
+                           device.flowOffset[0] = 20
+                       else:
+                           device.flowOffset[0] = 0
                     if data == 6:  #
                         if "daemon" not in sys.argv:
                             input("press enter to resume")
