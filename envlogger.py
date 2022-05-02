@@ -23,8 +23,6 @@ if len(sys.argv) > 1:
     log = sys.argv[1]
 else:
     log = "151"
-import random as rndm
-
 
 def update_sensors():
     global device
