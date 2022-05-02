@@ -35,6 +35,9 @@ while True:
             ip = incomming_msg[58:72]
         print(time.ctime(), "MAC:", mac, "From:", addr)
         # print "active IP:",ip
+        if len(mac) == 0:
+            print("no mac, exiting")
+            exit(0)
         for_file = html.replace("[IP]", ip)
         for_file = html.replace("[DA]", incomming_msg)
         filename = "./public/local_links/" + mac + ".html"
