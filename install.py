@@ -14,9 +14,8 @@
 #################################################################
 import os
 import sys
-import pwd
 
-user_id = pwd.getpwuid()
+user_id = os.getuid()
 user_name = os.getlogin()
 group_id = os.getgid()
 
