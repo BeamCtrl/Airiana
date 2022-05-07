@@ -48,7 +48,7 @@ def install_deps():
     os.system("pip3 install pyephem --user")
     os.system("sudo apt-get -y --force-yes install libatlas-dev")
     os.system("sudo apt-get -y --force-yes install ntp")
-    os.system("sudo apt-get -yq --force-yes -o \"Dpkg::Options::=--force-confdef\"  upgrade")
+    #os.system("sudo apt-get -yq --force-yes -o \"Dpkg::Options::=--force-confdef\"  upgrade")
 
 
 def setFstab():
