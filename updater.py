@@ -13,7 +13,7 @@ for system in enumerate(deb_versions):
         print("future", deb_versions[system[0]+1])
         print("Updating to", deb_versions[system[0]+1])
         print("./systemfiles/upgrade.sh " + system[1] + " " + deb_versions[system[0] + 1])
-        os.system("./systemfiles/upgrade.sh " + system[1] + " " + deb_versions[system[0]+1] + " && sudo reboot")
+        os.system("./systemfiles/upgrade.sh " + system[1] + " " + deb_versions[system[0]+1]  + " >> update.log" + " && sudo reboot")
 
 
 os.system("git fetch && git checkout -m origin/master ./public/current_version")
