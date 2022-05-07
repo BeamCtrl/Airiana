@@ -5,7 +5,7 @@ import sys
 path = os.path.abspath(__file__).replace("updater.py", "")
 os.chdir(path)
 deb_versions = ("wheezy", "jessie", "stretch", "buster")
-
+os.system("python3 install.py")
 for system in enumerate(deb_versions):
     os_name = os.popen("./osname.py").readline()[:-1]
     if os_name in system:
@@ -14,6 +14,7 @@ for system in enumerate(deb_versions):
         print("Updating to", deb_versions[system[0]+1])
         print("./systemfiles/upgrade.sh " + system[1] + " " + deb_versions[system[0] + 1])
         os.system("./systemfiles/upgrade.sh " + system[1] + " " + deb_versions[system[0]+1]  + " >> update.log" + " && sudo reboot")
+        break
 
 
 os.system("git fetch && git checkout -m origin/master ./public/current_version")

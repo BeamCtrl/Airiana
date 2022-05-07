@@ -11,6 +11,7 @@ osname=`./osname.py`
 export DEBIAN_FRONTEND=noninteractive
 export DEBIAN_PRIORITY=critical
 
+sudo apt-get purge -y wolfram-engine libreoffice apt-listchanges scratch scratch2 oracle-java
 #Get the latest from current distro release
 sudo -E apt-get -q update
 sudo -E apt-get -q update --fix-missing
@@ -53,9 +54,9 @@ then
 sudo -E apt-get -yq  --allow-downgrades --allow-remove-essential --allow-change-held-packages --allow-releaseinfo-change -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confnew" dist-upgrade
 fi
 
-if [ "$osname" == "stretch" ]
+if [ "$osname" == "buster" ]
 then
-  echo "do not upgrade to buster"
+  echo "do not upgrade to bullseye"
 fi
 
 sudo -E apt-get update --fix-missing
