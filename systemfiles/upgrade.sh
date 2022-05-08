@@ -58,20 +58,23 @@ fi
 
 if [ "$osname" == "stretch" ]
 then
-sudo -E apt-get -yq  --allow-downgrades --allow-remove-essential --allow-change-held-packages\
-  -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confnew" dist-upgrade\
- ||sudo apt -yq -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confnew" --fix-broken install
+  # set default replies to smb configurations
+  echo "samba-common samba-common/workgroup string  WORKGROUP" | sudo debconf-set-selections
+  echo "samba-common samba-common/dhcp boolean true" | sudo debconf-set-selections
+  echo "samba-common samba-common/do_debconf boolean true" | sudo debconf-set-selections
+  sudo -E apt-get -yq  --allow-downgrades --allow-remove-essential --allow-change-held-packages\
+    -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confnew" dist-upgrade\
+   || sudo apt -yq -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confnew" --fix-broken install
 fi
 
 if [ "$osname" == "buster" ]
 then
 sudo -E apt-get -yq  --allow-downgrades --allow-remove-essential --allow-change-held-packages\
   -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confnew" dist-upgrade\
- ||sudo apt -yq -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confnew" --fix-broken install
+ || sudo apt -yq -o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confnew" --fix-broken install
 fi
 
 
 sudo -E apt-get update --fix-missing
 sudo -E apt-get -yq autoremove
 sudo -E apt-get -yq autoclean
-
