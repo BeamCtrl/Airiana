@@ -4,11 +4,11 @@ import sys
 
 path = os.path.abspath(__file__).replace("updater.py", "")
 os.chdir(path)
-deb_versions = ("wheezy", "jessie", "stretch", "buster")
+deb_versions = ("wheezy", "jessie", "stretch", "buster", "bullseye")
 os.system("python3 install.py update")
 for system in enumerate(deb_versions):
     os_name = os.popen("./osname.py").readline()[:-1]
-    if os_name in system and system.index(os_name) != len(deb_versions):
+    if os_name in system and system.index(os_name) > len(deb_versions) - 2:
         print("current", system[1])
         print("future", deb_versions[system[0]+1])
         print("Updating to", deb_versions[system[0]+1])
