@@ -127,7 +127,10 @@ plot(time[-day:-1], supply[-day:-1], '-', linewidth=1, label="supply temperature
 if "debug" in sys.argv:
     plot(time[-day:-1], sen_temp[-day:-1], '-', linewidth=1, label="outdoor sensor temperature")
     plot(time[-day:-1], outside[-day:-1], '-', linewidth=1, label="indoor sensor temperature")
-    ob = axhline(y=float(os.popen("cat RAM/latest_static").read()))
+    try:
+        ob = axhline(y=float(os.popen("cat RAM/latest_static").read()))
+    except:
+        ob = axhline(y=0.0)
 grid(True)
 ax = gca()
 try:
