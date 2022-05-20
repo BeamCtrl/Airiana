@@ -768,7 +768,9 @@ class Systemair(object):
                 extract = req.response
             try:  # replace erronous data input when temp diff exceeds 1C between samples
                 if extract - self.rawdata[0][1] > 1:
-                    extract = self.rawdata[0][1]
+                    os.write(ferr, bytes("temp read error at: " + str(extract) + "C \t" + str(time.ctime()) + "\n",
+                                     encoding='utf8'))
+                    extract = self.rawdata[1][1]
             except IndexError:
                 pass
             except TypeError:
@@ -1699,7 +1701,6 @@ class Systemair(object):
             self.forcast = [-1, -1]
         except IndexError:
             traceback.print_exc(ferr)
-            os.write(ferr, bytes(str(tomorrows_low) + " " + str(index) + " " + str(tomorrows_low[index]) + "\n"))
             self.msg += "error getting forecast.(index error)\n" + str(forcast)
         # self.forcast=[-1,-1]
         except FileError:
