@@ -56,7 +56,7 @@ class Request:
             except:
                 print(
                     "Fallback localhost:505 server there may be a problem with formating the ipconfig file or it may not exist")  # noPEP8
-                self.client = pyModbusTCP.client.ModbusClient(host=IP, port=PORT, auto_open=True)
+                self.client = pyModbusTCP.client.ModbusClient(host=IP, port=PORT, auto_open=True, auto_close=True)
         else:
             print("Using RTU backend;")
             ID = 1  # UNIT ID
@@ -186,11 +186,12 @@ class Request:
             # print "request om address ", address, "returned", self.response
         else:
             try:
-                self.response = self.client.read_holding_registers(address, 1)[0]
+                data = self.client.read_holding_registers(address, 1)
+                self.response = data[0]
                 if decimals != 0:
                     self.response /= (decimals * 10)
-            except:
-                print("TCP read error on addrs:", address)
+            except TypeError:
+                print("TCP read error on addrs:", address, data)
 
         self.reset = 0  # set reset counter to 0
 
