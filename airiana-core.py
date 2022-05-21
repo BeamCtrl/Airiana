@@ -1324,7 +1324,7 @@ class Systemair(object):
             round((self.totalenergy) / (((time.time() - starttime) / 3600)), 1)) + "W\n"
         tmp += "Cooling total: " + str(round(self.cooling / 1000, 3)) + "kWh\n"
         tmp += "Heat gain total: " + str(round(self.gain / 1000, 3)) + "kWh\n"
-        tmp += "Unit electric total: " + str(round(self.electric_power_sum, 3)) + "kWh\n"
+        tmp += "Unit electric total: " + str(round(self.electric_power_sum/1000, 3)) + "kWh\n"
         tmp += "Supply:" + str(self.sf) + " l/s," + str(self.sf_rpm) + "rpm\tExtract:" + str(self.ef) + " l/s," + str(
             self.ef_rpm) + "rpm\n"
         if self.ac_active:
