@@ -1907,7 +1907,7 @@ class Systemair(object):
                          "rotorActive": str(self.rotor_active).lower(), "elecHeater": self.heater,
                          "inlet": self.inlet_ave,
                          "referenceHumidity": self.local_humidity, "measuredHumidity": self.hum_list[0],
-                         "electricPower": self.electric_power}
+                         "electricPower": self.electric_power, "electricPowerTotal": self.electric_power_sum}
             tmp = str(json_vars).replace("'", "\"")
         except IndexError:
             os.write(ferr, bytes(f"json-writer error {self.hum_list}\n", "utf-8"))
