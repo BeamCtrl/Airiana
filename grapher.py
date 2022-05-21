@@ -140,7 +140,10 @@ except ValueError:
 low, high = ax.get_ylim()
 step = floor((high - low)/30)+1
 ax.yaxis.set_ticks(np.arange(int(low), int(high + 1), 1))
-ax.set_xlim(min(time[-day:-1]), max(time[-day:-1]))
+try:
+    ax.set_xlim(min(time[-day:-1]), max(time[-day:-1]))
+except ValueError:
+    sys.exit(0)
 ax.xaxis.set_ticks(np.arange(tm.time() % 3600, max(time[-day:-1]) + 4 * 3600, day / 24 * 4))
 ax.set_xticklabels(np.arange(tm.time() % 3600, max(time[-day:-1]) + 4 * 3600, day / 24 * 4))
 ax.invert_xaxis()
