@@ -322,6 +322,7 @@ sys.stdout.flush()
 ############DEVICE CLASS FOR SYSTEMAIR VR400DCV#############################
 class Systemair(object):
     def __init__(self):
+        self.elec_now = 0
         self.showerRH = None
         self.initial_temp = None
         self.fanspeed = 1
@@ -482,6 +483,7 @@ class Systemair(object):
         self.coef_inhibit = time.time()
         self.sensor_exhaust = -60
         self.admin_password = ""
+        self.electric_power_sum = 0.0
 
     def get_password(self):
         req.modbusregister(16000,0)
@@ -912,6 +914,8 @@ class Systemair(object):
                 self.electric_power = 0
             if "Yes" in self.rotor_active: self.electric_power += 10  # rotor motor 10Watts
             self.electric_power += 5  # controller board power
+        if self.elec_now != 0:  # integral of the electric power used by fans and controller
+            self.electric_power_sum += self.electric_power / (time.time() - self.elec_now / 3600)
 
     def update_fanspeed(self):
         self.fanspeed = self.get_fanspeed()
@@ -1314,11 +1318,12 @@ class Systemair(object):
         if self.supply_ave < self.extract_ave:
             tmp += "Energy Loss: " + str(round(self.loss, 1)) + "W\n"
         else:
-            tmp += "Energy Gain: " + str(round(self.loss, 1)) + "W\n"
-        tmp += "Loss Total: " + str(round(self.totalenergy / 1000, 3)) + "kWh Average:" + str(
+            tmp += "Energy gain: " + str(round(self.loss, 1)) + "W\n"
+        tmp += "Loss total: " + str(round(self.totalenergy / 1000, 3)) + "kWh Average:" + str(
             round((self.totalenergy) / (((time.time() - starttime) / 3600)), 1)) + "W\n"
-        tmp += "Cooling Total: " + str(round(self.cooling / 1000, 3)) + "kWh\n"
-        tmp += "Heat Gain Total: " + str(round(self.gain / 1000, 3)) + "kWh\n"
+        tmp += "Cooling total: " + str(round(self.cooling / 1000, 3)) + "kWh\n"
+        tmp += "Heat gain total: " + str(round(self.gain / 1000, 3)) + "kWh\n"
+        tmp += "Unit electric total: " + str(round(self.electric_power_sum, 3)) + "kWh\n"
         tmp += "Supply:" + str(self.sf) + " l/s," + str(self.sf_rpm) + "rpm\tExtract:" + str(self.ef) + " l/s," + str(
             self.ef_rpm) + "rpm\n"
         if self.ac_active:
