@@ -41,7 +41,7 @@ def exit_callback(self, arg):
     cmd_socket.close()
     os.write(ferr, bytes("Exiting in a safe way" + "\n", encoding='utf8'))
     # Sleep untill one iteration has passed or we've been in shutdown for 3 sec.
-    while not (device.iter > now) or not (time.time() < shutdown + 3):
+    while  (device.iter < now) or (time.time() < shutdown + 3):
         time.sleep(0.1)
     sys.exit(0)
 
@@ -767,7 +767,7 @@ class Systemair(object):
                 req.modbusregister(12543, 1)
                 extract = req.response
             try:  # replace erronous data input when temp diff exceeds 1C between samples
-                if extract - self.rawdata[0][1] > 1:
+                if extract - self.rawdata[0][1] > 1 and (extract != 0.0 and self.rawdata[1][1] != 0.0):
                     os.write(ferr, bytes("temp read error at: " + str(extract) + "C \t" + str(time.ctime()) + "\n",
                                      encoding='utf8'))
                     extract = self.rawdata[1][1]
