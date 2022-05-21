@@ -767,7 +767,7 @@ class Systemair(object):
                 req.modbusregister(12543, 1)
                 extract = req.response
             try:  # replace erronous data input when temp diff exceeds 1C between samples
-                if extract - self.rawdata[0][1] > 1 and (extract != 0.0 and self.rawdata[1][1] != 0.0):
+                if extract - self.rawdata[0][1] > 50 and (extract != 0.0 or self.rawdata[1][1] != 0.0):
                     os.write(ferr, bytes("temp read error at: " + str(extract) + "C \t" + str(time.ctime()) + "\n",
                                      encoding='utf8'))
                     extract = self.rawdata[1][1]
