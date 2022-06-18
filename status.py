@@ -18,6 +18,9 @@ def init():
 	global mail_sent
 	status = {}
 	mail_sent = {}
+	for each in list(users.keys()):
+		print users[each], each
+		users[each.replace(":","_")] = users[each]
 
 	for each in list(users.keys()):
 		status[each]= 0
@@ -25,9 +28,8 @@ def init():
 	for each in list(users.keys()):
 		mail_sent[each] = False
 init()
-for each in list(users.keys()):
-	print(users[each], each)
 
+os.chdir("/home/pi/airiana")
 os.system("./alive_logger.py > /dev/null &")
 files = os.listdir("./public/local_links/")
 data = dict(enumerate(["token","exchanger","exectime","name","version","hash","uptime","inlet","extract","extractflow","rh","auto","cooling","supply","exhaust","pdiff","detlimit","Location"]))
@@ -107,7 +109,8 @@ while True:
 		for each in files:
 			try:
 				mod = os.stat(str("./public/local_links/"+each)).st_mtime
-				content = os.popen("cat ./public/local_links/"+each).readlines()
+				data_file = open("./public/local_links/"+each, "r")
+				content = data_file.readlines()
 				stat_field = ""
 				for line in content:
 					if "status:" in line:
@@ -116,7 +119,7 @@ while True:
 				content = stat_field.replace("nan", " -1 ")
 				#print content
 				user = str(each.split(".")[0])
-				checkLocation(user)
+				#checkLocation(user)
 				#try: print "userID",user,"location:", location[user]
 				#except:
 				#	print "\n"
@@ -124,10 +127,15 @@ while True:
 				try:
 					if content.find("status")!=-1 :
 						exec ("lis ="+stat_field.split(":")[-1])
-						#print lis
-					else: lis =["no data"]
+					else:
+						lis =["no data"]
 				except:
 					lis=["-1","-1","-1","-1","-1","-1","-1","-1","-1","-1","-1","-1","-1","-1","-1","-1","data error"]
+					try:
+						st = content.split("###")
+						exec ("lis =" + st[1].replace("status:", ""))
+					except:
+						lis = ["data error"]
 				# CHECK IF USER REGISTERED #
 				if user in list(users.keys()):
 					#print "Checking status of user ", users[user],"\n"
@@ -150,8 +158,8 @@ while True:
 						if not mail_sent[user] and not "no-mail" in sys.argv:
 							mail_sent[user] = True
 							mailer.setup ("daniel.halling@outlook.com","airiana@outlook.com","Airiana user: "+str(users[user])+" has changed status to inactive.")
-							mailer.send()
-					status_table= "<td nowrap>"
+							#mailer.send()
+					status_table= ""
 					for item in lis:
 						status_table += str(item) +"</td><td nowrap>"
 					if (time.time()-mod)/3600<3:
