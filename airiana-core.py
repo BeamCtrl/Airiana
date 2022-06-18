@@ -12,12 +12,12 @@ vers = "10.3"
 Running =True
 savecair=False
 mode = "RTU"
-
+holdoff_t = time.time()
 if "TCP" in sys.argv:
 	mode = "TCP"
 # Register cleanup
 def exit_callback(self, arg):
-		print "Gracefull shutdown\nexiting on signal",self
+		print("Gracefull shutdown\nexiting on signal",self)
 		sys.stdout.flush()
 		Running = False
 		time.sleep(3)
@@ -112,16 +112,17 @@ def count_down (inhibit,target):
 
 #SEND PING TO EPIC HEADMASTER
 def report_alive():
+        global holdoff_t
 	try:
 		msg = os.popen("/sbin/ifconfig wlan0").readlines()
 		for each in msg:
 			if each.find("HWaddr") <> -1 or each.find("ether")<>-1:
 				message = each
 				message += os.popen("hostname -I").read()
-				hw_addr = each
+				hw_addr = str(each.split(" ")[9]).replace(":","_")
 				try:
-					message += "\nstatus:"+str(device.status_field)+"\n\n<br>"
-				except : 
+					message += "\n###status:"+str(device.status_field)+"\n###<br>"
+				except:
 					message += "\nstatus: initialization "+str(vers)+"\n\n<br>"
 
 				try:
@@ -155,27 +156,38 @@ def report_alive():
 					message += os.popen("df |grep RAM").read()+"<br>"
 					message +=  os.popen("df |grep var").read()+"<br>"
 					if os.path.lexists("RAM/error_rate"):message +=  os.popen("cat RAM/error_rate").read()+"<br>"
-				except :
+				except:
 					os.write(ferr, "Ping error "+traceback.print_exc() +"\n")
 					os.close(fd)
-				#if "debug" in sys.argv: device.msg +=  message + "\n"
-        stat = os.open("RAM/" + hw_addr, os.O_WRONLY)
-        os.write(stat, bytes(message))
-        tmp = " -X POST \"https://filebin.net/airiana_ping_status_store/" + hw_addr
-        tmp += " -H \"accept: application/json\""
-        tmp += " -H \"cid: airiana_user\""
-        tmp += " -H \"Content-Type:text/plain\"
-        tmp += " -d @RAM/" + hw_addr
-        print("curl -X POST RAM/" + tmp)
-        #os.system("curl -X POST RAM/" + hw_addr)
-	    os.close(stat)
+		html = """ 
+			<html>
+			[DA]
 
-        #sock =  socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
-		#sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
-		#sock.close()
-	except:
+			</html>
+			"""
+                if holdoff_t > (time.time() - 3600): # wait for one hour
+	                stat = open("RAM/"+hw_addr, "w")
+	                stat.write(html.replace("[DA]",message))
+	                print(bytes(html.replace("[DA]",message)))
+	                os.system("curl -s -X DELETE \"https://filebin.net/airiana_ping_status_store/" + hw_addr + ".html\"")
+       		        tmp = "-s -X POST \"https://filebin.net/airiana_ping_status_store/" + hw_addr + ".html\""
+       	        	#tmp += " -H \"accept: application/json\""
+                	#tmp += " -H \"cid: airiana_user\""
+                	#tmp += " -H \"Content-Type:text/plain\""
+                	tmp += " -d @RAM/" + hw_addr
+                	#os.write(ferr, "curl " + tmp + "\n")
+                	stat.close()
+                	res = os.popen("curl " + tmp).read()
+                	if res.find("Insufficient storage") != -1:
+	                	os.write(ferr, "Holdoff time in effect, will re-ping in one hour.\n")
+                      		holdoff_t = time.time()
+
+                #sock =  socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
+	        #sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
+	        ##sock.close()
+	except NameError:
 		os.write(ferr,"unable to ping, network error\t"+time.ctime() + "\n")
-		#traceback.print_exc(ferr)
+		traceback.print_exc(ferr)
 
 #READ AVAIL SENSOR DATA
 def update_sensors():

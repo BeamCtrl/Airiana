@@ -12,6 +12,9 @@ def init():
 	global mail_sent
 	status = {}
 	mail_sent = {}
+	for each in users.keys():
+		print users[each], each
+		users[each.replace(":","_")] = users[each]
 
 	for each in users.keys():
 		status[each]= 0
@@ -19,8 +22,7 @@ def init():
 	for each in users.keys():
 		mail_sent[each] = False
 init()
-for each in users.keys():
-	print users[each], each
+
 os.chdir("/home/pi/airiana")
 os.system("./alive_logger.py > /dev/null &")
 files = os.listdir("./public/local_links/")
@@ -39,12 +41,14 @@ def checkLocation(user):
 			#print "user known",user, location[user]
 			return None
 	except KeyError:
-		with open("./public/local_links/"+user+".html") as log:
-			ip = log.read().split("Source:('")[-1].split("\'")[0]
-		#print "checking ip:",ip
-		loc = os.popen("/home/pi/airiana/geoloc.py " + ip ).read()
-		location.update( {user:loc})
-		#print "got new location", loc
+		try:
+			with open("./public/local_links/"+user+".html") as log:
+				ip = log.read().split("Source:('")[-1].split("\'")[0]
+			#print "checking ip:",ip
+			loc = os.popen("/home/pi/airiana/geoloc.py " + ip ).read()
+			location.update( {user:loc})
+			#print "got new location", loc
+		except:pass
 def analyse_stat(status,user):
 	#if "debug" in sys.argv:
 	#	print "Analyze", status, users[user]
@@ -97,7 +101,8 @@ while True:
 		for each in files:
 			try:
 				mod = os.stat(str("./public/local_links/"+each)).st_mtime
-				content = os.popen("cat ./public/local_links/"+each).readlines()
+				data_file = open("./public/local_links/"+each, "r")
+				content = data_file.readlines()
 				stat_field = ""
 				for line in content:
 					if "status:" in line:
@@ -105,8 +110,8 @@ while True:
 						break
 				content = stat_field.replace("nan", " -1 ")
 				#print content
-				user =str(each.split(".")[0])
-				checkLocation(user)
+				user = str(each.split(".")[0])
+				#checkLocation(user)
 				#try: print "userID",user,"location:", location[user]
 				#except:
 				#	print "\n"
@@ -114,10 +119,14 @@ while True:
 				try:
 					if content.find("status")!=-1 :
 						exec ("lis ="+stat_field.split(":")[-1])
-						#print lis
-					else: lis =["no data"]
+					else:
+						lis =["no data"]
 				except:
-					lis=["data error"]
+					try:
+						st = content.split("###")
+						exec ("lis =" + st[1].replace("status:", ""))
+					except:
+						lis = ["data error"]
 				# CHECK IF USER REGISTERED #
 				if user in users.keys():
 					#print "Checking status of user ", users[user],"\n"
@@ -140,7 +149,7 @@ while True:
 						if not mail_sent[user]:
 							mail_sent[user] = True
 							mailer.setup ("daniel.halling@outlook.com","airiana@outlook.com","Airiana user: "+str(users[user])+" has changed status to inactive.")
-							mailer.send()
+							#mailer.send()
 					status_table= ""
 					for item in lis:
 						status_table += str(item) +"</td><td>"
@@ -186,7 +195,7 @@ while True:
 
 					if (time.time()-mod)/3600 > 24:
 						os.system("rm -f ./public/local_links/"+each)
-			except KeyError:
+			except NameError:
 				print "Trying to look up unknown user error", user
 				traceback.print_exc()
 				pass

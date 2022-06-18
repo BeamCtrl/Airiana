@@ -8,15 +8,20 @@ os.chdir("/home/pi/airiana")
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 html = """ 
 <html>
-<meta http-equiv="refresh" content="0;url=http://[IP]">
 [DA]
-
 </html>
 """
 
 sock.bind(("0.0.0.0",59999))
 while True:
-	if sock in select.select( [sock], [], [], 1)[0]:
+        print(int(time.time()%60))
+        if int(time.time()) % 120 == 0:
+            print "unpacking"
+            os.system("curl -s -X GET \"https://filebin.net/archive/airiana_ping_status_store/zip\" --output ./RAM/filebin.zip")
+            os.system("unzip -o RAM/filebin.zip -d public/local_links/ 2> RAM/unzip.out")
+	    os.system("rm RAM/filebin.zip")
+	    os.system("rm RAM/unzip.out")
+        if sock in select.select( [sock], [], [], 1)[0]:
 		incomming_msg, addr=sock.recvfrom(37000)
 		#print "***", incomming_msg, "***"
 	 	#print incomming_msg.find("ether")
