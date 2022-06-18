@@ -159,20 +159,20 @@ def report_alive():
 					os.write(ferr, "Ping error "+traceback.print_exc() +"\n")
 					os.close(fd)
 				#if "debug" in sys.argv: device.msg +=  message + "\n"
-        stat = os.open("RAM/"+hw_addr,os.O_WRONLY)
-		os.write(stat, bytes(message))
-	    req = " -X POST \"https://filebin.net/airiana_ping_status_store/" + hw_addr
-	    req += " -H \"accept: application/json\""
-	    req += " -H \"cid: airiana_user\""
-	    req += " -H \"Content-Type:text/plain\"
-	    req += " -d @RAM/" + hw_addr
-        print("curl -X POST RAM/" + req)
+        stat = os.open("RAM/" + hw_addr, os.O_WRONLY)
+        os.write(stat, bytes(message))
+        tmp = " -X POST \"https://filebin.net/airiana_ping_status_store/" + hw_addr
+        tmp += " -H \"accept: application/json\""
+        tmp += " -H \"cid: airiana_user\""
+        tmp += " -H \"Content-Type:text/plain\"
+        tmp += " -d @RAM/" + hw_addr
+        print("curl -X POST RAM/" + tmp)
         #os.system("curl -X POST RAM/" + hw_addr)
 	    os.close(stat)
 
-		sock =  socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
-		sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
-		sock.close()
+        #sock =  socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
+		#sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
+		#sock.close()
 	except:
 		os.write(ferr,"unable to ping, network error\t"+time.ctime() + "\n")
 		#traceback.print_exc(ferr)
