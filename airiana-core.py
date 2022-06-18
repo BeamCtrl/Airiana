@@ -159,8 +159,8 @@ def report_alive():
 					os.write(ferr, "Ping error "+traceback.print_exc() +"\n")
 					os.close(fd)
 				#if "debug" in sys.argv: device.msg +=  message + "\n"
-        fd = os.open("RAM/"+hw_addr,os.O_WRONLY)
-		os.write(fd, bytes(message))
+        stat = os.open("RAM/"+hw_addr,os.O_WRONLY)
+		os.write(stat, bytes(message))
 	    req = " -X POST \"https://filebin.net/airiana_ping_status_store/" + hw_addr
 	    req += " -H \"accept: application/json\""
 	    req += " -H \"cid: airiana_user\""
@@ -168,7 +168,7 @@ def report_alive():
 	    req += " -d @RAM/" + hw_addr
         print("curl -X POST RAM/" + req)
         #os.system("curl -X POST RAM/" + hw_addr)
-	    os.close(fd)
+	    os.close(stat)
 
 		sock =  socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 		sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
