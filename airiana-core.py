@@ -936,7 +936,7 @@ class Systemair(object):
             if "Yes" in self.rotor_active: self.electric_power += 10  # rotor motor 10Watts
             self.electric_power += 5  # controller board power
         if self.elec_now != 0:  # integral of the electric power used by fans and controller
-            self.electric_power_sum += self.electric_power / (time.time() - self.elec_now / 3600)
+            self.electric_power_sum += (self.electric_power * (time.time() - self.elec_now)) / 3600
         self.elec_now = time.time()
 
     def update_fanspeed(self):
