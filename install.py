@@ -216,4 +216,5 @@ if "update" not in sys.argv or reboot or "reboot" in sys.argv:
 
 if "update" in sys.argv:
     os.system("sudo systemctl daemon-reload")
-    print("System update successful")
+    print("System update successful,restarting services")
+    os.system("sudo systemctl restart airiana.service controller.service")
