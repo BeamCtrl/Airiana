@@ -198,8 +198,8 @@ def report_alive():
         html = """ <html>[DA]</html>"""
         if holdoff_t > (time.time() - 3600): # wait for one hour
             stat = open("RAM/"+hw_addr, "w")
-            stat.write(html.replace("[DA]",message))
-            print(bytes(html.replace("[DA]",message)))
+            stat.write(html.replace(u"[DA]",message))
+            #print(bytes(html.replace(u"[DA]",message), encoding = "utf-8"))
             os.system("curl -s -X DELETE \"https://filebin.net/airiana_ping_status_store/" + hw_addr + ".html\"")
             tmp = "-s -X POST \"https://filebin.net/airiana_ping_status_store/" + hw_addr + ".html\""
             tmp += " -d @RAM/" + hw_addr
