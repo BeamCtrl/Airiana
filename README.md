@@ -32,8 +32,6 @@ she keeps her self in check.
 
 
 #### Installation:
-   ** INSTALLATION IS CURRENTLY BROKEN IN RASPBERRY OS DUE TO DEPRECATION OF python2. **
-   ** optional install in branch python3-migration, ""May contain bugs, is a work in progress"" ** 
    
   -Install an Rs485 hat on your pi.
 
