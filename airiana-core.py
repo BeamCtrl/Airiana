@@ -2135,7 +2135,7 @@ if __name__ == "__main__":
 3: Print all device attributes	 8: Run fans for 15min at Max
 4: Display link settings	 9: 
 5: show/update values		 0: cycle winter/summer mode
-		enter commands:""", end=' ')
+		enter commands:""", end = ' ')
             else:
                 timeout = 0.05
             try:

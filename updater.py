@@ -5,6 +5,7 @@ import sys
 path = os.path.abspath(__file__).replace("updater.py", "")
 os.chdir(path)
 deb_versions = ("wheezy", "jessie", "stretch", "buster", "bullseye")
+os.system("python3 install.py clean")
 os.system("python3 install.py update")
 for system in enumerate(deb_versions):
     os_name = os.popen("./osname.py").readline()[:-1]

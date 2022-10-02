@@ -215,4 +215,5 @@ if "update" not in sys.argv or reboot or "reboot" in sys.argv:
     os.system("sudo reboot")
 
 if "update" in sys.argv:
+    os.system("sudo systemctl daemon-reload")
     print("System update successful")
