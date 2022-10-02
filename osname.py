@@ -9,3 +9,4 @@ if osname != "none":
     print(osname)
 else:
     print("jessie")
+
