@@ -111,7 +111,7 @@ path = os.getcwd()
 if "clean" in sys.argv:
     os.system("sudo systemctl disable controller.service")
     os.system("sudo systemctl disable airiana.service")
-    os.system("sudo rm /etc/systemd/airiana.service /etc/systemd/system/controller.service")
+    os.system("sudo rm /etc/systemd/system/airiana.service /etc/systemd/system/controller.service")
     sys.exit()
 
 if user_id != 0:
