@@ -114,7 +114,7 @@ if "clean" in sys.argv:
     os.system("sudo rm /etc/systemd/airiana.service /etc/systemd/system/controller.service")
     sys.exit()
 
-if len(sys.argv) == 1 and user_id != 0:
+if user_id != 0:
     install_deps()
 
 # NEED TO SET LOCALE
