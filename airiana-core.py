@@ -207,7 +207,7 @@ def report_alive():
             stat.close()
             res = os.popen("curl " + tmp).read()
             if res.find("Insufficient storage") != -1:
-                os.write(ferr, "Holdoff time in effect, will re-ping in one hour.\n")
+                os.write(ferr, b"Holdoff time in effect, will re-ping in one hour.\n")
             holdoff_t = time.time()
 
         #sock =  socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
