@@ -40,7 +40,6 @@ she keeps her self in check.
   -Set comms on Ventilation unit to 19200baud no pairity 1 stopbit. 
 
   -Clone this repo.
-  -'git checkout python3-migration'
 
   -Run  "python3 ./install.py"
 
