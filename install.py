@@ -198,11 +198,11 @@ crontab = ""
 updated = False
 for line in cron:
     if line.find("updater.py") > 0:
-        line = "0 */4 * * * sudo /usr/bin/python " + path + "/updater.py\n"
+        line = "0 */4 * * * /usr/bin/python " + path + "/updater.py\n"
         updated = True
     crontab += line
 if not updated:
-    crontab += "0 */4 * * * sudo /usr/bin/python " + path + "/updater.py\n"
+    crontab += "0 */4 * * * /usr/bin/python " + path + "/updater.py\n"
 os.system("echo \"" + crontab + "\" | crontab -u pi -")
 sys.stdout.flush()
 
