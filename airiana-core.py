@@ -1919,11 +1919,12 @@ class Systemair(object):
                          "pressure": self.airdata_inst.press, "filterInstalledDays": self.filter,
                          "rotorActive": str(self.rotor_active).lower(), "elecHeater": self.heater,
                          "inlet": self.inlet_ave,
-                         "referenceHumidity": self.local_humidity, "measuredHumidity": self.hum_list[0],
-                         "electricPower": self.electric_power, "electricPowerTotal": self.electric_power_sum}
+                         "electricPower": self.electric_power, "electricPowerTotal": round(self.electric_power_sum),2}
+            if len(self.hum_list):
+                json_vars.update({"referenceHumidity": self.local_humidity, "measuredHumidity": self.hum_list[0]})
             tmp = str(json_vars).replace("'", "\"")
         except IndexError:
-            os.write(ferr, bytes(f"json-writer error {self.hum_list}\n", "utf-8"))
+            os.write(ferr, bytes(f"json-writer humidity IndexError {self.hum_list}\n", "utf-8"))
         os.ftruncate(air_out, 0)
         os.lseek(air_out, 0, os.SEEK_SET)
         os.write(air_out, bytes(tmp, encoding='utf8'))
