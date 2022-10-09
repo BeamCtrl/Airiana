@@ -1923,7 +1923,8 @@ class Systemair(object):
                          "pressure": self.airdata_inst.press, "filterInstalledDays": self.filter,
                          "rotorActive": str(self.rotor_active).lower(), "elecHeater": self.heater,
                          "inlet": self.inlet_ave,
-                         "electricPower": self.electric_power, "electricPowerTotal": round(self.electric_power_sum,2)}
+                         "electricPower": self.electric_power, "electricPowerTotal": round(self.electric_power_sum,2),
+                         "calculatedHumidity": round(self.new_humidity,1)}
             if len(self.hum_list):
                 json_vars.update({"referenceHumidity": self.local_humidity, "measuredHumidity": self.hum_list[0]})
             tmp = str(json_vars).replace("'", "\"")
