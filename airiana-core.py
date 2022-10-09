@@ -17,7 +17,7 @@ import syslog
 from request import Request
 
 
-# numpy.seterr('ignore')
+numpy.seterr('ignore')
 #############################
 
 Running = True
@@ -196,7 +196,7 @@ def report_alive():
                     os.close(fd)
         # if "debug" in sys.argv: device.msg +=  message + "\n"
         html = """ <html>[DA]</html>"""
-        if holdoff_t > (time.time() - 3600): # wait for one hour
+        if holdoff_t < (time.time() - 3600): # wait for one hour
             stat = open("RAM/"+hw_addr, "w")
             stat.write(html.replace(u"[DA]",message))
             #print(bytes(html.replace(u"[DA]",message), encoding = "utf-8"))
