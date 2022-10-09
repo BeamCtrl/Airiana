@@ -1909,7 +1909,8 @@ class Systemair(object):
         global monitoring
         tmp = ""
         try:
-            json_vars = {"extract": self.extract_ave, "coolingMode": str(self.cool_mode).lower(),
+            json_vars = {
+                         "extract": self.extract_ave, "coolingMode": str(self.cool_mode).lower(),
                          "supply": self.supply_ave, "sf": self.sf, "ef": self.ef,
                          "exhaust": self.exhaust_ave, "autoON": str(monitoring).lower(),
                          "shower": str(self.shower).lower(), "rotorSpeed": self.exchanger_speed,
@@ -1919,7 +1920,7 @@ class Systemair(object):
                          "pressure": self.airdata_inst.press, "filterInstalledDays": self.filter,
                          "rotorActive": str(self.rotor_active).lower(), "elecHeater": self.heater,
                          "inlet": self.inlet_ave,
-                         "electricPower": self.electric_power, "electricPowerTotal": round(self.electric_power_sum),2}
+                         "electricPower": self.electric_power, "electricPowerTotal": round(self.electric_power_sum,2)}
             if len(self.hum_list):
                 json_vars.update({"referenceHumidity": self.local_humidity, "measuredHumidity": self.hum_list[0]})
             tmp = str(json_vars).replace("'", "\"")
