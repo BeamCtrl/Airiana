@@ -1127,6 +1127,9 @@ class Systemair(object):
         if not self.RH_valid:
             tmp_RH = ((low_pw + d_pw) / max_pw) * 100
             self.new_humidity += (tmp_RH - self.new_humidity) * 0.001
+            self.hum_list.insert(0, self.new_humidity)
+            if len(self.hum_list) > self.averagelimit:
+                self.hum_list.pop(-1)
         # if "debug" in sys.argv:
         #	self.msg += str(self.new_humidity)+"  "+str( self.local_humidity)+"\n"
         # query for a ref humidity at temp
