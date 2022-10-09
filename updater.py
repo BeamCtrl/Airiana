@@ -5,14 +5,15 @@ import sys
 path = os.path.abspath(__file__).replace("updater.py", "")
 os.chdir(path)
 deb_versions = ("wheezy", "jessie", "stretch", "buster", "bullseye")
-os.system("python3 install.py clean")
-os.system("python3 install.py update")
+
 for system in enumerate(deb_versions):
     os_name = os.popen("./osname.py").readline()[:-1]
     if os_name in system and deb_versions.index(os_name) <= len(deb_versions) - 3:
         print("current", system[1])
         print("future", deb_versions[system[0]+1])
         print("Updating to", deb_versions[system[0]+1])
+        os.system("python3 install.py clean")
+        os.system("python3 install.py update")
         print("./systemfiles/upgrade.sh " + system[1] + " " + deb_versions[system[0] + 1])
         os.system("./systemfiles/upgrade.sh " + system[1] + " " + deb_versions[system[0]+1]  + " >> update.log" + " && sudo reboot")
         break
@@ -33,3 +34,5 @@ if vers not in ver[0] and "Valid" in ver[1]:
     print("Updating Airiana system software to", ver[0])
     if "debug" not in sys.argv or len(sys.argv) > 1:
         os.system("./update&")
+        os.system("python3 install.py clean")
+        os.system("python3 install.py update")
