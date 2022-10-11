@@ -19,7 +19,7 @@ def init():
 	status = {}
 	mail_sent = {}
 	for each in list(users.keys()):
-		print users[each], each
+		print (users[each], each)
 		users[each.replace(":","_")] = users[each]
 
 	for each in list(users.keys()):
@@ -169,7 +169,7 @@ while True:
 							+"</td><td nowrap>"\
 							+status_table
 					else:
-						html += "<tr style=\"font-style:italic\" ><td nowrap><a href=\"/local_links/"\
+						html += "<tr style=\"font-style:italic\"><td nowrap><a href=\"/local_links/"\
 							+each+"\">"+users[user]\
 							+"</a></td><td nowrap>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td nowrap>"+flag\
 							+"</td><td nowrap>"\
@@ -194,13 +194,13 @@ while True:
 						status_table += str(item) +"</td><td nowrap>"
 					html2 += "<tr><td><a href=\"/local_links/"\
 						+each+"\">"+user\
-						+"</a></td><td nowrap>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td nowrap>"+flag\
-						+"</td><td nowrap> "\
+						+"</a></td><td nowrap>"+time.strftime("%d/%m %H:%M:%S", time.localtime(mod))+"</td><td nowrap>"+flag\
+						+"</td><td nowrap>"\
 						+status_table
 					if len(lis) == 1:
 						html2 += 16 * "<td nowrap></td>"
 					try:
-						html2 += " </td><td nowrap>"+location[user]+"</td></tr>\n"
+						html2 += "</td><td nowrap>"+location[user]+"</td></tr>\n"
 					except:
 						html2 += "</td></tr>\n"
 
