@@ -166,7 +166,7 @@ while True:
 						html += "<tr><td nowrap><a href=\"/local_links/"\
 							+each+"\">"+users[user]\
 							+"</a></td><td nowrap>"+time.strftime("%d/%m %H:%M:%S",time.localtime(mod))+"</td><td nowrap>"+flag\
-							+"</td><td nowrap>"\
+							+"</td> <td nowrap>"\
 							+status_table
 					else:
 						html += "<tr style=\"font-style:italic\"><td nowrap><a href=\"/local_links/"\
