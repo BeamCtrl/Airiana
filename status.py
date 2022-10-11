@@ -159,7 +159,7 @@ while True:
 							mail_sent[user] = True
 							mailer.setup ("daniel.halling@outlook.com","airiana@outlook.com","Airiana user: "+str(users[user])+" has changed status to inactive.")
 							#mailer.send()
-					status_table= ""
+					status_table= "<td nowrap>"
 					for item in lis:
 						status_table += str(item) +"</td><td nowrap>"
 					if (time.time()-mod)/3600<3:
