@@ -23,8 +23,8 @@ while True:
             print("unpacking")
             os.system("curl -s -X GET \"https://filebin.net/archive/airiana_ping_status_store/zip\" --output ./RAM/filebin.zip")
             os.system("unzip -o RAM/filebin.zip -d public/local_links/ 2> RAM/unzip.out")
-        os.system("rm RAM/filebin.zip")
-        os.system("rm RAM/unzip.out")
+            os.system("rm RAM/filebin.zip")
+            os.system("rm RAM/unzip.out")
         if sock in select.select( [sock], [], [], 1)[0]:
             incoming_msg, addr=sock.recvfrom(37000)
             # print "***", incomming_msg, "***"
