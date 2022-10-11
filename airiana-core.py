@@ -268,7 +268,7 @@ def logger():
                   + ":" \
                   + str(round(device.sensor_humid, 2)) \
                   + ":" \
-                  + str(round(device.new_humidity, 2)) \
+                  + str(round(device.humidity, 2)) \
                   + ":" \
                   + str(round(device.inlet_ave, 2)) \
                   + ":" \
@@ -284,7 +284,7 @@ def logger():
                   + ":" + str(device.inside_humid) \
                   + ":" + str(device.moist_in) \
                   + ":" + str(device.moist_out) \
-                  + ":" + str(device.humdiff)
+                  + ":" + str(device.humidity_diff)
             fdo.write(cmd + "\n")
     except:
         traceback.print_exc(ferr)
@@ -300,7 +300,7 @@ def logger():
             traceback.print_exc(ferr)
 
         os.system(
-            "./ha-httpsensor.py -n ftx_Humidity -d humidity -u % -v " + str(int(device.new_humidity)) + ">/dev/null &")
+            "./ha-httpsensor.py -n ftx_Humidity -d humidity -u % -v " + str(int(device.humidity)) + ">/dev/null &")
         os.system(
             "./ha-httpsensor.py -n ftx_ExtractFan -d fanspeed -u rpm -v " + str(int(device.ef_rpm)) + ">/dev/null &")
 
@@ -389,8 +389,8 @@ class Systemair(object):
         self.local_humidity = 0.0
         self.eff_ave = [90]
         self.diff_ave = [0]
-        self.totalenergy = 0.0
-        self.averagelimit = 1800  # min122
+        self.total_energy = 0.0
+        self.average_limit = 1800  # min122
         self.cooling_limit = 16
         self.sf = 20
         self.ef = 20
@@ -424,7 +424,7 @@ class Systemair(object):
         self.current_mode = 0
         self.extract_humidity = 0.40  # relative humidity
         self.extract_humidity_comp = 0.00  # relative humidity re compensated
-        self.humdiff = 0
+        self.humidity_diff = 0
         self.condensate_compensation = 0
         self.filter_remaining = 0
         self.cond_eff = 1
@@ -477,7 +477,7 @@ class Systemair(object):
         self.target = 22
         self.tomorrows_low = [0, 0, 0, 0, 0]
         self.energy_diff = 0
-        self.new_humidity = 40.0
+        self.humidity = 40.0
         self.moist_in = 0
         self.moist_out = 0
         self.div = 0
@@ -486,7 +486,7 @@ class Systemair(object):
         self.hum_list = []
         self.status_field = [-1, self.exchanger_mode, 0, self.system_name, vers,
                              os.popen("git log --pretty=format:'%h' -n 1").read(), 0, self.inlet_ave, self.extract_ave,
-                             self.ef, self.new_humidity, 0, self.cool_mode, self.supply_ave, self.exhaust_ave,
+                             self.ef, self.humidity, 0, self.cool_mode, self.supply_ave, self.exhaust_ave,
                              self.pressure_diff, self.det_limit]
         self.heater = 0
         self.exchanger_speed = 0
@@ -659,21 +659,21 @@ class Systemair(object):
             self.RH_valid = int(req.response)
             if self.RH_valid:
                 req.modbusregister(380, 0)
-                self.new_humidity = float(req.response)
+                self.humidity = float(req.response)
         else:
             req.modbusregister(12135, 0)
             if req.response != 0:
                 self.RH_valid = 1
-                self.new_humidity = float(req.response)
+                self.humidity = float(req.response)
         if self.RH_valid:
-            self.hum_list.insert(0, self.new_humidity)
-            if len(self.hum_list) > self.averagelimit:
+            self.hum_list.insert(0, self.humidity)
+            if len(self.hum_list) > self.average_limit:
                 self.hum_list.pop(-1)
             try:
                 # if an update of the humidity value on the sensor exeeds 2points reuse last known value
-                if abs(self.new_humidity - self.hum_list[1]) > 2:
-                    self.new_humidity = self.hum_list[1]
-                    self.hum_list[0] = self.new_humidity
+                if abs(self.humidity - self.hum_list[1]) > 2:
+                    self.humidity = self.hum_list[1]
+                    self.hum_list[0] = self.humidity
             except IndexError:
                 pass
             except:
@@ -739,7 +739,7 @@ class Systemair(object):
         if not savecair:
             req.modbusregisters(213, 5)  # Tempsensors 1 -5
             self.time.insert(0, time.time())
-            if len(self.time) > self.averagelimit: self.time.pop(-1)
+            if len(self.time) > self.average_limit: self.time.pop(-1)
 
             # NEGATYIVE VAL sign bit twos complement
             if req.response[4] > 6000:
@@ -749,7 +749,7 @@ class Systemair(object):
 
             self.temps = req.response[:]
             self.rawdata.insert(0, self.temps)
-            if len(self.rawdata) > self.averagelimit: self.rawdata.pop(-1)
+            if len(self.rawdata) > self.average_limit: self.rawdata.pop(-1)
 
             # req.response[1] #EXTRACT
             # req.response[2] #EXHAUST
@@ -771,7 +771,7 @@ class Systemair(object):
 
             # limit array size
             for each in [self.inlet, self.supply, self.extract, self.exhaust]:
-                if len(each) > self.averagelimit: each.pop(-1)
+                if len(each) > self.average_limit: each.pop(-1)
         else:  # SAVECAIR SECTION
             self.time.insert(0, time.time())
 
@@ -807,7 +807,7 @@ class Systemair(object):
             # req.response[3] #Supply post electric heater
             # req.response[4] Inlet
             self.rawdata.insert(0, (0, extract * 10, 0, supply * 10, inlet * 10))
-            if len(self.rawdata) > self.averagelimit:
+            if len(self.rawdata) > self.average_limit:
                 self.rawdata.pop(-1)
             self.tcomp = self.get_tcomp(extract, inlet)
             self.extract.insert(0, float(extract + self.tcomp))
@@ -824,17 +824,17 @@ class Systemair(object):
                 pass
             self.inlet.insert(0, float(inlet - tweak))
 
-            if len(self.extract) > self.averagelimit: self.extract.pop(-1)
-            if len(self.exhaust) > self.averagelimit: self.exhaust.pop(-1)
-            if len(self.supply) > self.averagelimit: self.supply.pop(-1)
-            if len(self.inlet) > self.averagelimit: self.inlet.pop(-1)
-            if len(self.time) > self.averagelimit: self.time.pop(-1)
+            if len(self.extract) > self.average_limit: self.extract.pop(-1)
+            if len(self.exhaust) > self.average_limit: self.exhaust.pop(-1)
+            if len(self.supply) > self.average_limit: self.supply.pop(-1)
+            if len(self.inlet) > self.average_limit: self.inlet.pop(-1)
+            if len(self.time) > self.average_limit: self.time.pop(-1)
         try:
             self.eff = (self.supply_ave - self.inlet_ave) / (self.extract_ave - self.inlet_ave) * 100
         except ZeroDivisionError:
             self.eff = 100
         self.eff_ave.insert(0, self.eff)
-        if len(self.eff_ave) > self.averagelimit: self.eff_ave.pop(-1)
+        if len(self.eff_ave) > self.average_limit: self.eff_ave.pop(-1)
 
     # Return the Tcomp temperature offset for extraction temps
     def get_tcomp(self, extract, inlet):
@@ -1025,13 +1025,13 @@ class Systemair(object):
             except ZeroDivisionError:
                 pass
 
-            if len(self.diff_ave) > self.averagelimit: self.diff_ave.pop(-1)
+            if len(self.diff_ave) > self.average_limit: self.diff_ave.pop(-1)
             self.i_diff.append((self.extract_combined - self.supply_power) * -1)
             if len(self.i_diff) > 15: self.i_diff.pop(0)
             try:
                 self.dur = self.time[0] - self.time[1]
                 if self.rotor_active == "Yes":
-                    self.totalenergy += (self.loss * self.dur) / 3600
+                    self.total_energy += (self.loss * self.dur) / 3600
                 elif self.exhaust_ave > self.extract_ave and self.exhaust_ave > self.inlet_ave and self.ac_active:
                     self.AC_energy += self.airdata_inst.energy_flow(self.ef, self.exhaust_ave,
                                                                     self.inlet_ave) * self.dur / 3600
@@ -1045,7 +1045,7 @@ class Systemair(object):
                 traceback.print_exc(ferr)
 
             self.cond_data.append(self.energy_diff)
-            if len(self.cond_data) > self.averagelimit + 5000: self.cond_data.pop(0)
+            if len(self.cond_data) > self.average_limit + 5000: self.cond_data.pop(0)
 
     # test if exhaust temperatures are indicative of ac hot flow connected to cooker exhaust line
     def check_ac_mode(self):
@@ -1102,10 +1102,10 @@ class Systemair(object):
     # do moisture calculations
     def moisture_calcs(self, data=None):  ## calculate moisure/humidities
         self.moist_in = 1000 * self.airdata_inst.sat_vapor_press(
-            self.airdata_inst.dew_point(self.new_humidity, self.extract_ave))
+            self.airdata_inst.dew_point(self.humidity, self.extract_ave))
         self.moist_out = 1000 * self.airdata_inst.sat_vapor_press(
             self.airdata_inst.dew_point(self.local_humidity, self.extract_ave))
-        self.humdiff = self.moist_in - self.moist_out
+        self.humidity_diff = self.moist_in - self.moist_out
         self.cond_eff = 1.0  # 1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
         ######### SAT MOIST UPDATE ############
         if self.energy_diff > 0 and self.rotor_active == "Yes":
@@ -1122,13 +1122,13 @@ class Systemair(object):
         low_pw = self.airdata_inst.sat_vapor_press(div) * 1000
 
         # create humidity if no sensor data avail
-        if numpy.isnan(self.new_humidity):  # reset nan error
-            self.new_humidity = 20
+        if numpy.isnan(self.humidity):  # reset nan error
+            self.humidity = 20
         if not self.RH_valid:
             tmp_RH = ((low_pw + d_pw) / max_pw) * 100
-            self.new_humidity += (tmp_RH - self.new_humidity) * 0.001
-            self.hum_list.insert(0, self.new_humidity)
-            if len(self.hum_list) > self.averagelimit:
+            self.humidity += (tmp_RH - self.humidity) * 0.001
+            self.hum_list.insert(0, self.humidity)
+            if len(self.hum_list) > self.average_limit:
                 self.hum_list.pop(-1)
         # if "debug" in sys.argv:
         #	self.msg += str(self.new_humidity)+"  "+str( self.local_humidity)+"\n"
@@ -1143,10 +1143,10 @@ class Systemair(object):
     # calc long and short derivatives
     def derivatives(self):
         # SHORT
-        if len(self.extract) > self.averagelimit - 1:
+        if len(self.extract) > self.average_limit - 1:
             self.extract_dt = (numpy.average(self.extract[0:14]) - numpy.average(
-                self.extract[self.averagelimit - 15:self.averagelimit - 1]))
-            self.extract_dt = self.extract_dt / ((self.time[0] - self.time[self.averagelimit - 1]) / 60)
+                self.extract[self.average_limit - 15:self.average_limit - 1]))
+            self.extract_dt = self.extract_dt / ((self.time[0] - self.time[self.average_limit - 1]) / 60)
             self.extract_dt_list.append(self.extract_dt)
             if len(self.extract_dt_list) > 500: self.extract_dt_list.pop(0)
         # LONG
@@ -1203,7 +1203,7 @@ class Systemair(object):
                     self.initial_temp = self.extract_ave
                     self.initial_fanspeed = self.fanspeed
                     self.set_fanspeed(3)
-                    self.new_humidity += 30
+                    self.humidity += 30
                     self.inhibit = time.time()
                     self.coef_inhibit = time.time()
                     self.shower_initial = self.inhibit
@@ -1216,7 +1216,7 @@ class Systemair(object):
             state = False
             if not self.RH_valid and self.extract_ave <= (self.initial_temp + 0.3):
                 state = True
-            if self.RH_valid and self.showerRH + 5 > self.new_humidity:
+            if self.RH_valid and self.showerRH + 5 > self.humidity:
                 if "debug" in sys.argv:
                     self.msg += "RH after shower now OK\n"
                     os.write(ferr, bytes("Shower mode off RH is ok \t" + str(time.ctime()) + "\n", encoding='utf8'))
@@ -1303,8 +1303,8 @@ class Systemair(object):
                 if self.RH_valid:
                     tmp += "Humidity d/dt:" + str(self.hum_list[0] - self.hum_list[-1]) + "%\n"
             if self.RH_valid:
-                tmp += "Relative humidity: " + str(round(self.new_humidity, 2)) + "% Dewpoint: " + str(
-                    round(self.airdata_inst.dew_point(self.new_humidity, float(self.rawdata[0][1]) / 10), 2)) + "C\n"
+                tmp += "Relative humidity: " + str(round(self.humidity, 2)) + "% Dewpoint: " + str(
+                    round(self.airdata_inst.dew_point(self.humidity, float(self.rawdata[0][1]) / 10), 2)) + "C\n"
         if "sensors" in sys.argv:
             tmp += "Outdoor Sensor:\t " + str(self.sensor_temp) + "C " + str(self.sensor_humid) + "% Dewpoint: " + str(
                 round(self.airdata_inst.dew_point(self.sensor_humid, self.sensor_temp), 2)) + "C\n"
@@ -1321,7 +1321,7 @@ class Systemair(object):
 
             except:
                 pass
-            tmp += "diff. humidity partial pressure in-out: " + str(int(round(self.humdiff, 0))) + "Pa\n"
+            tmp += "diff. humidity partial pressure in-out: " + str(int(round(self.humidity_diff, 0))) + "Pa\n"
 
         if "humidity" in sys.argv:
             tmp += "Pressure limit: " + str(round(self.indoor_dewpoint, 2)) + "C\n"
@@ -1336,8 +1336,8 @@ class Systemair(object):
             tmp += "Energy Loss: " + str(round(self.loss, 1)) + "W\n"
         else:
             tmp += "Energy gain: " + str(round(self.loss, 1)) + "W\n"
-        tmp += "Loss total: " + str(round(self.totalenergy / 1000, 3)) + "kWh Average:" + str(
-            round((self.totalenergy) / (((time.time() - starttime) / 3600)), 1)) + "W\n"
+        tmp += "Loss total: " + str(round(self.total_energy / 1000, 3)) + "kWh Average:" + str(
+            round((self.total_energy) / (((time.time() - starttime) / 3600)), 1)) + "W\n"
         tmp += "Cooling total: " + str(round(self.cooling / 1000, 3)) + "kWh\n"
         tmp += "Heat gain total: " + str(round(self.gain / 1000, 3)) + "kWh\n"
         tmp += "Unit electric total: " + str(round(self.electric_power_sum/1000, 3)) + "kWh\n"
@@ -1454,7 +1454,7 @@ class Systemair(object):
         if self.coef_inhibit < now - (60 * 60): self.coef_inhibit = 0
         if self.flowOffset[1] - time.time() < -3600 \
                 and self.flowOffset[0] > 0 \
-                and self.humdiff < 350:
+                and self.humidity_diff < 350:
             self.flowOffset[0] -= 1
             self.flowOffset[1] = time.time()
 
@@ -1602,10 +1602,10 @@ class Systemair(object):
                     if self.fanspeed == 1 \
                             and ((self.extract_ave > self.target + 0.6
                                   and self.extract_ave - self.supply_ave > 0.1)
-                                 or self.humdiff > 500):
+                                 or self.humidity_diff > 500):
                         self.set_fanspeed(2)
                         self.msg += "Dynamic fanspeed 2\n"
-                        if self.humdiff > 500:
+                        if self.humidity_diff > 500:
                             self.flowOffset = [self.flowOffset[0] + 5, time.time()]
                             os.write(ferr,
                                      bytes("Dynamic fanspeed 2 with RH \t" + str(time.ctime()) + "\n", encoding='utf8'))
@@ -1615,11 +1615,11 @@ class Systemair(object):
                     if self.fanspeed == 2 \
                             and ((self.extract_ave < self.target + 0.5
                                   and self.extract_ave - self.supply_ave > 0.1
-                                  and self.humdiff < 400
-                                  or (self.humdiff < 350
+                                  and self.humidity_diff < 400
+                                  or (self.humidity_diff < 350
                                       and not self.extract_ave > self.target + 0.5))):
                         self.set_fanspeed(1)
-                        if self.humdiff < 350:
+                        if self.humidity_diff < 350:
                             self.msg += "Dynamic fanspeed 1, Air quality Good\n"
                             os.write(ferr,
                                      bytes("Dynamic fanspeed 1 with RH\t" + str(time.ctime()) + "\n", encoding='utf8'))
@@ -1678,11 +1678,11 @@ class Systemair(object):
 
             # Dynamic pressure control
             if not self.shower:
-                if self.new_humidity > 20.0:  # Low humidity limit, restriction to not set margin lower than 20%RH
+                if self.humidity > 20.0:  # Low humidity limit, restriction to not set margin lower than 20%RH
                     if savecair or self.RH_valid:
-                        self.indoor_dewpoint = self.airdata_inst.dew_point(self.new_humidity + 5, self.extract_ave)
+                        self.indoor_dewpoint = self.airdata_inst.dew_point(self.humidity + 5, self.extract_ave)
                     else:
-                        self.indoor_dewpoint = self.airdata_inst.dew_point(self.new_humidity + 10, self.extract_ave)
+                        self.indoor_dewpoint = self.airdata_inst.dew_point(self.humidity + 10, self.extract_ave)
                 else:
                     self.indoor_dewpoint = 5.0
                 if not self.cool_mode:
@@ -1926,9 +1926,9 @@ class Systemair(object):
                          "electricPower": self.electric_power, "electricPowerTotal": round(self.electric_power_sum, 2),
                          "referenceHumidity": round(self.local_humidity, 1)}
             if len(self.hum_list) and self.RH_valid:
-                json_vars.update({"measuredHumidity": self.hum_list[0]})
+                json_vars.update({"measuredHumidity": round(self.hum_list[0],1)})
             else:
-                json_vars.update({"calculatedHumidity": round(self.new_humidity, 1)})
+                json_vars.update({"calculatedHumidity": round(self.hum_list[0],1)})
             tmp = str(json_vars).replace("'", "\"")
         except IndexError:
             os.write(ferr, bytes(f"json-writer humidity IndexError {self.hum_list}\n", "utf-8"))
@@ -1969,7 +1969,7 @@ if __name__ == "__main__":
         device.system_name = "Savecair"
         conversion_table = {}
         device.status_field[3] = "Savecair"
-        device.averagelimit = 3400
+        device.average_limit = 3400
         os.write(ferr, bytes("Savecair unit set\n", 'utf8'))
 
 
@@ -2037,7 +2037,7 @@ if __name__ == "__main__":
         device.div = device.inlet_ave
         if "humidity" in sys.argv:
             if not device.RH_valid:
-                device.new_humidity = device.moisture_calcs(10.0)
+                device.humidity = device.moisture_calcs(10.0)
             device.get_local()
         sys.stdout.flush()
         if "ping" in sys.argv: report_alive()
@@ -2127,7 +2127,7 @@ if __name__ == "__main__":
                     device.status_field[7] = round(device.inlet_ave, 2)
                     device.status_field[8] = round(device.extract_ave, 2)
                     device.status_field[9] = round(device.ef, 2)
-                    device.status_field[10] = round(device.new_humidity, 2)
+                    device.status_field[10] = round(device.humidity, 2)
                     device.status_field[11] = monitoring
                     device.status_field[12] = device.cool_mode
                     device.status_field[13] = round(device.supply_ave, 2)
@@ -2349,7 +2349,7 @@ if __name__ == "__main__":
                             device.initial_temp = device.extract_ave - 1
                             device.initial_fanspeed = 1
                             device.shower_initial = time.time()
-                            device.showerRH = device.new_humidity - 10
+                            device.showerRH = device.humidity - 10
                             device.set_fanspeed(2)
                     if data == 13:
                         device.cool_mode = not device.cool_mode
