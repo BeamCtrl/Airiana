@@ -2036,8 +2036,7 @@ if __name__ == "__main__":
         device.update_xchanger()
         device.div = device.inlet_ave
         if "humidity" in sys.argv:
-            if not device.RH_valid:
-                device.humidity = device.moisture_calcs(10.0)
+            device.humidity = device.moisture_calcs(10.0)
             device.get_local()
         sys.stdout.flush()
         if "ping" in sys.argv: report_alive()
