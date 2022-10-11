@@ -1924,9 +1924,11 @@ class Systemair(object):
                          "rotorActive": str(self.rotor_active).lower(), "elecHeater": self.heater,
                          "inlet": self.inlet_ave,
                          "electricPower": self.electric_power, "electricPowerTotal": round(self.electric_power_sum, 2),
-                         "calculatedHumidity": round(self.new_humidity, 1)}
-            if len(self.hum_list):
-                json_vars.update({"referenceHumidity": self.local_humidity, "measuredHumidity": self.hum_list[0]})
+                         "referenceHumidity": round(self.local_humidity, 1)}
+            if len(self.hum_list) and self.RH_valid:
+                json_vars.update({"measuredHumidity": self.hum_list[0]})
+            else:
+                json_vars.update({"calculatedHumidity": round(self.new_humidity, 1)})
             tmp = str(json_vars).replace("'", "\"")
         except IndexError:
             os.write(ferr, bytes(f"json-writer humidity IndexError {self.hum_list}\n", "utf-8"))
