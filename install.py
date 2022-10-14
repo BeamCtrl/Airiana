@@ -48,10 +48,46 @@ def install_deps():
     os.system("pip3 install pyephem --user")
     os.system("sudo apt-get -y --force-yes install libatlas-dev")
     os.system("sudo apt-get -y --force-yes install ntp")
+    os.system("sudo apt-get -y --force-yes install hostapd")
+    os.system("sudo apt-get -y --force-yes install dnsmasq")
     #os.system("sudo apt-get -yq --force-yes -o \"Dpkg::Options::=--force-confdef\"  upgrade")
 
+def disable_auto_connect_services():
+    os.system("sudo systemctl unmask hostapd")
+    os.system("sudo systemctl disable hostapd")
+    os.system("sudo systemctl disable dnsmasq")
 
-def setFstab():
+def add_dnsmasq_conf():
+    conf = """
+#AutoHotspot Config
+#stop DNSmasq from using resolv.conf
+no-resolv
+#Interface to use
+interface=wlan0
+bind-interfaces
+dhcp-range=10.0.0.50,10.0.0.150,12h\n"""
+   with  open("/etc/dnsmasq.conf","r") as dnsmasq:
+      if dnsmasq.read().find(conf) == -1:
+          os.system("sudo echo \"" + conf + "\" >> /etc/dnsmasq.conf")
+      else:
+          print("Dnsmasq already has AutoHotspot configgured")
+
+def add_dhcpcd_conf():
+    conf = "nohook wpa_supplicant\n"
+    with  open("/etc/dhcpcd.conf","r") as dhcpcd:
+          if dhcpcd.read().find(conf) == -1:
+              os.system("sudo echo \"" + conf + "\" >> /etc/dhcpcd.conf")
+          else:
+              print("dhcpcd already has AutoHotspot configured")
+
+def add_sudoer_conf():
+    conf = "username ALL= NOPASSWD: /home/pi/Airiana/systemfiles/autohotspot.sh\n"
+    with  open("/etc/dhcpcd.conf","r") as dhcpcd:
+          if dhcpcd.read().find(conf) == -1:
+              os.system("sudo echo \"" + conf + "\" >> /etc/dhcpcd.conf")
+          else:
+              print("sudoers already has AutoHotspot configured")
+def set_fstab():
     global lines, reboot, user_id, group_id
     # MAKE RAM DRIVE IN FSTAB#
     fstab_comment = "#temp filesystem only in RAM for use on Airiana tempfiles.\n"
@@ -117,6 +153,23 @@ if "clean" in sys.argv:
 if user_id != 0:
     install_deps()
 
+# Auto hotspot configuration
+if user_id != 0:
+    try:
+        disable_auto_connect_services()
+        add_dnsmasq_conf()
+        add_dhcpcd_conf()
+        add_sudoer_conf()
+        if not os.path.lexists("/etc/systemd/system/airiana.service"):
+            print("setup autostart for autohotspot.service")
+            os.system("sudo cp ./systemfiles/autohotspot.service /etc/systemd/system/")
+            os.system("sudo systemctl enable autohotspot.service")
+         #update sudoers to allow no password wificonf
+
+    except:
+        print("Auto hotspot config had an error")
+
+
 # NEED TO SET LOCALE
 # os.system("cp ./systemfiles/timezone /etc/")
 
@@ -132,7 +185,7 @@ clean_paths()
 if user_id == 0 and "--set-fstab" in sys.argv:
     user_id = sys.argv[-2]
     group_id = sys.argv[-1]
-    setFstab()
+    set_fstab()
     sys.exit()
 else:
     os.popen("sudo python3 ./install.py --set-fstab " + str(user_id) + " " + str(group_id))
@@ -182,7 +235,7 @@ os.chdir("./public/")
 sys.stdout.flush()
 
 # link files to RAM-disk
-print("setup symlinkts between RAM and ./public")
+print("setup symlinks between RAM and ./public")
 sys.stdout.flush()
 os.system("ln -s ../RAM/out out.txt")
 os.system("ln -s ../RAM/history.png history.png")
@@ -196,13 +249,17 @@ if "no crontab for user pi" in cron:
     cron = ""
 crontab = ""
 updated = False
-for line in cron:
+for line in cron: # this will update an existing airiana conf
     if line.find("updater.py") > 0:
         line = "0 */4 * * * /usr/bin/python " + path + "/updater.py\n"
         updated = True
+    if line.find("autohotspot.sh") > 0:
+        line += "*/5 * * * * sudo /home/pi/Airiana/autohotspot.sh\n"
+        updated = True
     crontab += line
-if not updated:
+if not updated: # this is for new installations
     crontab += "0 */4 * * * /usr/bin/python " + path + "/updater.py\n"
+    crontab += "*/5 * * * * sudo /home/pi/Airiana/autohotspot.sh\n"
 os.system("echo \"" + crontab + "\" | crontab -u pi -")
 sys.stdout.flush()
 
