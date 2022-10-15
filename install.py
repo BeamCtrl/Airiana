@@ -148,7 +148,7 @@ if user_id != 0:
     install_deps()
 
 # Auto hotspot configuration
-if user_id != 0 and :
+if user_id != 0 and osname in ("buster", "bullseye"):
     try:
         disable_auto_connect_services()
         add_dnsmasq_conf()
