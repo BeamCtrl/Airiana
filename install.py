@@ -63,7 +63,7 @@ def add_dnsmasq_conf():
       if dnsmasq.read().find(conf) == -1:
           os.system("sudo echo \"" + conf + "\" >> /etc/dnsmasq.conf")
       else:
-          print("Dnsmasq already has AutoHotspot configgured")
+          print("Dnsmasq already has AutoHotspot configured")
 
 def add_dhcpcd_conf():
     conf = "nohook wpa_supplicant\n"
