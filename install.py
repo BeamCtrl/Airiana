@@ -14,8 +14,7 @@
 #################################################################
 import os
 import sys
-import pwd
-
+osname = os.popen("./osname.py").read()
 def setUart():
     global boot_cmd, lines, reboot
     # Enable UART for RS485 HAT
@@ -58,15 +57,9 @@ def disable_auto_connect_services():
     os.system("sudo systemctl disable dnsmasq")
 
 def add_dnsmasq_conf():
-    conf = """
-#AutoHotspot Config
-#stop DNSmasq from using resolv.conf
-no-resolv
-#Interface to use
-interface=wlan0
-bind-interfaces
-dhcp-range=10.0.0.50,10.0.0.150,12h\n"""
-   with  open("/etc/dnsmasq.conf","r") as dnsmasq:
+    conf = "#AutoHotspot Config\n#stop DNSmasq from using resolv.conf\nno-resolv\n#Interface to use\n"
+    conf += "interface=wlan0\nbind-interfaces\ndhcp-range=10.0.0.50,10.0.0.150,12h\n"
+    with  open("/etc/dnsmasq.conf","r") as dnsmasq:
       if dnsmasq.read().find(conf) == -1:
           os.system("sudo echo \"" + conf + "\" >> /etc/dnsmasq.conf")
       else:
@@ -131,6 +124,7 @@ def clean_paths():
     os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' updater.py")
     os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' systemfiles/controller.service")
     os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' systemfiles/airiana.service")
+    os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' systemfiles/autohotspot.service")
     os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' public/ip-util.sh")
 
 
@@ -154,13 +148,13 @@ if user_id != 0:
     install_deps()
 
 # Auto hotspot configuration
-if user_id != 0:
+if user_id != 0 and :
     try:
         disable_auto_connect_services()
         add_dnsmasq_conf()
         add_dhcpcd_conf()
         add_sudoer_conf()
-        if not os.path.lexists("/etc/systemd/system/airiana.service"):
+        if not os.path.lexists("/etc/systemd/system/autohotspot.service"):
             print("setup autostart for autohotspot.service")
             os.system("sudo cp ./systemfiles/autohotspot.service /etc/systemd/system/")
             os.system("sudo systemctl enable autohotspot.service")
@@ -254,12 +248,12 @@ for line in cron: # this will update an existing airiana conf
         line = "0 */4 * * * /usr/bin/python " + path + "/updater.py\n"
         updated = True
     if line.find("autohotspot.sh") > 0:
-        line += "*/5 * * * * sudo /home/pi/Airiana/autohotspot.sh\n"
+        line += "*/5 * * * * sudo /home/pi/Airiana/systemfiles/autohotspot.sh\n"
         updated = True
     crontab += line
 if not updated: # this is for new installations
     crontab += "0 */4 * * * /usr/bin/python " + path + "/updater.py\n"
-    crontab += "*/5 * * * * sudo /home/pi/Airiana/autohotspot.sh\n"
+    crontab += "*/5 * * * * sudo /home/pi/Airiana/systemfiles/autohotspot.sh\n"
 os.system("echo \"" + crontab + "\" | crontab -u pi -")
 sys.stdout.flush()
 
