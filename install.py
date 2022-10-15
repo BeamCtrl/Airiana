@@ -48,8 +48,7 @@ def install_deps():
     os.system("pip3 install pyephem --user")
     os.system("sudo apt-get -y --force-yes install libatlas-dev")
     os.system("sudo apt-get -y --force-yes install ntp")
-    os.system("sudo apt-get -y --force-yes install hostapd")
-    os.system("sudo apt-get -y --force-yes install dnsmasq")
+
 
 # Autohotspot #
 def disable_auto_connect_services():
@@ -161,7 +160,10 @@ if user_id != 0:
 # Auto hotspot configuration
 if user_id != 0 and osname[:-1] in ("buster", "bullseye"):
     try:
+        os.system("sudo apt-get -y --force-yes install hostapd")
+        os.system("sudo apt-get -y --force-yes install dnsmasq")
         disable_auto_connect_services()
+        copy_hostapd()
         add_dnsmasq_conf()
         add_dhcpcd_conf()
         add_sudoer_conf()
@@ -270,7 +272,7 @@ for line in cron: # this will update an existing airiana conf
 if not updater_updated: # this is for new installations
     print ("installing crontab for updater")
     crontab += "0 */4 * * * /usr/bin/python " + path + "/updater.py\n"
-if not hotspot_updated: # this is for new installations
+if not hotspot_updated and osname[:-1] in ("buster","bullseye"): # this is for new installations
     print ("installing crontab for hotspot")
     crontab += "*/5 * * * * sudo /home/pi/Airiana/systemfiles/autohotspot.sh\n"
 
