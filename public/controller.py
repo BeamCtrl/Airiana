@@ -31,10 +31,9 @@ class MyHandler(socketserver.BaseRequestHandler):
             if "setup" in data[0]:
                 network = ""
                 password = ""
-                req = data[0].split(" ")
+                data = data[-1]
                 print(data)
-                command = req[1]
-                command = command.split("?")
+                command = data.split("?")
                 data = command[-1].split("&")
                 if data[0].find("network") != -1:
                     network = data[0].split("=")[0]
