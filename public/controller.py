@@ -29,6 +29,7 @@ class MyHandler(socketserver.BaseRequestHandler):
                 self.send_ok()
         if "POST" in data[0]:
             if "setup" in data[0]:
+                # iwlist wlan0 scan  |grep SSID
                 print(data)
                 network = ""
                 password = ""
