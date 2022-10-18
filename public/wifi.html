@@ -4,13 +4,16 @@
       <title>Select Box Control</title>
    </head>
    <body>
-      <p>Here's the list of subjects. Select any one:</p>
+      <p>WiFi access points. Select any one fill in your password and press configure Airiana:</p>
       <form>
-         <select name = "Availible networks">
-            <option value = "SSID1" selected>sid1</option>
-            <option value = "SSID2">sid2</option>
-            <option value = "SSID3">sid3</option>
+         <label for="password">Password:</label>
+         <input type="text" id="password" name="Password"><br>
+         <select name = "Available networks">
+            <option value = "SSID1" selected>SSID1</option>
+            <option value = "SSID2">SSID2</option>
+            <option value = "SSID3">SSID3</option>
          </select>
+         <input type="submit" value="Submit">
       </form>
    </body>
 </html>
