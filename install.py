@@ -60,7 +60,7 @@ def disable_auto_connect_services():
 def copy_hostapd():
     print("Copy the hostapd configuration")
     if not os.path.lexists("/etc/hostapd/hostapd"):
-        os.system("sudo cp ./systemfiles/hostapd /etc/hostapd/")
+        os.system("sudo cp ./systemfiles/hostapd /etc/hostapd/hostapd.conf")
 def add_dnsmasq_conf():
     conf = "#AutoHotspot Config\n#stop DNSmasq from using resolv.conf\nno-resolv\n#Interface to use\n"
     conf += "interface=wlan0\nbind-interfaces\ndhcp-range=10.0.0.50,10.0.0.150,12h\n"
@@ -81,7 +81,7 @@ def add_dhcpcd_conf():
               print("dhcpcd already has AutoHotspot configured")
 
 def add_sudoer_conf():
-    conf = "username ALL= NOPASSWD: /home/pi/Airiana/systemfiles/autohotspot.sh\n"
+    conf = "pi ALL= NOPASSWD: /home/pi/Airiana/systemfiles/autohotspot.sh\n"
     with  os.popen("sudo cat /etc/sudoers") as dhcpcd:
           if dhcpcd.read().find(conf) == -1:
               os.system("sudo echo \"" + conf + "\" | sudo tee -a /etc/sudoers")
