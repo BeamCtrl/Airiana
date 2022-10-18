@@ -13,6 +13,7 @@ class MyHandler(socketserver.BaseRequestHandler):
         self.request.send(bytes(
             "HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://"
             + self.ip + "/\" /></head></html> \n\r", "utf-8"))
+
     def handle(self):
         self.ip = os.popen("hostname -I").readline().split(" ")[0]
         data = str(self.request.recv(1024), "utf-8").strip().split("\r\n")
@@ -23,21 +24,29 @@ class MyHandler(socketserver.BaseRequestHandler):
                 command = req[1]
                 command = command.split("?")
                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                s.sendto(bytes(command[-1],"utf-8"), ("127.0.0.1", 9876))
+                s.sendto(bytes(command[-1], "utf-8"), ("127.0.0.1", 9876))
                 s.close()
                 self.send_ok()
         if "POST" in data[0]:
             if "setup" in data[0]:
+                network = ""
+                password = ""
                 req = data[0].split(" ")
                 command = req[1]
                 command = command.split("?")
-                password = data[1]
+                data = command[-1].split("&")
+                if data[0].find("network") != -1:
+                    network = data[0].split("=")[0]
+                if data[1].find("password") != -1:
+                    password = data[0].split("=")[0]
+                if password != "" and network != "":
+                    os.system(f"echo {network}:{password} >> ./wifi.dat")
             if "command" in data[0]:
                 req = data[0].split(" ")
                 command = req[1]
                 command = command.split("?")
                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                s.sendto(bytes(command[-1],"utf-8"), ("127.0.0.1", 9876))
+                s.sendto(bytes(command[-1], "utf-8"), ("127.0.0.1", 9876))
                 s.close()
                 # self.request.send("HTTP/1.1 HTTP/1.1 303 See Other Location: buttons.html \n\r")
                 self.send_ok()
@@ -64,7 +73,7 @@ class MyHandler(socketserver.BaseRequestHandler):
                 if "coffee" in data[0]:
                     self.request.send(bytes(
                         "HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://" + str(
-                            ip) + "/coffee.txt\" /></head></html> \n\r", "utf-8"))
+                            self.ip) + "/coffee.txt\" /></head></html> \n\r", "utf-8"))
                     return 0
                 os.chdir("/home/pi/airiana/public/")
 
