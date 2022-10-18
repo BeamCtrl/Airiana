@@ -29,10 +29,10 @@ class MyHandler(socketserver.BaseRequestHandler):
                 self.send_ok()
         if "POST" in data[0]:
             if "setup" in data[0]:
+                print(data)
                 network = ""
                 password = ""
                 data = data[-1]
-                print(data)
                 command = data.split("?")
                 data = command[-1].split("&")
                 if data[0].find("network") != -1:
