@@ -27,6 +27,11 @@ class MyHandler(socketserver.BaseRequestHandler):
                 s.close()
                 self.send_ok()
         if "POST" in data[0]:
+            if "setup" in data[0]:
+                req = data[0].split(" ")
+                command = req[1]
+                command = command.split("?")
+                password = data[1]
             if "command" in data[0]:
                 req = data[0].split(" ")
                 command = req[1]
