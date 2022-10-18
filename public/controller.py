@@ -32,6 +32,7 @@ class MyHandler(socketserver.BaseRequestHandler):
                 network = ""
                 password = ""
                 req = data[0].split(" ")
+                print(data)
                 command = req[1]
                 command = command.split("?")
                 data = command[-1].split("&")
@@ -41,7 +42,7 @@ class MyHandler(socketserver.BaseRequestHandler):
                     password = data[0].split("=")[0]
                 if password != "" and network != "":
                     os.system(f"echo {network}:{password} >> ./wifi.dat")
-                print ("Wificonfig:", network, password)
+                print("Wificonfig:", network, password)
             if "command" in data[0]:
                 req = data[0].split(" ")
                 command = req[1]
