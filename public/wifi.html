@@ -5,42 +5,42 @@
       <title>Select Box Control</title>
    </head>
    <script>
-   function getSSID{
-    //Sample data
-    const data = [
-        { "name": "Afghanistan", "code": "AF" },
-        { "name": "land Islands", "code": "AX" },
-        { "name": "Antarctica", "code": "AQ" },
-        { "name": "Antigua and Barbuda", "code": "AG" },
-        { "name": "Argentina", "code": "AR" },
-        { "name": "Armenia", "code": "AM" }
-    ];
-    const dropDownList = document.querySelector('smart-drop-down-list');
-    //Setting properties to the element
-    dropDownList.filterable = true;
-    dropDownList.displayMember = 'name';
-    dropDownList.valueMember = 'code';
-    dropDownList.dataSource = function (query, callback) {
-        let result = [];
-        // Creating a new dataSource according to the new input
-        for (let d = 0; d < data.length; d++) {
-            if (data[d].name.toLowerCase().indexOf(query.toLowerCase()) > -1) {
-                result.push(data[d]);
-            }
-        }
-        //The Ajax request goes here
-       let xhttp = new XMLHttpRequest();
-       xhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-             // Call the callback function here with the new result
-             // document.getElementById("network").value
-             document.getElementById("networks").innerHTML = this.data;
+   function getSSID(){
+       //Sample data
+       const data = [
+           { "name": "Afghanistan", "code": "AF" },
+           { "name": "land Islands", "code": "AX" },
+           { "name": "Antarctica", "code": "AQ" },
+           { "name": "Antigua and Barbuda", "code": "AG" },
+           { "name": "Argentina", "code": "AR" },
+           { "name": "Armenia", "code": "AM" }
+       ];
+       const dropDownList = document.querySelector('smart-drop-down-list');
+       //Setting properties to the element
+       dropDownList.filterable = true;
+       dropDownList.displayMember = 'name';
+       dropDownList.valueMember = 'code';
+       dropDownList.dataSource = function (query, callback) {
+           let result = [];
+           // Creating a new dataSource according to the new input
+           for (let d = 0; d < data.length; d++) {
+               if (data[d].name.toLowerCase().indexOf(query.toLowerCase()) > -1) {
+                   result.push(data[d]);
+               }
            }
-       };
-       xhttp.open("GET", "filename", true);
-       xhttp.send();
-    }
-}
+           //The Ajax request goes here
+          let xhttp = new XMLHttpRequest();
+          xhttp.onreadystatechange = function() {
+           if (this.readyState == 4 && this.status == 200) {
+                // Call the callback function here with the new result
+                // document.getElementById("network").value
+                document.getElementById("networks").innerHTML = this.data;
+              }
+          };
+          xhttp.open("GET", "filename", true);
+          xhttp.send();
+       }
+   }
       myVar =   setInterval(getSSID,10000);
 
       function loadDoc() {
