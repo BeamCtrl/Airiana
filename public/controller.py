@@ -7,7 +7,6 @@ import traceback
 
 hostname = os.popen("hostname").read()[:-1]
 
-
 class MyHandler(socketserver.BaseRequestHandler):
     def send_ok(self):
         self.request.send(bytes(
@@ -30,6 +29,8 @@ class MyHandler(socketserver.BaseRequestHandler):
         if "POST" in data[0]:
             if "setup" in data[0]:
                 # iwlist wlan0 scan  |grep SSID
+                wpa = "country=se\nupdate_config=1\nctrl_interface=/var/run/wpa_supplicant\nnetwork={"
+                wpa += "scan_ssid=1\n ssid=\"{network}\"\n psk=\"{password}\"\n}\n"
                 print(data)
                 network = ""
                 password = ""

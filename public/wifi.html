@@ -1,8 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
+
    <head>
       <title>Select Box Control</title>
    </head>
+   <script>
+   function getSSID{
+    //Sample data
+    const data = [
+        { "name": "Afghanistan", "code": "AF" },
+        { "name": "land Islands", "code": "AX" },
+        { "name": "Antarctica", "code": "AQ" },
+        { "name": "Antigua and Barbuda", "code": "AG" },
+        { "name": "Argentina", "code": "AR" },
+        { "name": "Armenia", "code": "AM" }
+    ];
+    const dropDownList = document.querySelector('smart-drop-down-list');
+    //Setting properties to the element
+    dropDownList.filterable = true;
+    dropDownList.displayMember = 'name';
+    dropDownList.valueMember = 'code';
+    dropDownList.dataSource = function (query, callback) {
+        let result = [];
+        // Creating a new dataSource according to the new input
+        for (let d = 0; d < data.length; d++) {
+            if (data[d].name.toLowerCase().indexOf(query.toLowerCase()) > -1) {
+                result.push(data[d]);
+            }
+        }
+        //The Ajax request goes here
+       let xhttp = new XMLHttpRequest();
+       xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+             // Call the callback function here with the new result
+             // document.getElementById("network").value
+             document.getElementById("networks").innerHTML = this.data;
+           }
+       };
+       xhttp.open("GET", "filename", true);
+       xhttp.send();
+    }
+}
+      myVar =   setInterval(getSSID,10000);
+
+      function loadDoc() {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if (xhttp.readyState == 4 && xhttp.status == 200) {
+            out = xhttp.response.replace(/\;/g,"<br>");
+            out = out.replace(/\'/g,"&emsp;");
+
+            document.getElementById("output").innerHTML = out;
+          }
+        };
+        xhttp.open("GET", "out.txt", true);
+        xhttp.send();
+      }
+   </script>
    <body>
       <p>Wi-Fi access points. Select any one fill in your password and press configure Airiana:</p>
       <br>
@@ -17,6 +71,7 @@
           <label for="password">Password:</label>
          <input type="text" id="password" name="Password"><br>
          <input type="submit" value="Configure Airiana">
+         <div id="networks" style="line-height:90%"></div>
       </form>
    </body>
 </html>
