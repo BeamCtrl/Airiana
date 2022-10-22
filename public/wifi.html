@@ -6,10 +6,6 @@
    </head>
    <script>
       getSSID()
-      setForm()
-      function setForm(){
-          document.getElementById("uForm").innerHTML = "<Form action=" + window.location.hostname + ":8000/setup method=post>"
-      }
       function getSSID() {
         myVar =   setInterval(getSSID,10000);
         var xhttp = new XMLHttpRequest();
@@ -17,7 +13,7 @@
           if (xhttp.readyState == 4 && xhttp.status == 200) {
             const ssids = xhttp.responseText.split(" ")
             var getPwd = new Boolean(0)
-            data = "<select name = \"network\">"
+            data = "<form action=" + window.location.host + ":8000/setup method post><select name = \"network\">"
             console.log(ssids)
             if (ssids[0] == ""){
                 ssids[0] = "Loading Wi-Fi access points..."
@@ -56,7 +52,6 @@
       <br>
       <br>
       <!--form action= window.location.hostname :8000/setup" method="post"-->
-      <form action="http://192.168.1.44/setup" method="post">
          <a>Choose your home Wi-Fi network:</a><br>
          <div id="networks" style="line-height:90%"></div>
       </form>
