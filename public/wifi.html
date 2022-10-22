@@ -6,20 +6,6 @@
    </head>
    <script>
       getSSID()
-      function loadDoc() {
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
-          if (xhttp.readyState == 4 && xhttp.status == 200) {
-            out = xhttp.response.replace(/\;/g,"<br>");
-            out = out.replace(/\'/g,"&emsp;");
-
-            document.getElementById("output").innerHTML = out;
-          }
-        };
-        xhttp.open("GET", "out.txt", true);
-        xhttp.send();
-      }
-
       function getSSID() {
         myVar =   setInterval(getSSID,30000);
         var xhttp = new XMLHttpRequest();
@@ -30,8 +16,10 @@
             if (ssids.length == 0){
                 ssids[0] = "Loading Wifi access points..."
             }
-            for (let i = 0; i < ssids.length; i++) {
-                data += "<option value= \"" + ssids[i] + "\">" + ssids[i] + "</option>";
+            else{
+                for (let i = 0; i < ssids.length; i++) {
+                    data += "<option value= \"" + ssids[i] + "\">" + ssids[i] + "</option>";
+                }
             }
             data += "</select><br>"
             console.log(data)
