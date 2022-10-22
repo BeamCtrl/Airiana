@@ -12,14 +12,10 @@
         xhttp.onreadystatechange = function() {
           if (xhttp.readyState == 4 && xhttp.status == 200) {
             const ssids = xhttp.responseText.split(" ")
-            var getPwd = new Boolean(0)
-            data = "<form action=http://" + window.location.host + ":8000/setup method post><select name = \"network\">"
+            data = "<form action=http://" + window.location.host + ":8000/setup method=post><select name = \"network\">"
             console.log(ssids)
             if (ssids[0] == ""){
                 ssids[0] = "Loading Wi-Fi access points..."
-            }
-            else{
-                getPwd = 1
             }
             for (let i = 0; i < ssids.length; i++) {
                 if(ssids[i] != "ESSID:"){
@@ -27,7 +23,7 @@
                 }
             }
             data += "</select><br>"
-            if (getPwd){
+            if (gssis[0] != "Loading Wi-Fi access points..."){
                 data += "<label for=\"password\">Password:</label>"
                 data += "<input type=\"password\" id=\"password\" name=\"Password\"><br>"
                 data += "<input type=\"submit\" value=\"Configure Airiana\"><br><br>"
