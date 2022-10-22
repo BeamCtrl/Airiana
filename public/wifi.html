@@ -6,10 +6,9 @@
    </head>
    <script>
       getSSID()
-
+      setForm()
       function setForm(){
           document.getElementById("uForm").innerHTML = "action=" + window.location.hostname + ":8000/setup method=post>;
-
       }
       function getSSID() {
         myVar =   setInterval(getSSID,30000);
