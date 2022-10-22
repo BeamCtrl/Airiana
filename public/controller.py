@@ -39,7 +39,10 @@ class MyHandler(socketserver.BaseRequestHandler):
                 s.close()
                 self.send_ok()
             if "SSID" in data[0]:
-                resp = get_ssids()
+                ids = get_ssids()
+                resp = ""
+                for ssid in ids:
+                    resp += f"<option value = \"{ssid}\" selected>SSID1</option>"
                 self.request.send(bytes(resp))
         if "POST" in data[0]:
             if "setup" in data[0]:
