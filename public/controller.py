@@ -7,6 +7,17 @@ import traceback
 
 hostname = os.popen("hostname").read()[:-1]
 
+def get_ssids():
+    ssid_list = []
+    ssids = os.popen("sudo iwlist scan |grep SSID").readlines()
+    for each in ssids:
+        each = each.replace("ESSID:", "")
+        each = each.replace(" ", "")
+        each = each.replace("\n", "")
+        each = each.replace("\"", "")
+        ssid_list.append(each)
+    return ssid_list
+
 
 class MyHandler(socketserver.BaseRequestHandler):
     def send_ok(self):
@@ -28,7 +39,7 @@ class MyHandler(socketserver.BaseRequestHandler):
                 s.close()
                 self.send_ok()
             if "SSID" in data[0]:
-                resp = os.popen("sudo iwlist wlan0 scan  |grep SSID").read()
+                resp = get_ssids()
                 self.request.send(bytes(resp))
         if "POST" in data[0]:
             if "setup" in data[0]:
