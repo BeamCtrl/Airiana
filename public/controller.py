@@ -49,7 +49,7 @@ class MyHandler(socketserver.BaseRequestHandler):
                 if password != "" and network != "":
                     os.system(f"echo {network}:{password} >> ./wifi.dat")
                 print("Wificonfig:", network, password)
-                print(get_ssids())
+
             if "command" in data[0]:
                 req = data[0].split(" ")
                 command = req[1]
