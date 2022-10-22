@@ -11,15 +11,19 @@
           document.getElementById("uForm").innerHTML = "<Form action=" + window.location.hostname + ":8000/setup method=post>"
       }
       function getSSID() {
-        myVar =   setInterval(getSSID,30000);
+        myVar =   setInterval(getSSID,10000);
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
           if (xhttp.readyState == 4 && xhttp.status == 200) {
             const ssids = xhttp.responseText.split(" ")
+            var boolean getPwd = 0
             data = "<select name = \"network\">"
             console.log(ssids)
             if (ssids[0] == ""){
                 ssids[0] = "Loading Wi-Fi access points..."
+            }
+            else{
+                getPwd = 1
             }
             for (let i = 0; i < ssids.length; i++) {
                 if(ssids[i] != "ESSID:"){
@@ -27,9 +31,11 @@
                 }
             }
             data += "</select><br>"
-            data += "<label for=\"password\">Password:</label>"
-            data += "<input type=\"password\" id=\"password\" name=\"Password\"><br>"
-            data += "<input type=\"submit\" value=\"Configure Airiana\"><br><br>"
+            if (getPwd){
+                data += "<label for=\"password\">Password:</label>"
+                data += "<input type=\"password\" id=\"password\" name=\"Password\"><br>"
+                data += "<input type=\"submit\" value=\"Configure Airiana\"><br><br>"
+            }
             console.log(data)
             //data = data.replace(/\\n/g,"<br>");
             data = data.replace(/ESSID:/g,"");
