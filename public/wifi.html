@@ -27,10 +27,11 @@
         xhttp.onreadystatechange = function() {
           if (xhttp.readyState == 4 && xhttp.status == 200) {
             const ssids = xhttp.responseText.split(" ")
-            data = ""
+            data = "<select name = "network">"
             for (let i = 0; i < ssids.length; i++) {
                 data += "<option value= \"" + ssids[i] + "\">" + ssids[i] + "</option>";
             }
+            data += "</select><br>"
             console.log(data)
             //data = data.replace(/\\n/g,"<br>");
             data = data.replace(/ESSID:/g,"");
@@ -52,9 +53,10 @@
       <br>
       <form action="http://192.168.1.44:8000/setup" method="post">
          <a>Choose your home Wi-Fi network:</a><br>
-         <select name = "network">
-         <div id="networks" style="line-height:90%"></div>
-         </select><br>
+
+            <option value = "SSID1" selected>SSID1</option>
+            <option value = "SSID2">SSID2</option>
+            <option value = "SSID3">SSID3</option>
           <label for="password">Password:</label>
          <input type="text" id="password" name="Password"><br>
          <input type="submit" value="Configure Airiana"><br><br>
