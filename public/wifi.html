@@ -29,6 +29,7 @@
 
             data = xhttp.responseText
             data = data.replace(/\\n/g,"<br>");
+            data = data.replace(/ESSID:/g,"");
 
             document.getElementById("networks").innerHTML = data;
           }
