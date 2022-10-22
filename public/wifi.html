@@ -27,6 +27,9 @@
                 }
             }
             data += "</select><br>"
+            data += "<label for=\"password\">Password:</label>
+            data += "<input type=\"password\" id=\"password\" name=\"Password\"><br>
+            data += "<input type=\"submit\" value=\"Configure Airiana\"><br><br>
             console.log(data)
             //data = data.replace(/\\n/g,"<br>");
             data = data.replace(/ESSID:/g,"");
@@ -50,9 +53,6 @@
       <form action="http://192.168.1.44/setup" method="post">
          <a>Choose your home Wi-Fi network:</a><br>
          <div id="networks" style="line-height:90%"></div>
-         <label for="password">Password:</label>
-         <input type="password" id="password" name="Password"><br>
-         <input type="submit" value="Configure Airiana"><br><br>
       </form>
    </body>
 </html>
