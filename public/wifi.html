@@ -27,7 +27,7 @@
         xhttp.onreadystatechange = function() {
           if (xhttp.readyState == 4 && xhttp.status == 200) {
             const ssids = xhttp.responseText.split(" ")
-            data = "<select name = "network">"
+            data = "<select name = \"network\">"
             for (let i = 0; i < ssids.length; i++) {
                 data += "<option value= \"" + ssids[i] + "\">" + ssids[i] + "</option>";
             }
