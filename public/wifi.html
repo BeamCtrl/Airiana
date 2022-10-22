@@ -19,7 +19,7 @@
         xhttp.onreadystatechange = function() {
           if (xhttp.readyState == 4 && xhttp.status == 200) {
             const ssids = xhttp.responseText.split(" ")
-            data = "<form name="form" action=http://" + window.location.host + ":8000/setup method=post onsubmit=required()>"
+            data = "<form name=\"form\" action=http://" + window.location.host + ":8000/setup method=post onsubmit=required()>"
             data += "<select name = \"network\">"
             console.log(ssids)
             if (ssids[0] == ""){
