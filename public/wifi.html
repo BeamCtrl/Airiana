@@ -28,6 +28,8 @@
           if (xhttp.readyState == 4 && xhttp.status == 200) {
 
             data = xhttp.responseText
+            data = data.replace(/\\n/g,"<br>");
+
             document.getElementById("networks").innerHTML = data;
           }
         };
