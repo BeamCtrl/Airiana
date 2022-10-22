@@ -13,7 +13,7 @@
           if (xhttp.readyState == 4 && xhttp.status == 200) {
             const ssids = xhttp.responseText.split(" ")
             var getPwd = new Boolean(0)
-            data = "<form action=" + window.location.host + ":8000/setup method post><select name = \"network\">"
+            data = "<form action=http://" + window.location.host + ":8000/setup method post><select name = \"network\">"
             console.log(ssids)
             if (ssids[0] == ""){
                 ssids[0] = "Loading Wi-Fi access points..."
