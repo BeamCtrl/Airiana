@@ -16,7 +16,7 @@
         xhttp.onreadystatechange = function() {
           if (xhttp.readyState == 4 && xhttp.status == 200) {
             const ssids = xhttp.responseText.split(" ")
-            const getPwd = new Boolean(false)
+            var getPwd = new Boolean(false)
             data = "<select name = \"network\">"
             console.log(ssids)
             if (ssids[0] == ""){
