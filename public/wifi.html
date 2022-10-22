@@ -9,6 +9,7 @@
       function required(){
           var pwd = document.forms["form"]["Password"].value
           if (pwd.length == 0){
+              alert("no Password entered")
               return false
           }
           return true
