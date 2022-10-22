@@ -27,7 +27,7 @@
           if (xhttp.readyState == 4 && xhttp.status == 200) {
             const ssids = xhttp.responseText.split(" ")
             data = "<select name = \"network\">"
-            if (ssid.length == 0){
+            if (ssids.length == 0){
                 ssids[0] = "Loading Wifi access points..."
             }
             for (let i = 0; i < ssids.length; i++) {
