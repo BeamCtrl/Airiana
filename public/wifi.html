@@ -6,6 +6,11 @@
    </head>
    <script>
       getSSID()
+
+      function setForm(){
+          document.getElementById("uForm").innerHTML = "action=" + window.location.hostname + ":8000/setup method=post>;
+
+      }
       function getSSID() {
         myVar =   setInterval(getSSID,30000);
         var xhttp = new XMLHttpRequest();
@@ -42,7 +47,8 @@
       <p>Airiana Wi-Fi access points. Select any one fill in your password and press configure.</p>
       <br>
       <br>
-      <form action="http://192.168.1.44:8000/setup" method="post">
+      <!--form action= window.location.hostname :8000/setup" method="post"-->
+      <form id="uForm">
          <a>Choose your home Wi-Fi network:</a><br>
          <div id="networks" style="line-height:90%"></div>
          <label for="password">Password:</label>
