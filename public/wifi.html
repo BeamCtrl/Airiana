@@ -6,13 +6,21 @@
    </head>
    <script>
       getSSID()
+      function required(){
+          var pwd = document.forms["form"]["password"].value
+          if (pwd.length == 0){
+              return false
+          }
+          return true
+      }
       function getSSID() {
         myVar =   setInterval(getSSID,10000);
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
           if (xhttp.readyState == 4 && xhttp.status == 200) {
             const ssids = xhttp.responseText.split(" ")
-            data = "<form action=http://" + window.location.host + ":8000/setup method=post><select name = \"network\">"
+            data = "<form name="from" action=http://" + window.location.host + ":8000/setup method=post onsubmit=required()>"
+            data += "<select name = \"network\">"
             console.log(ssids)
             if (ssids[0] == ""){
                 ssids[0] = "Loading Wi-Fi access points..."
