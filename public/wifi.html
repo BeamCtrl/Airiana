@@ -34,7 +34,7 @@
             if (ssids[0] != "Loading Wi-Fi access points..."){
                 data += "<label for=\"password\">Password:</label>"
                 data += "<input type=\"password\" id=\"password\" name=\"Password\"><br>"
-                data += "<input type=\"submit\" value=\"Configure Airiana\"><br><br>"
+                data += "<input type=\"submit\" value=\"Configure Airiana\"></form><br><br>"
             }
             console.log(data)
             //data = data.replace(/\\n/g,"<br>");
@@ -58,6 +58,5 @@
       <!--form action= window.location.hostname :8000/setup" method="post"-->
          <a>Choose your home Wi-Fi network:</a><br>
          <div id="networks" style="line-height:90%"></div>
-      </form>
    </body>
 </html>
