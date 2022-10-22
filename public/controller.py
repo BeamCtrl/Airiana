@@ -9,9 +9,9 @@ hostname = os.popen("hostname").read()[:-1]
 def get_ssids():
     ssids = os.popen("sudo iwlist scan |grep SSID").readlines()
     for each in ssids:
-        each.replace("ESSID:","")
-        each.replace(" ", "")
-        each.replace("\n", "")
+        each = each.replace("ESSID:","")
+        each = each.replace(" ", "")
+        each = each.replace("\n", "")
     return ssids
 class MyHandler(socketserver.BaseRequestHandler):
     def send_ok(self):
