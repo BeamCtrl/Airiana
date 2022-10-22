@@ -18,7 +18,9 @@
                 ssids[0] = "Loading Wifi access points..."
             }
             for (let i = 0; i < ssids.length; i++) {
-                data += "<option value= \"" + ssids[i] + "\">" + ssids[i] + "</option>";
+                if(ssids[i] != ""){
+                    data += "<option value= \"" + ssids[i] + "\">" + ssids[i] + "</option>";
+                }
             }
             data += "</select><br>"
             console.log(data)
