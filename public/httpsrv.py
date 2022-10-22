@@ -34,7 +34,8 @@ class ExtendedHandler(SimpleHTTPRequestHandler):
 
     def finish(self):
         req = self.request
-        print(dir(self.request))
+        if self.requestline.find("wifi.html") != -1:
+            os.system("sudo iwlist scan |grep SSID >> ./SSID")
         ip = self.request.getpeername()[0]
         if self.requestline.find("current_version") != -1:
             os.system("echo " + str(ip) + " " + self.requestline + " " + str(time.ctime()) + " >> ../checks.txt")
