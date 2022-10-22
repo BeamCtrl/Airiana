@@ -8,7 +8,7 @@
       getSSID()
       setForm()
       function setForm(){
-          document.getElementById("uForm").innerHTML = "action=" + window.location.hostname + ":8000/setup method=post>"
+          document.getElementById("uForm").innerHTML = "<form action=" + window.location.hostname + ":8000/setup method=post>"
       }
       function getSSID() {
         myVar =   setInterval(getSSID,30000);
@@ -47,13 +47,14 @@
       <br>
       <br>
       <!--form action= window.location.hostname :8000/setup" method="post"-->
-      <form id="uForm">
+      <div id="uForm">
          <a>Choose your home Wi-Fi network:</a><br>
          <div id="networks" style="line-height:90%"></div>
          <label for="password">Password:</label>
          <input type="password" id="password" name="Password"><br>
          <input type="submit" value="Configure Airiana"><br><br>
          <div id="networks2" style="line-height:90%"></div>
-      </form>
+         </form>
+      </div>
    </body>
 </html>
