@@ -15,7 +15,7 @@
             data = "<select name = \"network\">"
             console.log(ssids)
             if (ssids[0] == ""){
-                ssids[0] = "Loading Wifi access points..."
+                ssids[0] = "Loading Wi-Fi access points..."
             }
             for (let i = 0; i < ssids.length; i++) {
                 if(ssids[i] != "ESSID:"){
@@ -46,7 +46,7 @@
          <a>Choose your home Wi-Fi network:</a><br>
          <div id="networks" style="line-height:90%"></div>
          <label for="password">Password:</label>
-         <input type="text" id="password" name="Password"><br>
+         <input type="password" id="password" name="Password"><br>
          <input type="submit" value="Configure Airiana"><br><br>
          <div id="networks2" style="line-height:90%"></div>
       </form>
