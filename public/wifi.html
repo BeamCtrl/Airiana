@@ -6,11 +6,10 @@
    </head>
    <script>
       getSSID()
-      function required(){
-          var pwd = document.forms["form"]["Password"].value
-          if (pwd.length == 0){
-              alert("no Password entered")
-              return false
+      function hasPwd(){
+          var empt = document.forms["form]["password"].value;
+          if (empt == ""){
+          return false
           }
           return true
       }
@@ -21,7 +20,7 @@
           if (xhttp.readyState == 4 && xhttp.status == 200) {
             const ssids = xhttp.responseText.split(" ")
             data = "<form name=\"form\" action=http://" + window.location.host + ":8000/setup method=post onsubmit=required()>"
-            data += "<select name = \"network\">"
+            data += "<select name = \"network\" onselect=clearTimeout(myVar)>"
             console.log(ssids)
             if (ssids[0] == ""){
                 ssids[0] = "Loading Wi-Fi access points..."
@@ -35,8 +34,11 @@
             if (ssids[0] != "Loading Wi-Fi access points..."){
                 data += "<label for=\"password\">Password:</label>"
                 data += "<input type=\"password\" id=\"password\" name=\"Password\" oninput=clearTimeout(myVar)><br>"
-                data += "<input type=\"submit\" value=\"Configure Airiana\"></form><br><br>"
             }
+            if (hasPwd()){
+                data +=  "<input type=\"submit\" value=\"<Configure></Configure>\">"
+            }
+
             console.log(data)
             //data = data.replace(/\\n/g,"<br>");
             data = data.replace(/ESSID:/g,"");
