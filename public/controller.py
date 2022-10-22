@@ -6,7 +6,11 @@ import os
 import traceback
 
 hostname = os.popen("hostname").read()[:-1]
-
+def get_ssids():
+    ssids = os.popen("sudo iwlist scan |grep SSID").readlines()
+    for each in ssids:
+        each.replace("SSID:","")
+    return ssids
 class MyHandler(socketserver.BaseRequestHandler):
     def send_ok(self):
         self.request.send(bytes(
@@ -48,6 +52,7 @@ class MyHandler(socketserver.BaseRequestHandler):
                 if password != "" and network != "":
                     os.system(f"echo {network}:{password} >> ./wifi.dat")
                 print("Wificonfig:", network, password)
+                print(get_ssids())
             if "command" in data[0]:
                 req = data[0].split(" ")
                 command = req[1]
