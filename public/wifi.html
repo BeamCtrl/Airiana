@@ -26,8 +26,10 @@
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
           if (xhttp.readyState == 4 && xhttp.status == 200) {
-
-            data = xhttp.responseText
+            const ssids = xhttp.responseText.split(" ")
+            for (let i = 0; i < ssids.length; i++) {
+                data += "<option value= \"" + ssids[i] + "\">" + ssid[i] + "</option>";
+            }
             //data = data.replace(/\\n/g,"<br>");
             data = data.replace(/ESSID:/g,"");
             //data = data.replace(/\"/g,"");
