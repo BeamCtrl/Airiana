@@ -5,10 +5,19 @@
       <title>Select Box Control</title>
    </head>
    <script>
-      getSSID()
       setForm()
+      getSSID()
+
       function setForm(){
-          document.getElementById("uForm").innerHTML = "<form action=" + window.location.hostname + ":8000/setup method=post>"
+         var form = "<form action=" + window.location.hostname + ":8000/setup method=post>"
+         form += <a>Choose your home Wi-Fi network:</a><br>
+         form +=<div id="networks" style="line-height:90%"></div>
+         form +=<label for="password">Password:</label>
+         form +=<input type="password" id="password" name="Password"><br>
+         form +=<input type="submit" value="Configure Airiana"><br><br>
+         form +=<div id="networks2" style="line-height:90%"></div>
+         form +=</form>
+         document.getElementById("uForm").innerHTML = form
       }
       function getSSID() {
         myVar =   setInterval(getSSID,30000);
@@ -43,18 +52,12 @@
 
    </script>
    <body>
-      <p>Airiana Wi-Fi access points. Select any one fill in your password and press configure.</p>
+      <p>Airiana Wi-Fi access point.<br> Select your network and fill in your password, then press configure.</p>
       <br>
       <br>
       <!--form action= window.location.hostname :8000/setup" method="post"-->
       <div id="uForm">
-         <a>Choose your home Wi-Fi network:</a><br>
-         <div id="networks" style="line-height:90%"></div>
-         <label for="password">Password:</label>
-         <input type="password" id="password" name="Password"><br>
-         <input type="submit" value="Configure Airiana"><br><br>
-         <div id="networks2" style="line-height:90%"></div>
-         </form>
+
       </div>
    </body>
 </html>
