@@ -48,8 +48,7 @@ class MyHandler(socketserver.BaseRequestHandler):
         if "POST" in data[0]:
             if "setup" in data[0]:
                 # iwlist wlan0 scan  |grep SSID
-                wpa = "country=se\nupdate_config=1\nctrl_interface=/var/run/wpa_supplicant\nnetwork={"
-                wpa += "scan_ssid=1\n ssid=\"{network}\"\n psk=\"{password}\"\n}\n"
+
                 print(data)
                 network = ""
                 password = ""
@@ -64,7 +63,9 @@ class MyHandler(socketserver.BaseRequestHandler):
                 if password != "" and network != "":
                     os.system(f"echo {network}:{password} >> ./wifi.dat")
                 print("Wificonfig:", network, password)
-
+                wpa = "country=se\nupdate_config=1\nctrl_interface=/var/run/wpa_supplicant\nnetwork={"
+                wpa += f" scan_ssid=1\n ssid=\"{network}\"\n psk=\"{password}\"\n}\n"
+                os.system(f"sudo tee {wpa} /etc/wpa_supplicant/wpa_supplicant.conf2")
             if "command" in data[0]:
                 req = data[0].split(" ")
                 command = req[1]

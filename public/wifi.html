@@ -31,13 +31,8 @@
                 data +=  "<input type=\"submit\" value=\"Configure\">"
             }
 
-
             console.log(data)
-            //data = data.replace(/\\n/g,"<br>");
             data = data.replace(/ESSID:/g,"");
-            //data = data.replace(/\"/g,"");
-            //data = data.replace(/\ /g,"");
-            //data = data + "mina ssids"
             document.getElementById("networks").innerHTML = data;
           }
         };
