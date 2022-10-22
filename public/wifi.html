@@ -28,11 +28,11 @@
           if (xhttp.readyState == 4 && xhttp.status == 200) {
 
             data = xhttp.responseText
-            data = data.replace(/\\n/g,"<br>");
-            data = data.replace(/ESSID:/g,"");
-            data = data.replace(/\"/g,"");
-            data = data.replace(/\ /g,"");
-            data = data + "mina ssids"
+            //data = data.replace(/\\n/g,"<br>");
+            //data = data.replace(/ESSID:/g,"");
+            //data = data.replace(/\"/g,"");
+            //data = data.replace(/\ /g,"");
+            //data = data + "mina ssids"
             document.getElementById("networks").innerHTML = data;
           }
         };
