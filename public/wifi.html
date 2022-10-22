@@ -5,9 +5,7 @@
       <title>Select Box Control</title>
    </head>
    <script>
-
-      myVar =   setInterval(getSSID,2000);
-
+      getSSID()
       function loadDoc() {
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
@@ -23,6 +21,7 @@
       }
 
       function getSSID() {
+        myVar =   setInterval(getSSID,30000);
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
           if (xhttp.readyState == 4 && xhttp.status == 200) {
