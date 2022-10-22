@@ -6,13 +6,8 @@ import os
 import traceback
 
 hostname = os.popen("hostname").read()[:-1]
-def get_ssids():
-    ssids = os.popen("sudo iwlist scan |grep SSID").readlines()
-    for each in ssids:
-        each = each.replace("ESSID:","")
-        each = each.replace(" ", "")
-        each = each.replace("\n", "")
-    return ssids
+
+
 class MyHandler(socketserver.BaseRequestHandler):
     def send_ok(self):
         self.request.send(bytes(
