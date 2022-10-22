@@ -15,7 +15,7 @@
           return true
       }
       function getSSID() {
-        if (required()){myVar =   setTimeout(getSSID,10000)}
+        myVar =   setTimeout(getSSID,10000)
         var xhttp = new XMLHttpRequest()
         xhttp.onreadystatechange = function() {
           if (xhttp.readyState == 4 && xhttp.status == 200) {
@@ -34,7 +34,7 @@
             data += "</select><br>"
             if (ssids[0] != "Loading Wi-Fi access points..."){
                 data += "<label for=\"password\">Password:</label>"
-                data += "<input type=\"password\" id=\"password\" name=\"Password\"><br>"
+                data += "<input type=\"password\" id=\"password\" name=\"Password\" oninput=clearTimeout(myVar)><br>"
                 data += "<input type=\"submit\" value=\"Configure Airiana\"></form><br><br>"
             }
             console.log(data)
