@@ -16,14 +16,14 @@
         xhttp.onreadystatechange = function() {
           if (xhttp.readyState == 4 && xhttp.status == 200) {
             const ssids = xhttp.responseText.split(" ")
-            var getPwd = new Boolean(false)
+            var getPwd = new Boolean(0)
             data = "<select name = \"network\">"
             console.log(ssids)
             if (ssids[0] == ""){
                 ssids[0] = "Loading Wi-Fi access points..."
             }
             else{
-                getPwd = true
+                getPwd = 1
             }
             for (let i = 0; i < ssids.length; i++) {
                 if(ssids[i] != "ESSID:"){
