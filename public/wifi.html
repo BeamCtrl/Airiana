@@ -15,8 +15,8 @@
           return true
       }
       function getSSID() {
-        myVar =   setInterval(getSSID,10000);
-        var xhttp = new XMLHttpRequest();
+        if (required()){myVar =   setTimeout(getSSID,10000)}
+        var xhttp = new XMLHttpRequest()
         xhttp.onreadystatechange = function() {
           if (xhttp.readyState == 4 && xhttp.status == 200) {
             const ssids = xhttp.responseText.split(" ")
