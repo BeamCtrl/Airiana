@@ -29,17 +29,17 @@ class ExtendedHandler(SimpleHTTPRequestHandler):
     def __init__(self,request, server, handler):
         super().__init__(request,server,handler)
 
-	def finish(self):
-		req = self.request
-		print(dir(self.request))
-		ip = self.request.getpeername()[0]
-		if self.requestline.find("current_version") != -1:
-			os.system("echo "+str(ip)+" "+self.requestline+" "+str(time.ctime()) +  " >> ../checks.txt")
-		SimpleHTTPRequestHandler.finish(self)
+    def finish(self):
+        req = self.request
+        print(dir(self.request))
+        ip = self.request.getpeername()[0]
+        if self.requestline.find("current_version") != -1:
+            os.system("echo "+str(ip)+" "+self.requestline+" "+str(time.ctime()) +  " >> ../checks.txt")
+        SimpleHTTPRequestHandler.finish(self)
 
 class uServer(ThreadingHTTPServer):
-	def __init__(self,*args, **kwargs):
-		super().__init__(*args,**kwargs)
+    def __init__(self,*args, **kwargs):
+        super().__init__(*args,**kwargs)
 
 
 Handler = ExtendedHandler
@@ -50,7 +50,7 @@ httpd = uServer(('',PORT),Handler)
 #httpd.socket = ssl.wrap_socket(httpd.socket,certfile= cert,server_side=True)
 print("serving at port", PORT)
 try:
-	httpd.serve_forever()
-	pass
+    httpd.serve_forever()
+    pass
 except:
-	httpd.socket.close()
+    httpd.socket.close()

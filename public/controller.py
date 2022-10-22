@@ -28,7 +28,7 @@ class MyHandler(socketserver.BaseRequestHandler):
                 s.close()
                 self.send_ok()
             if "SSID" in data[0]:
-                resp = os.popen("iwlist wlan0 scan  |grep SSID").read()
+                resp = os.popen("sudo iwlist wlan0 scan  |grep SSID").read()
                 self.request.send(bytes(resp))
         if "POST" in data[0]:
             if "setup" in data[0]:
