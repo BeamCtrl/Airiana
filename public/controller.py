@@ -7,6 +7,7 @@ import traceback
 
 hostname = os.popen("hostname").read()[:-1]
 
+
 def get_ssids():
     ssid_list = []
     ssids = os.popen("sudo iwlist scan |grep SSID").readlines()
@@ -38,6 +39,7 @@ class MyHandler(socketserver.BaseRequestHandler):
                 s.sendto(bytes(command[-1], "utf-8"), ("127.0.0.1", 9876))
                 s.close()
                 self.send_ok()
+
             if "SSID" in data[0]:
                 ids = get_ssids()
                 resp = ""
@@ -45,10 +47,9 @@ class MyHandler(socketserver.BaseRequestHandler):
                     resp += f"<option value = \"{ssid}\" selected>{ssid}</option>"
                 print(resp)
                 self.request.send(bytes(resp))
+
         if "POST" in data[0]:
             if "setup" in data[0]:
-                # iwlist wlan0 scan  |grep SSID
-
                 print(data)
                 network = ""
                 password = ""
@@ -67,6 +68,9 @@ class MyHandler(socketserver.BaseRequestHandler):
                 wpa += f" scan_ssid=1\n ssid=\"{network}\"\n psk=\"{password}\""
                 wpa += "}\n\n"
                 os.system(f"sudo echo {wpa} > /etc/wpa_supplicant/wpa_supplicant.conf")
+                self.send_ok()
+                os.system("sudo reboot &")
+
             if "command" in data[0]:
                 req = data[0].split(" ")
                 command = req[1]
@@ -76,6 +80,7 @@ class MyHandler(socketserver.BaseRequestHandler):
                 s.close()
                 # self.request.send("HTTP/1.1 HTTP/1.1 303 See Other Location: buttons.html \n\r")
                 self.send_ok()
+
             if "utility" in data[0]:
                 print(data[0])
                 os.chdir("/home/pi/airiana/")
@@ -84,7 +89,7 @@ class MyHandler(socketserver.BaseRequestHandler):
                     os.system("sudo shutdown")
                 if "reboot" in data[0]:
                     self.send_ok()
-                    os.system(" sudo reboot &")
+                    os.system("sudo reboot &")
                 if "update" in data[0]:
                     self.send_ok()
                     os.system("sudo ./update")
