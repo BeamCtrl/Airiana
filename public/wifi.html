@@ -10,6 +10,7 @@
       function getSSID() {
         myVar =   setTimeout(getSSID,10000)
         var xhttp = new XMLHttpRequest()
+        xhttp.timeout = 1500;
         xhttp.onreadystatechange = function() {
           if (xhttp.readyState == 4 && xhttp.status == 200) {
             const ssids = xhttp.responseText.split(" ")
@@ -17,7 +18,7 @@
             data += "<select name = \"network\" onclick=clearTimeout(myVar)>"
             console.log(ssids)
             if (ssids[0] == ""){
-                ssids[0] = "Loading Wi-Fi access points..."
+                ssids[0] = "Loading Wi-Fi access points... Please wait"
             }
             for (let i = 0; i < ssids.length; i++) {
                 if(ssids[i] != "ESSID:"){
@@ -25,13 +26,11 @@
                 }
             }
             data += "</select><br>"
-            if (ssids[0] != "Loading Wi-Fi access points..."){
+            if (ssids[0] != "Loading Wi-Fi access points... Please wait"){
                 data += "<label for=\"password\">Password:</label>"
                 data += "<input type=\"password\" id=\"password\" accept-charset=utf-8 required name=\"Password\" oninput=clearTimeout(myVar)><br>"
                 data += "<input type=\"submit\" value=\"Configure\">"
             }
-
-            console.log(data)
             data = data.replace(/ESSID:/g,"");
             document.getElementById("networks").innerHTML = data;
           }
@@ -40,6 +39,9 @@
         xhttp.send();
       }
 
+         xhttp.ontimeout = function(){
+          alert("Configuration of the Wifi is not allowed from outside the local network..");
+           }
 
    </script>
    <body>
