@@ -64,9 +64,9 @@ class MyHandler(socketserver.BaseRequestHandler):
                     os.system(f"echo {network}:{password} >> ./wifi.dat")
                 print("Wificonfig:", network, password)
                 wpa = "country=se\nupdate_config=1\nctrl_interface=/var/run/wpa_supplicant\nnetwork={"
-                wpa += f" scan_ssid=1\n ssid=\"{network}\"\n psk=\"{password}\"\n\n"
-                print(wpa)
-                os.system(f"sudo cat {wpa} > ./wpa_supplicant/wpa_supplicant.conf2")
+                wpa += f" scan_ssid=1\n ssid=\"{network}\"\n psk=\"{password}\""
+                wpa += "}\n\n"
+                os.system(f"sudo echo {wpa} > /etc/wpa_supplicant/wpa_supplicant.conf")
             if "command" in data[0]:
                 req = data[0].split(" ")
                 command = req[1]
