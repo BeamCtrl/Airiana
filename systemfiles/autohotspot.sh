@@ -1,4 +1,4 @@
-  #!/bin/bash
+#!/bin/bash
 #version 0.962-N/HS
 
 #You may share this script on the condition all references to RaspberryConnect.com
