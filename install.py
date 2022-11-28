@@ -1,12 +1,12 @@
 #!/usr/bin/python
 #################################################################
-#   	                                 			#
-#  Installation script for airiana system            		#
-#   							        #
-#   							        #
-#   							        #
+#   	                                 		        	    #
+#   	                                 		             	#
+#  Installation script for airiana system                		#
+#   							                                #
+#   							                                #
+#   							                                #
 #################################################################
-#                                                               #
 #                                                               #
 # INSTALL BY CLONING                                            #
 # git clone https://github.com/beamctrl/Airiana/                #
