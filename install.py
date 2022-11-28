@@ -18,6 +18,7 @@ import os
 import sys
 osname = os.popen("./osname.py").read()
 
+
 def setUart():
     global boot_cmd, lines, reboot
     # Enable UART for RS485 HAT
@@ -31,7 +32,7 @@ def setUart():
         boot_file.write(boot_cmd)
         boot_file.close()
         reboot = True
-    #sys.stdout.flush()
+
 
 # INSTALL DEPS #
 def install_deps():
@@ -57,43 +58,50 @@ def disable_auto_connect_services():
     os.system("sudo systemctl disable hostapd")
     os.system("sudo systemctl disable dnsmasq")
 
+
 def copy_hostapd():
     print("Copy the hostapd configuration")
     if not os.path.lexists("/etc/hostapd/hostapd"):
         os.system("sudo cp ./systemfiles/hostapd /etc/hostapd/hostapd.conf")
+
+
 def add_dnsmasq_conf():
     conf = "#AutoHotspot Config\n#stop DNSmasq from using resolv.conf\nno-resolv\n#Interface to use\n"
     conf += "interface=wlan0\nbind-interfaces\ndhcp-range=10.0.0.50,10.0.0.150,12h\n"
-    with  open("/etc/dnsmasq.conf","r") as dnsmasq:
-      if dnsmasq.read().find(conf) == -1:
-          print("adding configuration to dnsmasq.conf")
-          os.system("sudo echo \"" + conf + "\" |sudo tee -a /etc/dnsmasq.conf")
-      else:
-          print("Dnsmasq already has AutoHotspot configured")
+    with open("/etc/dnsmasq.conf", "r") as dnsmasq:
+        if dnsmasq.read().find(conf) == -1:
+            print("adding configuration to dnsmasq.conf")
+            os.system("sudo echo \"" + conf + "\" |sudo tee -a /etc/dnsmasq.conf")
+        else:
+            print("Dnsmasq already has AutoHotspot configured")
+
 
 def add_dhcpcd_conf():
     conf = "nohook wpa_supplicant\n"
-    with  open("/etc/dhcpcd.conf","r") as dhcpcd:
-          if dhcpcd.read().find(conf) == -1:
-              print("adding configuration to dhcpcd.conf")
-              os.system("sudo echo \"" + conf + "\" >> /etc/dhcpcd.conf")
-          else:
-              print("dhcpcd already has AutoHotspot configured")
+    with open("/etc/dhcpcd.conf", "r") as dhcpcd:
+        if dhcpcd.read().find(conf) == -1:
+            print("adding configuration to dhcpcd.conf")
+            os.system("sudo echo \"" + conf + "\" >> /etc/dhcpcd.conf")
+        else:
+            print("dhcpcd already has AutoHotspot configured")
+
 
 def add_sudoer_conf():
     conf = "pi ALL= NOPASSWD: /home/pi/Airiana/systemfiles/autohotspot.sh\n"
-    with  os.popen("sudo cat /etc/sudoers") as dhcpcd:
-          if dhcpcd.read().find(conf) == -1:
-              os.system("sudo echo \"" + conf + "\" | sudo tee -a /etc/sudoers")
-          else:
-              print("sudoers already has AutoHotspot configured")
+    with os.popen("sudo cat /etc/sudoers") as dhcpcd:
+        if dhcpcd.read().find(conf) == -1:
+            os.system("sudo echo \"" + conf + "\" | sudo tee -a /etc/sudoers")
+        else:
+            print("sudoers already has AutoHotspot configured")
+
 
 # System config #
 def set_fstab():
     global lines, reboot, user_id, group_id
     # MAKE RAM DRIVE IN FSTAB#
     fstab_comment = "#temp filesystem only in RAM for use on Airiana tempfiles.\n"
-    fstab_RAM = "tmpfs " + path + "/RAM tmpfs defaults,noatime,nosuid,uid=" + user_id + ",gid=" + group_id + ",mode=0755,size=50m 0 0\n"
+    fstab_RAM = "tmpfs " + path + "/RAM tmpfs defaults,noatime,nosuid,uid="\
+                + user_id + ",gid=" + group_id + ",mode=0755,size=50m 0 0\n"
     # MAKE RAM DRIve for linux logs var/logs
     fstab_var = "tmpfs /var/log tmpfs defaults,noatime,nosuid,mode=0755,size=75m 0 0"
     fstab_file = open("/etc/fstab", "r+")
@@ -120,7 +128,6 @@ def set_fstab():
         reboot = True
     else:
         print("fstab  already installed")
-    #sys.stdout.flush()
 
 
 def clean_paths():
@@ -171,8 +178,6 @@ if user_id != 0 and osname[:-1] in ("buster", "bullseye"):
             print("setup autostart for autohotspot.service")
             os.system("sudo cp ./systemfiles/autohotspot.service /etc/systemd/system/")
             os.system("sudo systemctl enable autohotspot.service")
-         #update sudoers to allow no password wificonf
-
     except:
         print("Auto hotspot config had an error")
 
@@ -197,7 +202,7 @@ if user_id == 0 and "--set-fstab" in sys.argv:
 else:
     os.popen("sudo python3 ./install.py --set-fstab " + str(user_id) + " " + str(group_id))
 
-# install system services for airaina and controller
+# install system services for airiana and controller
 if not os.path.lexists("/etc/systemd/system/airiana.service"):
     print("setup autostart for airiana.service")
     os.system("sudo cp ./systemfiles/airiana.service /etc/systemd/system/")
@@ -209,11 +214,14 @@ if not os.path.lexists("/etc/systemd/system/controller.service"):
     os.system("sudo systemctl enable controller.service")
 sys.stdout.flush()
 
-# redir console from uart
+
+# Redirect console from uart
 def redirectConsole(boot_cmd):
     os.system("echo " + boot_cmd + "> /boot/cmdline.txt")
 
-boot_cmd = "dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait"
+
+boot_cmd = \
+    "dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait"
 if boot_cmd not in open("/boot/cmdline.txt").read():
     reboot = True
     print("Cmdline is invalid")
@@ -259,7 +267,7 @@ if "no crontab for user pi" in cron:
 crontab = ""
 updater_updated = False
 hotspot_updated = False
-for line in cron: # this will update an existing airiana conf
+for line in cron:  # this will update an existing airiana conf
     if line.find("updater.py") > 0:
         print("updateing cron updater")
         line = "0 */4 * * * /usr/bin/python " + path + "/updater.py\n"
@@ -269,11 +277,11 @@ for line in cron: # this will update an existing airiana conf
         line = "*/5 * * * * sudo /home/pi/Airiana/systemfiles/autohotspot.sh\n"
         hotspot_updated = True
     crontab += line
-if not updater_updated: # this is for new installations
-    print ("installing crontab for updater")
+if not updater_updated:  # this is for new installations
+    print("installing crontab for updater")
     crontab += "0 */4 * * * /usr/bin/python " + path + "/updater.py\n"
-if not hotspot_updated and osname[:-1] in ("buster","bullseye"): # this is for new installations
-    print ("installing crontab for hotspot")
+if not hotspot_updated and osname[:-1] in ("buster", "bullseye"):  # this is for new installations
+    print("installing crontab for hotspot")
     crontab += "*/5 * * * * sudo /home/pi/Airiana/systemfiles/autohotspot.sh\n"
 
 os.system("echo \"" + crontab[:-1] + "\" | crontab -u pi -")
