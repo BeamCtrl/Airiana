@@ -547,9 +547,9 @@ class Systemair(object):
                     req.write_register(107, 0)
                 # SET BASE FLOW RATES
                 # req.write_register(101,30) 	#read only
-                req.write_register(102, 30)
-                req.write_register(103, 50)
-                req.write_register(104, 50)
+                req.write_register(102, 40)
+                req.write_register(103, 60)
+                req.write_register(104, 60)
                 # req.write_register(105,107) 	#read only
                 req.write_register(106, 107)
             if self.system_name in ("VSR300"):
