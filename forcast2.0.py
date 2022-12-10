@@ -25,9 +25,9 @@ def get_sun(lat, long):
         up = ephem.localtime(0)
         down = ephem.localtime(0)
         up.minute = 0
-        up.hour = 06
+        up.hour = 6
         down.minute = 1
-        down.hour = 06
+        down.hour = 6
         return up, down
 
 def print_weather(tm, weather, rain):
