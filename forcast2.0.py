@@ -22,12 +22,8 @@ def get_sun(lat, long):
     try:
         return ephem.localtime(o.next_rising(s)), ephem.localtime(o.next_setting(s))
     except (ephem.NeverUpError, ephem.AlwaysUpError):
-        up = ephem.localtime()
-        down = ephem.localtime()
-        up.minute = 0
-        up.hour = 6
-        down.minute = 1
-        down.hour = 6
+        up = datetime.time(minute = 0, hour = 6)
+        down = datetime.time(minute = 0, hour = 19)
         return up, down
 
 def print_weather(tm, weather, rain):
