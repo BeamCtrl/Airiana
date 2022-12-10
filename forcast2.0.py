@@ -22,8 +22,8 @@ def get_sun(lat, long):
     try:
         return ephem.localtime(o.next_rising(s)), ephem.localtime(o.next_setting(s))
     except (ephem.NeverUpError, ephem.AlwaysUpError):
-        up = ephem.localtime(0)
-        down = ephem.localtime(0)
+        up = ephem.localtime()
+        down = ephem.localtime()
         up.minute = 0
         up.hour = 6
         down.minute = 1
