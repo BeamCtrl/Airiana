@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 ###################IMPORTS
-vers = "10.3"
+vers = "11.0"
 import airdata
 import numpy
 import select
