@@ -56,6 +56,19 @@ she keeps her self in check.
   
   use MQTT to push data to HomeAssistant via the json data file air.out.
   This will require you to install a MQTT-publisher and a broker to handle the data distribution.
+  
+  eg.
+  
+  $ sudo apt install -y mosquitto.
+  
+  add to crontab
+  
+  ```
+  * * * * * mosquitto_pub -t airiana -f airiana/RAM/air.out  
+  @reboot mosquitto & 2&>/dev/null
+  ```
+  
+  then configure Homeassistant to read from MQTT from your airiana host.
 
 #### To run it against an Systemair Internet Access Module, 
 
