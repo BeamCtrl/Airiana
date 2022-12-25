@@ -68,6 +68,9 @@ she keeps her self in check.
   @reboot mosquitto & 2&>/dev/null
   ```
   
+  for HomeAssistant instructions on MQTT integrations, see:
+  https://www.home-assistant.io/integrations/mqtt/
+  
   then configure Homeassistant to read from MQTT from your airiana host.
 
 #### To run it against an Systemair Internet Access Module, 
