@@ -59,10 +59,10 @@ she keeps her self in check.
   
   eg.
   
-  $ sudo apt install -y mosquitto.
+  $ `sudo apt install -y mosquitto`.
   
-  add to crontab
-  
+  add start on reboot and publish to MQTT in crontab
+  `crontab -e`
   ```
   * * * * * mosquitto_pub -t airiana -f airiana/RAM/air.out  
   @reboot mosquitto & 2&>/dev/null
