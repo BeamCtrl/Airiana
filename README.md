@@ -59,7 +59,9 @@ she keeps her self in check.
   
   eg.
   
-  $ `sudo apt install -y mosquitto`.
+  $ `sudo apt install -y mosquitto`
+  
+  $ `sudo apt get install -y mosquitto-clients`.
   
   add start on reboot and publish to MQTT in crontab
   `crontab -e`
