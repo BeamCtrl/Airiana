@@ -1838,8 +1838,8 @@ class Systemair(object):
         try:
             saturation_point = float(tmp[1])
         except:
-            os.write(ferr, bytes("Unable to cast 24h low temp " + "\t" + str(time.ctime()) + "\n", encoding='utf8'))
-            os.system("echo 8 > ./RAM/latest_static")
+            os.write(ferr, bytes("Unable to cast 24h low temp " + tmp + "\t" + str(time.ctime()) + "\n", encoding='utf8'))
+            os.system(f"echo {self.inlet_ave} > ./RAM/latest_static")
             saturation_point = self.inlet_ave
         # if no forcast is avail
         if self.forcast[1] != -1:
