@@ -193,7 +193,10 @@ def report_alive():
                     if os.path.lexists("RAM/error_rate"): message += os.popen("cat RAM/error_rate").read() + "<br>"
                 except:
                     os.write(ferr, bytes("Ping error " + str(traceback.print_exc()) + "\n", encoding='utf8'))
-                    os.close(fd)
+                    try:
+                        os.close(fd)
+                    except:
+                        os.write(ferr, bytes("File Error: " + str(traceback.print_exc()) + "\n", encoding='utf8'))
         # if "debug" in sys.argv: device.msg +=  message + "\n"
         html = """ <html>[DA]</html>"""
         if holdoff_t < (time.time() - 3600): # wait for one hour
