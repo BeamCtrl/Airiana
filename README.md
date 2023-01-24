@@ -72,7 +72,7 @@ option 2:
   add start on reboot and publish to MQTT in crontab
   `crontab -e`
   ```
-  * * * * * mosquitto_pub -t airiana -f airiana/RAM/air.out  
+  * * * * * mosquitto_pub -t airiana -f Airiana/RAM/air.out  
   @reboot mosquitto & 2&>/dev/null
   ```
   
