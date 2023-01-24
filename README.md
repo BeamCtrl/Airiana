@@ -52,6 +52,7 @@ she keeps her self in check.
 
 
 option 1:
+
   -edit the ha-token file, add your server port and bearer token.
 
   -edit /etc/systemd/system/airiana.service, add "homeAss" to commandline option
