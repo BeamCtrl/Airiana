@@ -50,12 +50,15 @@ she keeps her self in check.
 ##### example Home assistant lovelace cards
 ![image](https://user-images.githubusercontent.com/11050899/211630988-3207c572-618c-438c-b76a-43330e013321.png)
 
+
+option 1:
   -edit the ha-token file, add your server port and bearer token.
 
   -edit /etc/systemd/system/airiana.service, add "homeAss" to commandline option
   
   or
-  
+
+option 2:  
   use MQTT to push data to HomeAssistant via the json data file air.out.
   This will require you to install a MQTT-publisher and a broker to handle the data distribution.
   
