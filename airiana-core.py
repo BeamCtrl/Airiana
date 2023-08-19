@@ -43,7 +43,7 @@ def exit_callback(self, arg):
     # Sleep untill one iteration has passed or we've been in shutdown for 3 sec.
     while  (device.iter < now) or (time.time() < shutdown + 3):
         time.sleep(0.1)
-    sys.exit(0)
+    syslog.syslog("Controlled shutdown of airana-core")
 
 signal.signal(signal.SIGTERM, exit_callback)
 signal.signal(signal.SIGINT, exit_callback)
@@ -57,7 +57,7 @@ try:
 
 except:
     syslog.syslog("unable to chdir to: " + path)
-    exit(22)
+    os.exit(22)
 
 # exec util fnctns
 os.chdir(path + "/public")
@@ -1709,7 +1709,7 @@ class Systemair(object):
     # Get the active forcast
     def get_forcast(self):
         ###### WEATHER FORCAST MODES
-        forcast = [-1, -1]
+        forcast = [-1, -1, -1]
         try:
             forcast = os.popen("./forcast2.0.py tomorrow").readlines()
             self.forcast[2] = float(forcast[1])
@@ -1729,7 +1729,7 @@ class Systemair(object):
         except IOError:
             traceback.print_exc(ferr)
             self.msg += "error getting forecast.(io error)\n" + str(forcast)
-            self.forcast = [-1, -1]
+            self.forcast = [-1, -1, -1]
         except IndexError:
             traceback.print_exc(ferr)
             self.msg += "error getting forecast.(index error)\n" + str(forcast)
@@ -1849,8 +1849,8 @@ class Systemair(object):
         try:
             saturation_point = float(tmp[1])
         except:
-            os.write(ferr, bytes("Unable to cast 24h low temp " + "\t" + str(time.ctime()) + "\n", encoding='utf8'))
-            os.system("echo 8 > ./RAM/latest_static")
+            os.write(ferr, bytes("Unable to cast 24h low temp " + str(tmp) + "\t" + str(time.ctime()) + "\n", encoding='utf8'))
+            os.system(f"echo {self.inlet_ave} > ./RAM/latest_static")
             saturation_point = self.inlet_ave
         # if no forcast is avail
         if self.forcast[1] != -1:
@@ -2375,8 +2375,11 @@ if __name__ == "__main__":
                 os.write(ferr, bytes("Connection to the systemAir unit has been lost at:\t" + str(time.ctime()) + "\n",
                                      encoding='utf8'))
     except TypeError:
-        pass
+        traceback.print_exc(ferr)
+
     except KeyboardInterrupt:
         exit_callback(2, None)
+
     except:
         traceback.print_exc(ferr)
+    syslog.syslog("Airiana-core not running, at end of line")
