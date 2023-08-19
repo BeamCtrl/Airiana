@@ -535,13 +535,15 @@ class Systemair(object):
             # make sure the electric heater is oFF
             if self.heater != 0:
                 self.set_heater(0)
-            # check if there is an RH sensor availible even though its not listed
+            # check if there is an RH sensor available even though it's not listed
             self.get_RH()
             if self.RH_valid and self.system_name not in self.has_RH_sensor:
                 self.has_RH_sensor += (self.system_name)
 
             # setup airflow levels
             if self.system_name in ("VR400", "VTR300",):
+                self.ef_base = 40  # base low flow,  low pressure reference air flow.
+                self.sf_base = 40
                 req.modbusregister(137, 0)
                 if int(req.response) == 1:
                     req.write_register(137, 0)
@@ -549,13 +551,15 @@ class Systemair(object):
                 if int(req.response) == 1:
                     req.write_register(107, 0)
                 # SET BASE FLOW RATES
-                # req.write_register(101,30) 	#read only
-                req.write_register(102, 40)
+                # req.write_register(101,40) 	#read only
+                req.write_register(102, self.ef_base)
                 req.write_register(103, 60)
                 req.write_register(104, 60)
                 # req.write_register(105,107) 	#read only
                 req.write_register(106, 107)
             if self.system_name in ("VSR300"):
+                self.ef_base = 40  # base low flow,  low pressure reference air flow.
+                self.sf_base = 40
                 req.modbusregister(137, 0)
                 if int(req.response) == 1:
                     req.write_register(137, 0)
@@ -564,12 +568,14 @@ class Systemair(object):
                     req.write_register(107, 0)
                 # SET BASE FLOW RATES
                 # req.write_register(101,30) 	#read only
-                req.write_register(102, 40)
+                req.write_register(102, self.ef_base)
                 req.write_register(103, 60)
                 req.write_register(104, 60)
                 # req.write_register(105,107) 	#read only
                 req.write_register(106, 107)
             if "VTR700" in self.system_name:
+                self.ef_base = 50  # base low flow,  low pressure reference air flow.
+                self.sf_base = 50
                 req.modbusregister(137, 0)
                 if int(req.response) == 1:
                     req.write_register(137, 0)
@@ -578,7 +584,7 @@ class Systemair(object):
                     req.write_register(107, 0)
                 # SET BASE FLOW RATES
                 # req.write_register(101,50) 	#read only
-                req.write_register(102, 50)
+                req.write_register(102, self.ef_base)
                 req.write_register(103, 100)
                 req.write_register(104, 100)
                 # req.write_register(105,200) 	#read only
@@ -1737,8 +1743,10 @@ class Systemair(object):
         os.write(ferr, bytes("Pressure difference set to: " + str(percent) + "%\t" + str(time.ctime()) + "\n",
                              encoding='utf8'))
         self.coef_inhibit = time.time()
-        if percent > 20: percent = 20
-        if percent < -20: percent = -20
+        if percent > 20:
+            percent = 20
+        if percent < -20:
+            percent = -20
         if not savecair and not self.shower:
             if "debug" in sys.argv: self.msg += "start pressure change " + str(percent) + "\n"
             req.modbusregister(103, 0)  # nominal supply flow
@@ -1784,7 +1792,8 @@ class Systemair(object):
 
             if req.response == target:
                 self.press_inhibit = time.time()
-            if "debug" in sys.argv: self.msg += "change completed\n"
+            if "debug" in sys.argv:
+                self.msg += "change completed\n"
         self.pressure_diff = percent
         self.update_airflow()
 
@@ -1808,16 +1817,15 @@ class Systemair(object):
                 self.ef = base + self.flowOffset[0]
                 self.sf = self.sf_base + self.flowOffset[0]
         if self.has_RH_sensor and not savecair:
-            base = 30 + self.pressure_diff
+            base = self.ef_base + self.pressure_diff
             if self.fanspeed == 1 and self.ef != base + self.flowOffset[0] and not self.shower:
-                req.write_register(102, base + self.flowOffset[0])
-                req.write_register(101, 30 + self.flowOffset[0])
-                # self.msg += "Updated base extract flow to: "+str(base+self.flowOffset[0])+"\n"
+                req.write_register(102, base + self.flowOffset[0])  # Extract flow with offset at low.
+                #  No need to set supply flow it's calculated by the unit as the ratio of sf/ef from mid lvl flow.
                 os.write(ferr,
                         bytes("Updated extract flow offset to: " +
                               str(self.flowOffset[0]) + "\t" + str(time.ctime()) + "\n", 'utf8'))
                 self.ef = base + self.flowOffset[0]
-                self.sf = 30 + self.flowOffset[0]
+                self.sf = self.sf_base + self.flowOffset[0]
 
     # get and set the local low/static humidity
     def get_local(self):
