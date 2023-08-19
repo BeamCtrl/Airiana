@@ -5,7 +5,6 @@ Get your Systemair unit under control.
 Airiana talks to it via modbus and hooks you up with some extra featrues, most important it's fire and forget. 
 she keeps her self in check.
 
-
 #### featured special effects:
 
   **Shower detections
@@ -24,7 +23,8 @@ she keeps her self in check.
   
 
   does alot more calculation and spits out more data than you'll ever need.
- 
+## Web gui ##
+![W](https://user-images.githubusercontent.com/11050899/211631229-48ad9245-83ef-4103-ae8e-5d8847826c3a.png)
  
  
 ##### HW recomendation: Rpi + RS485 TxRx module, VR400/VR700/VTR300/VSR300 or savecair unit from systemair.
@@ -47,13 +47,19 @@ she keeps her self in check.
 
 
 #### To enable HomeAssitant integration:
+##### example Home assistant lovelace cards
+![image](https://user-images.githubusercontent.com/11050899/211630988-3207c572-618c-438c-b76a-43330e013321.png)
+
+
+option 1:
 
   -edit the ha-token file, add your server port and bearer token.
 
   -edit /etc/systemd/system/airiana.service, add "homeAss" to commandline option
   
   or
-  
+
+option 2:  
   use MQTT to push data to HomeAssistant via the json data file air.out.
   This will require you to install a MQTT-publisher and a broker to handle the data distribution.
   
@@ -66,7 +72,7 @@ she keeps her self in check.
   add start on reboot and publish to MQTT in crontab
   `crontab -e`
   ```
-  * * * * * mosquitto_pub -t airiana -f airiana/RAM/air.out  
+  * * * * * mosquitto_pub -t airiana -f Airiana/RAM/air.out  
   @reboot mosquitto & 2&>/dev/null
   ```
   
