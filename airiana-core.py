@@ -551,11 +551,11 @@ class Systemair(object):
                 if int(req.response) == 1:
                     req.write_register(107, 0)
                 # SET BASE FLOW RATES
-                # req.write_register(101,40) 	#read only
+                req.write_register(101,self.sf_base)
                 req.write_register(102, self.ef_base)
                 req.write_register(103, 60)
                 req.write_register(104, 60)
-                # req.write_register(105,107) 	#read only
+                req.write_register(105,107)
                 req.write_register(106, 107)
             if self.system_name in ("VSR300"):
                 self.ef_base = 40  # base low flow,  low pressure reference air flow.
@@ -567,11 +567,11 @@ class Systemair(object):
                 if int(req.response) == 1:
                     req.write_register(107, 0)
                 # SET BASE FLOW RATES
-                # req.write_register(101,30) 	#read only
+                req.write_register(101, self.sf_base)
                 req.write_register(102, self.ef_base)
                 req.write_register(103, 60)
                 req.write_register(104, 60)
-                # req.write_register(105,107) 	#read only
+                req.write_register(105,107)
                 req.write_register(106, 107)
             if "VTR700" in self.system_name:
                 self.ef_base = 50  # base low flow,  low pressure reference air flow.
@@ -583,11 +583,11 @@ class Systemair(object):
                 if int(req.response) == 1:
                     req.write_register(107, 0)
                 # SET BASE FLOW RATES
-                # req.write_register(101,50) 	#read only
+                req.write_register(101, self.sf_base)
                 req.write_register(102, self.ef_base)
                 req.write_register(103, 100)
                 req.write_register(104, 100)
-                # req.write_register(105,200) 	#read only
+                req.write_register(105,200)
                 req.write_register(106, 200)
 
     # get heater status
