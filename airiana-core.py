@@ -2071,7 +2071,7 @@ if __name__ == "__main__":
                 device.check_ac_mode()
                 if reset_fans:
                     device.set_fanspeed(reset_fans)
-                    reset_fans = 0
+                    reset_fans = false
             # update moisture
             if device.iter % 5 == 0:
                 if "debug" in sys.argv:
@@ -2222,11 +2222,13 @@ if __name__ == "__main__":
                 if data != -1:
                     if data == 1:  # toggle auto monitor on/off
                         monitoring = not monitoring  # Toggle monitoring on / off
+                        # Reset all automation modes.
                         device.inhibit = 0
                         device.press_inhibit = 0
                         device.coef_inhibit = 0
                         device.modetoken = 0
-                        device.shower_mode = 0
+                        device.shower_mode = false
+                        device.cooling = false
                     if data == 2:  # increment fanspeed
                         device.set_fanspeed(device.fanspeed + 1)
                         if "daemon" not in sys.argv:

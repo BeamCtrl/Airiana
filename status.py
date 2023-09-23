@@ -147,7 +147,7 @@ while True:
 					if (time.time()-mod)/3600 > status[user]:
 						status[user] = round((time.time() - mod) / 3600, 2)
 					status[user] = status[user] * 0.99
-					if (time.time()-mod)/3600<3:
+					if (time.time()-mod)/3600 < 48:  # send if down for 48hrs, or when returing from down
 						flag = "<font color=\"green\">Alive  </font>"
 						if  mail_sent[user] == True:
 													mail_sent[user] = False
@@ -204,7 +204,7 @@ while True:
 					except:
 						html2 += "</td></tr>\n"
 
-					if (time.time()-mod)/3600 > 24:
+					if (time.time()-mod)/3600 > 240:
 						os.system("rm -f ./public/local_links/"+each)
 			except KeyError:
 				print("Trying to look up unknown user error", user)

@@ -19,7 +19,7 @@ html = """
 sock.bind(("0.0.0.0", 59999))
 while True:
         print(int(time.time()%60))
-        if int(time.time()) % 120 == 0:
+        if int(time.time()) % 300 == 0:
             print("unpacking")
             os.system("curl -s -X GET \"https://filebin.net/archive/airiana_ping_status_store/zip\" --output ./RAM/filebin.zip")
             os.system("unzip -o RAM/filebin.zip -d public/local_links/ 2> RAM/unzip.out")
