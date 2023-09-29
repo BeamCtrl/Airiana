@@ -2227,8 +2227,8 @@ if __name__ == "__main__":
                         device.press_inhibit = 0
                         device.coef_inhibit = 0
                         device.modetoken = 0
-                        device.shower_mode = false
-                        device.cooling = false
+                        device.shower_mode = False
+                        device.cooling = False
                     if data == 2:  # increment fanspeed
                         device.set_fanspeed(device.fanspeed + 1)
                         if "daemon" not in sys.argv:
