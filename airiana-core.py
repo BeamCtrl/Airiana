@@ -1406,8 +1406,10 @@ class Systemair(object):
                 if to is None:
                     self.msg += "manual state change\n"
                     self.current_mode = get_val()
+                    if self.current_mode > 0:
+                        to = 0
                 i = 0
-                if self.current_mode != 0 or to == 0:
+                if to != 0:
                     while not set_val(0):
                         # self.msg += "\nwrite error"
                         time.sleep(0.2)  # set summer mode
