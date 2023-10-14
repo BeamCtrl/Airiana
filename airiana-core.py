@@ -1381,14 +1381,14 @@ class Systemair(object):
         clear_screen()
         print(tmp)
 
-    # change exchanger mode to to, if no to flip 0 or 5
-    def cycle_exchanger(self, to):
+    # change exchanger mode to to, if to = None, flip 0 or 5
+    def cycle_exchanger(self, to=None):
         os.write(ferr, bytes("cycle exchanger to: " + str(to) + "\t" + str(time.ctime()) + "\n", encoding='utf8'))
         if not savecair:
             def set_val(val):
                 try:
-                    # self.msg += "\nwriting mode "+str(val)+"\n"
                     req.write_register(206, val)
+                    os.write(ferr, bytes("write exchanger to: " + str(val) + "\t" + str(time.ctime()) + "\n", encoding='utf8'))
                     return 1
                 except:
                     return 0
@@ -1405,9 +1405,12 @@ class Systemair(object):
             try:
                 if to is None:
                     self.msg += "manual state change\n"
+                    os.write(ferr, bytes("Exchanger mode toggleing\n", encoding="utf-8"))
                     self.current_mode = get_val()
                     if self.current_mode > 0:
                         to = 0
+                    else:
+                        to = 5
                 i = 0
                 if to != 0:
                     while not set_val(0):
@@ -1415,14 +1418,14 @@ class Systemair(object):
                         time.sleep(0.2)  # set summer mode
                         i += 1
                         if i > 10:
-                            os.write(ferr, bytes("Exchanger write failed\n"))
+                            os.write(ferr, bytes("Exchanger write failed\n", encoding="utf-8"))
                 else:
                     while not set_val(5):
                         # self.msg +="\nwrite error"
                         time.sleep(0.2)  # set winter mode
                         i += 1
                         if i > 10:
-                            os.write(ferr, bytes("Exchanger write failed\n"))
+                            os.write(ferr, bytes("Exchanger write failed\n", encoding="utf-8"))
                 self.modetoken = time.time()
                 self.inhibit = time.time()  # set inhibit time to prevent derivatives sensing when returning
             except:
