@@ -6,6 +6,8 @@ import airiana_core
 from request import Request
 import time
 
+os.sys("mkdiir -p RAM/")
+
 class MockRequest():
     def __init__(self):
         self.response = ""
