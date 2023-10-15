@@ -164,3 +164,11 @@ use "hasRH" as an added argument if you also want the humidity graph added to th
 A runnning log file is availble in ./RAM/err.
 
 Communication error rate if any is availble in ./RAM/error_rate.
+
+#### Unit testing:
+Using pytest; 
+from airiana dir ```pytest -s```\
+To test with hardware in the loop
+```pytest -s --mode HIL --tty /dev/[serial0] ```  or which ever device you are using to communicate with.
+test are availible under "./test"
+
