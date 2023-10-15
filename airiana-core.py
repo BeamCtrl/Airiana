@@ -1386,7 +1386,6 @@ class Systemair(object):
     # change exchanger mode to to, if to = None, flip 0 or 5
     def cycle_exchanger(self, to=None):
         os.write(ferr, bytes("cycle exchanger to: " + str(to) + "\t" + str(time.ctime()) + "\n", encoding='utf8'))
-        print("Cycle to:", to)
         if not self.savecair:
             def set_val(val):
                 try:
