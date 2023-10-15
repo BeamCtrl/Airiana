@@ -40,9 +40,7 @@ def test_exchanger():
     """Test the exchanger logic standalone with mocked comms"""
     req = MockRequest()
     dev = airiana_core.Systemair(req)
-    dev.savecair = False
-    print("Is dev.savecair:", dev.savecair)
-    ferr = os.open("RAM/test_log",os.O_CREAT)
+
     # Test that dev init is correct
     assert dev.inlet_ave == 0
     assert dev.exhaust_ave == 0
