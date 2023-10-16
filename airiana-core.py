@@ -17,7 +17,6 @@ import socket
 import syslog
 from request import Request
 
-
 numpy.seterr('ignore')
 #############################
 
@@ -43,7 +42,7 @@ def exit_callback(self, arg):
     cmd_socket.close()
     os.write(ferr, bytes("Exiting in a safe way" + "\n", encoding='utf8'))
     # Sleep until one iteration has passed, or we've been in shutdown for 3 sec.
-    while(device.iter < now) or (time.time() < shutdown + 3):
+    while (device.iter < now) or (time.time() < shutdown + 3):
         time.sleep(0.1)
     syslog.syslog("Controlled shutdown of airiana-core")
 
@@ -151,11 +150,11 @@ def report_alive():
             if each.find("HWaddr") != -1 or each.find("ether") != -1:
                 message = each
                 message += os.popen("hostname -I").read()
-                hw_addr = str(each.split(" ")[9]).replace(":","_")
+                hw_addr = str(each.split(" ")[9]).replace(":", "_")
                 try:
-                    message += "\n###status:"+str(device.status_field)+"\n###<br>"
+                    message += "\n###status:" + str(device.status_field) + "\n###<br>"
                 except:
-                    message += "\nstatus: initialization "+str(vers)+"\n\n<br>"
+                    message += "\nstatus: initialization " + str(vers) + "\n\n<br>"
                 try:
                     fd = os.open("RAM/err", os.O_RDONLY)
                     stats = os.stat("RAM/err")
@@ -198,24 +197,24 @@ def report_alive():
                         os.write(ferr, bytes("File Error: " + str(traceback.print_exc()) + "\n", encoding='utf8'))
 
         html = """ <html>[DA]</html>"""
-        if holdoff_t < (time.time() - 3600): # wait for one hour
-            stat = open("RAM/"+hw_addr, "w")
-            stat.write(html.replace(u"[DA]",message))
+        if holdoff_t < (time.time() - 3600):  # wait for one hour
+            stat = open("RAM/" + hw_addr, "w")
+            stat.write(html.replace(u"[DA]", message))
             os.system("curl -s -X DELETE \"https://filebin.net/airiana_ping_status_store/" + hw_addr + ".html\"")
             tmp = "-s -X POST \"https://filebin.net/airiana_ping_status_store/" + hw_addr + ".html\""
             tmp += " -d @RAM/" + hw_addr
-            #os.write(ferr, "curl " + tmp + "\n")
+            # os.write(ferr, "curl " + tmp + "\n")
             stat.close()
             res = os.popen("curl " + tmp).read()
             if res.find("Insufficient storage") != -1:
                 os.write(ferr, b"Holdoff time in effect, will re-ping in one hour.\n")
             holdoff_t = time.time()
 
-        #sock =  socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
-        #sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
+        # sock =  socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
+        # sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
         ##sock.close()
     except NameError:
-        os.write(ferr,"unable to ping, network error\t"+time.ctime() + "\n")
+        os.write(ferr, "unable to ping, network error\t" + time.ctime() + "\n")
         traceback.print_exc(ferr)
 
 
@@ -345,7 +344,7 @@ class Systemair(object):
         self.system_types = {0: "VR400", 1: "VR700", 2: "VR700DK", 3: "VR400DE", 4: "VTC300", 5: "VTC700",
                              12: "VTR150K", 13: "VTR200B", 14: "VSR300", 15: "VSR500", 16: "VSR150",
                              17: "VTR300", 18: "VTR500", 19: "VSR300DE", 20: "VTC200", 21: "VTC100"}
-        self.has_RH_sensor = ("VTR300", "VSR300", "savecair" )
+        self.has_RH_sensor = ("VTR300", "VSR300", "savecair")
         self.rotor_states = {0: "Normal", 1: "Rotor Fault", 2: "Rotor Fault Detected"
             , 3: "Summer Mode transitioning", 4: "Summer Mode"
             , 5: "Leaving Summer Mode", 6: "Manual Summer Mode"
@@ -473,7 +472,7 @@ class Systemair(object):
         self.electric_power_sum = 0.0
 
     def get_password(self):
-        self.req.modbusregister(16000,0)
+        self.req.modbusregister(16000, 0)
         self.admin_password = "{0}{1}{2}{3}".format(str(self.req.response & 0b1),
                                                     str(self.req.response & 0b1000 >> 3),
                                                     str(self.req.response & 0b10000000 >> 7),
@@ -522,11 +521,11 @@ class Systemair(object):
                 if int(self.req.response) == 1:
                     self.req.write_register(107, 0)
                 # SET BASE FLOW RATES
-                self.req.write_register(101,self.sf_base)
+                self.req.write_register(101, self.sf_base)
                 self.req.write_register(102, self.ef_base)
                 self.req.write_register(103, 60)
                 self.req.write_register(104, 60)
-                self.req.write_register(105,107)
+                self.req.write_register(105, 107)
                 self.req.write_register(106, 107)
             if self.system_name in ("VSR300"):
                 self.ef_base = 40  # base low flow,  low pressure reference air flow.
@@ -542,7 +541,7 @@ class Systemair(object):
                 self.req.write_register(102, self.ef_base)
                 self.req.write_register(103, 60)
                 self.req.write_register(104, 60)
-                self.req.write_register(105,107)
+                self.req.write_register(105, 107)
                 self.req.write_register(106, 107)
             if "VTR700" in self.system_name:
                 self.ef_base = 50  # base low flow,  low pressure reference air flow.
@@ -558,7 +557,7 @@ class Systemair(object):
                 self.req.write_register(102, self.ef_base)
                 self.req.write_register(103, 100)
                 self.req.write_register(104, 100)
-                self.req.write_register(105,200)
+                self.req.write_register(105, 200)
                 self.req.write_register(106, 200)
 
     # get heater status
@@ -622,8 +621,8 @@ class Systemair(object):
                 self.coef_dict[self.get_coef_mode()][int(temp_diff)] = new_coef
             else:
                 self.coef_dict[self.get_coef_mode()][int(temp_diff)] += (new_coef -
-                                                    self.coef_dict[self.get_coef_mode()][
-                                                    int(temp_diff)]) * 0.1  # add 10% of diff from new coef to dict
+                                                                         self.coef_dict[self.get_coef_mode()][
+                                                                             int(temp_diff)]) * 0.1  # add 10% of diff from new coef to dict
             if len(self.coef_dict) != 0:
                 pickle.dump(self.coef_dict, open("coeficients.dat", "wb"))
             self.coef_test_bool = False
@@ -764,7 +763,7 @@ class Systemair(object):
             try:  # replace erronous data input when temp diff exceeds 1C between samples
                 if extract - self.rawdata[0][1] > 50 and (extract != 0.0 or self.rawdata[1][1] != 0.0):
                     os.write(ferr, bytes("temp read error at: " + str(extract) + "C \t" + str(time.ctime()) + "\n",
-                                     encoding='utf8'))
+                                         encoding='utf8'))
                     extract = self.rawdata[1][1]
             except IndexError:
                 pass
@@ -1320,7 +1319,7 @@ class Systemair(object):
             round((self.total_energy) / (((time.time() - starttime) / 3600)), 1)) + "W\n"
         tmp += "Cooling total: " + str(round(self.cooling / 1000, 3)) + "kWh\n"
         tmp += "Heat gain total: " + str(round(self.gain / 1000, 3)) + "kWh\n"
-        tmp += "Unit electric total: " + str(round(self.electric_power_sum/1000, 3)) + "kWh\n"
+        tmp += "Unit electric total: " + str(round(self.electric_power_sum / 1000, 3)) + "kWh\n"
         tmp += "Supply:" + str(self.sf) + " l/s," + str(self.sf_rpm) + "rpm\tExtract:" + str(self.ef) + " l/s," + str(
             self.ef_rpm) + "rpm\n"
         if self.ac_active:
@@ -1335,7 +1334,7 @@ class Systemair(object):
         if self.forcast[1] != -1: tmp += "Weather forecast: " + str(self.forcast[0]) + "C " + str(
             self.forcast[1] / 8 * 100) + "% cloud cover RH:" + str(self.forcast[2]) + "%\n\n"
         if "Timer" in threading.enumerate()[-1].name:
-           tmp += "Ventilation timer on: " + count_down(self.timer, 120 * 60) + "\n"
+            tmp += "Ventilation timer on: " + count_down(self.timer, 120 * 60) + "\n"
         if self.shower: tmp += "Shower mode engaged at:" + time.ctime(self.shower_initial) + "\n"
         if self.inhibit > 0: tmp += "Status change inhibited (" + count_down(self.inhibit, 600) + ")\n"
         if self.press_inhibit > 0: tmp += "Pressure change inhibited (" + count_down(self.press_inhibit, 1800) + ")\n"
@@ -1360,7 +1359,8 @@ class Systemair(object):
                 try:
                     self.req.write_register(206, val)
                     print("Setting exchanger to:", val)
-                    os.write(ferr, bytes("write exchanger to: " + str(val) + "\t" + str(time.ctime()) + "\n", encoding='utf8'))
+                    os.write(ferr, bytes("write exchanger to: " + str(val) + "\t" + str(time.ctime()) + "\n",
+                                         encoding='utf8'))
                     return 1
                 except:
                     return 0
@@ -1799,8 +1799,8 @@ class Systemair(object):
                 self.req.write_register(102, base + self.flowOffset[0])  # Extract flow with offset at low.
                 #  No need to set supply flow it's calculated by the unit as the ratio of sf/ef from mid lvl flow.
                 os.write(ferr,
-                        bytes("Updated extract flow offset to: " +
-                              str(self.flowOffset[0]) + "\t" + str(time.ctime()) + "\n", 'utf8'))
+                         bytes("Updated extract flow offset to: " +
+                               str(self.flowOffset[0]) + "\t" + str(time.ctime()) + "\n", 'utf8'))
                 self.ef = base + self.flowOffset[0]
                 self.sf = self.sf_base + self.flowOffset[0]
 
@@ -1826,7 +1826,8 @@ class Systemair(object):
         try:
             saturation_point = float(tmp[1])
         except:
-            os.write(ferr, bytes("Unable to cast 24h low temp " + str(tmp) + "\t" + str(time.ctime()) + "\n", encoding='utf8'))
+            os.write(ferr, bytes("Unable to cast 24h low temp " + str(tmp) + "\t" + str(time.ctime()) + "\n",
+                                 encoding='utf8'))
             os.system(f"echo {self.inlet_ave} > ./RAM/latest_static")
             saturation_point = self.inlet_ave
         # if no forcast is avail
@@ -1901,22 +1902,22 @@ class Systemair(object):
         tmp = ""
         try:
             json_vars = {
-                         "extract": self.extract_ave, "coolingMode": str(self.cool_mode).lower(),
-                         "supply": self.supply_ave, "sf": self.sf, "ef": self.ef,
-                         "exhaust": self.exhaust_ave, "autoON": str(monitoring).lower(),
-                         "shower": str(self.shower).lower(), "rotorSpeed": self.exchanger_speed,
-                         "sfRPM": self.sf_rpm, "energyXfer": self.loss, "efficiency": self.eff,
-                         "efRPM": self.ef_rpm, "name": self.system_name,
-                         "filterPercentRemaining": self.filter_remaining,
-                         "pressure": self.airdata_inst.press, "filterInstalledDays": self.filter,
-                         "rotorActive": str(self.rotor_active).lower(), "elecHeater": self.heater,
-                         "inlet": self.inlet_ave,
-                         "electricPower": self.electric_power, "electricPowerTotal": round(self.electric_power_sum, 2),
-                         "referenceHumidity": round(self.local_humidity, 1)}
+                "extract": self.extract_ave, "coolingMode": str(self.cool_mode).lower(),
+                "supply": self.supply_ave, "sf": self.sf, "ef": self.ef,
+                "exhaust": self.exhaust_ave, "autoON": str(monitoring).lower(),
+                "shower": str(self.shower).lower(), "rotorSpeed": self.exchanger_speed,
+                "sfRPM": self.sf_rpm, "energyXfer": self.loss, "efficiency": self.eff,
+                "efRPM": self.ef_rpm, "name": self.system_name,
+                "filterPercentRemaining": self.filter_remaining,
+                "pressure": self.airdata_inst.press, "filterInstalledDays": self.filter,
+                "rotorActive": str(self.rotor_active).lower(), "elecHeater": self.heater,
+                "inlet": self.inlet_ave,
+                "electricPower": self.electric_power, "electricPowerTotal": round(self.electric_power_sum, 2),
+                "referenceHumidity": round(self.local_humidity, 1)}
             if len(self.hum_list) and self.RH_valid:
-                json_vars.update({"measuredHumidity": round(self.hum_list[0],1)})
+                json_vars.update({"measuredHumidity": round(self.hum_list[0], 1)})
             else:
-                json_vars.update({"calculatedHumidity": round(self.hum_list[0],1)})
+                json_vars.update({"calculatedHumidity": round(self.hum_list[0], 1)})
             tmp = str(json_vars).replace("'", "\"")
         except IndexError:
             os.write(ferr, bytes(f"json-writer humidity IndexError {self.hum_list}\n", "utf-8"))
@@ -1960,7 +1961,6 @@ if __name__ == "__main__":
         device.average_limit = 3400
         os.write(ferr, bytes("savecair unit set\n", 'utf8'))
 
-
 #  RUN MAIN loop
 if __name__ == "__main__":
     monitoring = True
@@ -1983,7 +1983,7 @@ if __name__ == "__main__":
         # FIRST PASS ONLY #
         clear_screen()
         print("First PASS;")
-        print("Updating fanspeeds;")
+        print("Updating fan-speeds;")
         device.system_setup()
         device.update_airflow()
         sys.stdout.flush()
@@ -2048,7 +2048,7 @@ if __name__ == "__main__":
                 device.check_ac_mode()
                 if reset_fans:
                     device.set_fanspeed(reset_fans)
-                    reset_fans = false
+                    reset_fans = False
             # update moisture
             if device.iter % 5 == 0:
                 if "debug" in sys.argv:
@@ -2128,7 +2128,8 @@ if __name__ == "__main__":
                     device.get_local()
                 if "temperatur.nu" in sys.argv:
                     os.system(
-                        "wget -q -O ./RAM/temperatur.nu  http://www.temperatur.nu/rapportera.php?hash=42bc157ea497be87b86e8269d8dc2d42\\&t=" + str(
+                        "wget -q -O ./RAM/temperatur.nu  \
+                        http://www.temperatur.nu/rapportera.php?hash=42bc157ea497be87b86e8269d8dc2d42\\&t=" + str(
                             round(device.inlet_ave, 1)) + " &")
 
             # check for updates
@@ -2137,7 +2138,7 @@ if __name__ == "__main__":
                     os.system("echo \"7200s\" >./RAM/exec_tree")
                 os.system("./backup.py &")
                 os.system("cp ./RAM/data.log ./data.save")
-            # restart HTTP SERVER get filterstatus, reset IP on buttons page, update weather forcast
+            # restart HTTP SERVER get filter status, reset IP on buttons page, update weather forcast
             if device.iter % (int(3600 * 2 / device.avg_frame_time)) == 0:
                 device.get_filter_status()
                 os.system("./http &")
@@ -2147,21 +2148,22 @@ if __name__ == "__main__":
                 if device.status_field[0] > 0: device.status_field[
                     0] -= 1  # remove one shower token from bucket every 2 hrs.
             device.iter += 1
-            ########### Selection menu if not daemon######
+
+            """Selection menu if not daemon"""
             if "daemon" not in sys.argv:
                 device.print_xchanger()  # Print to screen
                 timeout = 0.1
-                print("""
-	CTRL-C to exit,
-1: Toggle auto Monitoring	 6: Not implemented
-2: Toggle fanspeed		 7: Set flow differential
-3: Print all device attributes	 8: Run fans for 15min at Max
-4: Display link settings	 9: Run the Firestarter mode
-5: toggle flowOffset		 0: cycle winter/summer mode
-10: Not implemented		11: Toggle electric heater
-12: Start shower mode		13: Engage Cool mode
-14: Enagage AI test
-		enter commands:""", end=' ')
+                print("\n"
+                      "	CTRL-C to exit,\n"
+                      "1: Toggle auto Monitoring	 6: Not implemented\n"
+                      "2: Toggle fanspeed		 7: Set flow differential\n"
+                      "3: Print all device attributes	 8: Run fans for 15min at Max\n"
+                      "4: Display link settings	 9: Run the Firestarter mode\n"
+                      "5: toggle flowOffset		 0: cycle winter/summer mode\n"
+                      "10: Not implemented		11: Toggle electric heater\n"
+                      "12: Start shower mode		13: Engage Cool mode\n"
+                      "14: Enagage AI test\n"
+                      "		enter commands:", end=' ')
             else:
                 timeout = 0.05
             try:
@@ -2180,7 +2182,6 @@ if __name__ == "__main__":
                     except:
                         pass
                     try:
-                        #device.msg += "\nNetwork command recieved: Processing... " + str(data) + "\n"
                         log = "echo \"" + str(time.ctime()) + ":" + str(sender) + ":" + str(data) + "\" >> netlog.log &"
                         os.write(ferr, bytes(f"{sender}:{data} at\t{time.ctime()}\n", "utf-8"))
                         os.system(log)
@@ -2228,10 +2229,10 @@ if __name__ == "__main__":
                             print("break")
                         recent = 4
                     if data == 5:
-                       if device.flowOffset[0] == 0:
-                           device.flowOffset[0] = 20
-                       else:
-                           device.flowOffset[0] = 0
+                        if device.flowOffset[0] == 0:
+                            device.flowOffset[0] = 20
+                        else:
+                            device.flowOffset[0] = 0
                     if data == 6:  #
                         if "daemon" not in sys.argv:
                             input("press enter to resume")
