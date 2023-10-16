@@ -3,8 +3,11 @@ import sys
 sys.path.append("..")
 sys.path.append(".")
 import airiana_core
+
+
 def test_fanspeed_sets():
-    """Set fanspeed to 0, 1, 2, 3 valid sets, invalid 4<  or <0"""
+    """Set fanspeed to 0, 1, 2, 3 valid sets, invalid 4<  or <0
+     Do this for both sets as savecair and not savecair"""
     req = MockRequest.MockRequest()
     dev = airiana_core.Systemair(req)
     dev.savecair = False
