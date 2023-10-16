@@ -16,12 +16,14 @@ class MockRequest():
             self.response = self.data[address]
             print("Reading the address", address, "which has", self.response, "and decimals at", decimals)
             return self.data[address]
-        except:
-            print("No data found using:", self.response)
+        except KeyError:
+            print(f"No data found on addrs:{address} using:", self.response)
+            self.data[address] = self.response
             return self.response
 
-    def modbusregisters(self, start_address, count, signed):
-        return True
+    def modbusregisters(self, start_address, count, signed=False):
+        self.response = [self.modbusregister( start_address + i, 0) for i in range(count)]
+        return [] * count
 
     def setup(self, device, mode):
         pass

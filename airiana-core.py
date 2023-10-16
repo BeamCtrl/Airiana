@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-###################IMPORTS
+############################
 vers = "11.0"
 import airdata
 import numpy
@@ -13,6 +13,7 @@ import sys
 import signal
 import math
 import pickle
+import socket
 import syslog
 from request import Request
 
@@ -30,20 +31,22 @@ if "TCP" in sys.argv:
 
 # Register cleanup
 def exit_callback(self, arg):
+    global Running
+    Running = False
     print("Gracefull shutdown\nexiting on signal", self)
     sys.stdout.flush()
     now = device.iter
     shutdown = time.time()
-    Running = False
     os.system("cp ./RAM/data.log ./data.save")
     if threading.enumerate()[-1].name == "Timer":
         threading.enumerate()[-1].cancel()
     cmd_socket.close()
     os.write(ferr, bytes("Exiting in a safe way" + "\n", encoding='utf8'))
-    # Sleep untill one iteration has passed or we've been in shutdown for 3 sec.
-    while  (device.iter < now) or (time.time() < shutdown + 3):
+    # Sleep until one iteration has passed, or we've been in shutdown for 3 sec.
+    while(device.iter < now) or (time.time() < shutdown + 3):
         time.sleep(0.1)
-    syslog.syslog("Controlled shutdown of airana-core")
+    syslog.syslog("Controlled shutdown of airiana-core")
+
 
 signal.signal(signal.SIGTERM, exit_callback)
 signal.signal(signal.SIGINT, exit_callback)
@@ -85,10 +88,6 @@ if "daemon" in sys.argv:
     fout = os.open("./RAM/out", os.O_WRONLY | os.O_CREAT)
     os.dup2(fout, sys.stdout.fileno())
     print("Output redirected to file;")
-    # if not "keep-log" in sys.argv:
-    #	os.system("rm -f ./RAM/err")
-    #	ferr = os.open("./RAM/err",os.O_WRONLY|os.O_CREAT)
-
     os.dup2(ferr, sys.stderr.fileno())
     os.lseek(ferr, 0, os.SEEK_END)
 
@@ -107,8 +106,8 @@ else:
     unit = "/dev/ttyAMA0"
     os.write(ferr, bytes("\n\nUsing /dev/ttyAMA0" + "\n", encoding='utf8'))
 
-################################# command socket setup
-import socket
+#################################
+# command socket setup
 
 hostname = os.popen("hostname").read()[:-1]
 print("Trying to Run on host:", hostname, ", for 60sec;")
@@ -197,12 +196,11 @@ def report_alive():
                         os.close(fd)
                     except:
                         os.write(ferr, bytes("File Error: " + str(traceback.print_exc()) + "\n", encoding='utf8'))
-        # if "debug" in sys.argv: device.msg +=  message + "\n"
+
         html = """ <html>[DA]</html>"""
         if holdoff_t < (time.time() - 3600): # wait for one hour
             stat = open("RAM/"+hw_addr, "w")
             stat.write(html.replace(u"[DA]",message))
-            #print(bytes(html.replace(u"[DA]",message), encoding = "utf-8"))
             os.system("curl -s -X DELETE \"https://filebin.net/airiana_ping_status_store/" + hw_addr + ".html\"")
             tmp = "-s -X POST \"https://filebin.net/airiana_ping_status_store/" + hw_addr + ".html\""
             tmp += " -d @RAM/" + hw_addr
@@ -354,35 +352,6 @@ class Systemair(object):
             , 7: "Rotor Cleaning in Summer Mode", 8: "Rotor cleaning in manual summer mode"
             , 9: "Fans off", 10: "Rotor Cleaning during fans off", 11: "Rotor Fault, but conditions normal"}
         self.speeds = {0: "Off", 1: "Low", 2: "Normal", 3: "High", 4: "undefined"}
-        self.weather_types = {
-            1: "Clear skies", 2: "Fair weather", 3: "Partly cloudy",
-            4: "Cloudy", 40: "Light showers", 41: "Heavy showers",
-            5: "Rain", 24: "Light rain and thunder",
-            6: "Rain and thunder", 25: "Heavy rain and thunder",
-            42: "light sleet showers", 7: "Sleet showers",
-            43: "Heavy sleet showers", 26: "Light sleet showers and thunder",
-            20: "sleet showers and thunder", 27: "Heavy sleet showers and thunder",
-            44: "Light snowfall", 8: "Snow",
-            45: "Heavy snow showers", 28: "Light snow and thunder",
-            29: "Heavy snow and thunder",
-            21: "Snow showers and thunder", 46: "Light rain",
-            9: "Rain", 10: "Heavy rain",
-            30: "Light rain and thunder",
-            22: "Rain and thunder",
-            11: "Heavy rain and thunder",
-            47: "Light sleet",
-            12: "Sleet",
-            48: "Heavy Sleet",
-            31: "Light sleet and thunder",
-            23: "Sleet and thunder",
-            32: "Heavy sleet and thunder",
-            49: "Light snow",
-            13: "Snow",
-            50: "Heavy snow",
-            33: "Light snow and thunder",
-            14: "Snow and thunder",
-            34: "Heavy snow and thunder",
-            15: "Fog", -1: "No weather data"}
         self.AC_energy = 0
         self.ac_active = False
         self.avg_frame_time = 1
