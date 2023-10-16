@@ -167,8 +167,9 @@ Communication error rate if any is availble in ./RAM/error_rate.
 
 #### Unit testing:
 Using pytest; 
-from airiana dir ```pytest -s```\
+from airiana dir ```pytest -s```  /// ```pytest-3 -s```\
 To test with hardware in the loop
-```pytest -s --mode HIL --tty /dev/[serial0] ```  or which ever device you are using to communicate with.
+```pytest-3 -s --mode HIL --tty /dev/[serial0] ```
+```pytest -s --mode HIL --tty /dev/[serial0] ```  "serial0" or which ever device you are using to communicate with.
 test are availible under "./test"
 
