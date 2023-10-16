@@ -20,13 +20,17 @@ class Energy(object):
             self.press = self.press - (self.alt * self.P_RED)  # Above sea lvl
         except ValueError:
             self.press = 1013.25
-            print("value error for pressure")
+            err = open("airdata_error.log", "w")
+            err.write("Airdata.py pressure error: " + str(sys.exc_info()))
+            err.close()
+            print("1013.25")
         except:
             print("error occured getting current pressure ISA assumed")
             self.press = 1013.25
             err = open("airdata_error.log", "w")
             err.write("Airdata.py pressure error: " + str(sys.exc_info()))
             err.close()
+            print("1013.25")
         # print"Ambient air pressure used:",self.press,"hPa"
         self.T = 273.15  # Zero degC expressed in Kelvin
         self.R = 287.058  # GAS CONSTANT for dry air for pressures in Pa
