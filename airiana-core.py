@@ -344,7 +344,7 @@ class Systemair(object):
         self.system_types = {0: "VR400", 1: "VR700", 2: "VR700DK", 3: "VR400DE", 4: "VTC300", 5: "VTC700",
                              12: "VTR150K", 13: "VTR200B", 14: "VSR300", 15: "VSR500", 16: "VSR150",
                              17: "VTR300", 18: "VTR500", 19: "VSR300DE", 20: "VTC200", 21: "VTC100"}
-        self.has_RH_sensor = ("VTR300", "VSR300", "savecair")
+        self.has_RH_sensor = ["VTR300", "VSR300", "savecair"]
         self.rotor_states = {0: "Normal", 1: "Rotor Fault", 2: "Rotor Fault Detected"
             , 3: "Summer Mode transitioning", 4: "Summer Mode"
             , 5: "Leaving Summer Mode", 6: "Manual Summer Mode"
@@ -411,6 +411,7 @@ class Systemair(object):
         self.inside = 0
         self.inside_humid = 0
         self.exchanger_mode = -1
+        self.reset_fans = False
         self.rotor_state = 0
         self.rotor_active = "Yes"
         self.inhibit = time.time()
@@ -453,6 +454,7 @@ class Systemair(object):
         self.humidity = 40.0
         self.moist_in = 0
         self.moist_out = 0
+        self.monitoring = True
         self.div = 0
         self.set_system_name()
         self.RH_valid = 0
@@ -470,6 +472,12 @@ class Systemair(object):
         self.sensor_exhaust = -60
         self.admin_password = ""
         self.electric_power_sum = 0.0
+
+    def set_monitoring(self, val):
+        self.monitoring = val
+
+    def reset_fanspeed(self, speed):
+        self.reset_fans = speed
 
     def get_password(self):
         self.req.modbusregister(16000, 0)
@@ -508,7 +516,7 @@ class Systemair(object):
             # check if there is an RH sensor available even though it's not listed
             self.get_RH()
             if self.RH_valid and self.system_name not in self.has_RH_sensor:
-                self.has_RH_sensor += (self.system_name)
+                self.has_RH_sensor.append(self.system_name)
 
             # setup airflow levels
             if self.system_name in ("VR400", "VTR300",):
@@ -527,7 +535,7 @@ class Systemair(object):
                 self.req.write_register(104, 60)
                 self.req.write_register(105, 107)
                 self.req.write_register(106, 107)
-            if self.system_name in ("VSR300"):
+            if self.system_name in "VSR300":
                 self.ef_base = 40  # base low flow,  low pressure reference air flow.
                 self.sf_base = 40
                 self.req.modbusregister(137, 0)
@@ -822,15 +830,16 @@ class Systemair(object):
             diff = extract - inlet
             dyn_coef = 0
             try:
-                if self.fanspeed and len(self.coef_dict) != 0:
+                if self.fanspeed and len(self.coef_dict[self.get_coef_mode()]) != 0:
                     dyn_coef = numpy.median(list(self.coef_dict[self.get_coef_mode()].values())) * float(1) / (
                         self.fanspeed)  # self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
                 if self.fanspeed == 3:
                     dyn_coef = 0
             except KeyError:
-                dyn_coef = numpy.average(list(self.coef_dict[self.get_coef_mode()].values()))
-                if numpy.isnan(dyn_coef):
-                    dyn_coef = 0
+                if len(self.coef_dict):
+                    dyn_coef = numpy.average(list(self.coef_dict[self.get_coef_mode()].values()))
+                    if numpy.isnan(dyn_coef):
+                        dyn_coef = 0
             except:
                 traceback.print_exc(ferr)
             try:
@@ -1221,10 +1230,10 @@ class Systemair(object):
 
     # PRINT OUTPUT
     def print_xchanger(self):
-        global monitoring, vers
+        global vers
         tmp = self.system_name
         if self.savecair:
-            tmp += " self.savecair"
+            tmp += " Savecair"
         tmp += " " + time.ctime() + " status: " + str(int(time.time() - starttime)) + '(' + str(self.iter) + ")" + str(
             round((time.time() - starttime) / self.iter, 2)) + " Vers. " + vers + " ***\n"
         if "debug" in sys.argv:
@@ -1340,7 +1349,7 @@ class Systemair(object):
         if self.press_inhibit > 0: tmp += "Pressure change inhibited (" + count_down(self.press_inhibit, 1800) + ")\n"
         if self.modetoken >= 1: tmp += "Exchanger mode change inhibited (" + count_down(self.modetoken, 3600) + ")\n"
         if self.cool_mode: tmp += "Cooling mode is in effect, target is 20.7C extraction temperature\n"
-        if not monitoring: tmp += "\nSystem Automation off\n"
+        if not self.monitoring: tmp += "\nSystem Automation off\n"
 
         self.status_field[2] = round((time.time() - starttime) / self.iter, 2)
         self.status_field[6] = round((time.time() - starttime) / 3600, 1)
@@ -1431,7 +1440,6 @@ class Systemair(object):
 
     # clear flags as timeouts occur
     def check_flags(self):
-        global monitoring
         #### INHIBITS AND LIMITERS
         now = time.time()
         if self.inhibit < now - (60 * 10): self.inhibit = 0
@@ -1447,7 +1455,7 @@ class Systemair(object):
     # Monitor Logical crits for state changes on exchanger, pressure, rpms, forcast
     def monitor(self):
         if "VTR400" in self.system_name:
-            #### FAN RPM MONITORING
+            #### FAN RPM self.monitoring
             if self.sf_rpm < 1550 and self.fanspeed == 2:
                 self.inhibit = time.time()
                 self.coef_inhibit = time.time()
@@ -1898,13 +1906,12 @@ class Systemair(object):
 
     # print Json data to air.out for thrid party processing
     def print_json(self):
-        global monitoring
         tmp = ""
         try:
             json_vars = {
                 "extract": self.extract_ave, "coolingMode": str(self.cool_mode).lower(),
                 "supply": self.supply_ave, "sf": self.sf, "ef": self.ef,
-                "exhaust": self.exhaust_ave, "autoON": str(monitoring).lower(),
+                "exhaust": self.exhaust_ave, "autoON": str(self.monitoring).lower(),
                 "shower": str(self.shower).lower(), "rotorSpeed": self.exchanger_speed,
                 "sfRPM": self.sf_rpm, "energyXfer": self.loss, "efficiency": self.eff,
                 "efRPM": self.ef_rpm, "name": self.system_name,
@@ -1966,15 +1973,6 @@ if __name__ == "__main__":
     monitoring = True
     reset_fans = False
 
-
-    def set_monitoring(bool):
-        global monitoring
-        monitoring = bool
-
-
-    def reset_fanspeed(speed):
-        global reset_fans
-        reset_fans = speed
 
 
     input_buffers = ""
@@ -2053,7 +2051,7 @@ if __name__ == "__main__":
             if device.iter % 5 == 0:
                 if "debug" in sys.argv:
                     os.system("echo \"5\" >./RAM/exec_tree")
-                if monitoring:
+                if device.monitoring:
                     device.monitor()
                     device.shower_detect()
                 device.print_json()  # Print to json
@@ -2116,7 +2114,7 @@ if __name__ == "__main__":
                     device.status_field[8] = round(device.extract_ave, 2)
                     device.status_field[9] = round(device.ef, 2)
                     device.status_field[10] = round(device.humidity, 2)
-                    device.status_field[11] = monitoring
+                    device.status_field[11] = device.monitoring
                     device.status_field[12] = device.cool_mode
                     device.status_field[13] = round(device.supply_ave, 2)
                     device.status_field[14] = round(device.exhaust_ave, 2)
@@ -2199,7 +2197,7 @@ if __name__ == "__main__":
 
                 if data != -1:
                     if data == 1:  # toggle auto monitor on/off
-                        monitoring = not monitoring  # Toggle monitoring on / off
+                        device.monitoring = not device.monitoring  # Toggle monitoring on / off
                         # Reset all automation modes.
                         device.inhibit = 0
                         device.press_inhibit = 0
@@ -2262,7 +2260,7 @@ if __name__ == "__main__":
                                 device.msg += "Removed Forced ventilation timer\n"
                                 os.write(ferr, bytes(
                                     bytes("Vent Timer canceled at:\t" + str(time.ctime()) + "\n", encoding='utf8')))
-                                monitoring = True
+                                device.monitoring = True
                                 device.timer = False
 
                             if threading.enumerate()[-1].name != "Timer":
@@ -2270,11 +2268,11 @@ if __name__ == "__main__":
                                          bytes("Vent timer started at:\t" + str(time.ctime()) + "\n", encoding='utf8'))
                                 prev = device.fanspeed
                                 device.set_fanspeed(3)
-                                monitoring = False
+                                device.monitoring = False
                                 device.msg += "Forced Ventilation on timer\n"
-                                tim2 = threading.Timer(60.0 * 120 + 2, set_monitoring, [True])
+                                tim2 = threading.Timer(60.0 * 120 + 2, device.set_monitoring, [True])
                                 tim2.start()
-                                tim = threading.Timer(60.0 * 120, reset_fanspeed, [prev])
+                                tim = threading.Timer(60.0 * 120, device.reset_fanspeed, [prev])
                                 tim.setName("Timer")
                                 device.timer = time.time()
                                 tim.start()
@@ -2302,9 +2300,9 @@ if __name__ == "__main__":
                                 device.press_inhibit = 0
                                 device.set_fanspeed(3)
                                 device.msg += "Fire start Ventilation on timer\n"
-                                tim2 = threading.Timer(60.0 * 10 + 2, set_monitoring, [True])
+                                tim2 = threading.Timer(60.0 * 10 + 2, device.set_monitoring, [True])
                                 tim2.start()
-                                tim = threading.Timer(60.0 * 10, reset_fanspeed, [prev])
+                                tim = threading.Timer(60.0 * 10, device.reset_fanspeed, [prev])
                                 tim.setName("fire")
                                 tim.start()
                         except:
