@@ -213,7 +213,7 @@ def report_alive():
         # sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
         ##sock.close()
     except NameError:
-        os.write(ferr, "unable to ping, network error\t" + time.ctime() + "\n")
+        os.write(ferr, bytes("unable to ping, network error\t" + time.ctime() + "\n", "utf8"))
         traceback.print_exc(ferr)
 
 
@@ -2015,7 +2015,7 @@ if __name__ == "__main__":
         device.get_heater()
         sys.stdout.flush()
         print("Retrieving weather forecast;")
-        device.get_forcast()
+        device.get_forecast()
         sys.stdout.flush()
         print("Generating historical graphs;")
         if "debug" in sys.argv:
@@ -2162,7 +2162,7 @@ if __name__ == "__main__":
                 os.system("./http &")
                 os.system("./public/ip-replace.sh &")  # reset ip-addresses on buttons.html
                 os.system("./public/ip-util.sh &")  # reset ip-addresses on buttons.html
-                device.get_forcast()
+                device.get_forecast()
                 if device.status_field[0] > 0: device.status_field[
                     0] -= 1  # remove one shower token from bucket every 2 hrs.
             device.iter += 1
