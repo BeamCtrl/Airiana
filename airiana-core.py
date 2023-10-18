@@ -29,7 +29,7 @@ if "TCP" in sys.argv:
 
 
 # Register cleanup
-def exit_callback(self, arg):
+def exit_callback(self, arg=0):
     global Running
     Running = False
     print("Gracefull shutdown\nexiting on signal", self)
@@ -45,19 +45,18 @@ def exit_callback(self, arg):
     while (device.iter < now) or (time.time() < shutdown + 3):
         time.sleep(0.1)
     syslog.syslog("Controlled shutdown of airiana-core")
+    exit(arg)
 
 
 signal.signal(signal.SIGTERM, exit_callback)
 signal.signal(signal.SIGINT, exit_callback)
 
 try:
-
     syslog.syslog("file is " + __file__.split("/")[-1])
     path = os.path.abspath(__file__).replace(__file__.split("/")[-1], "")
     syslog.syslog("changing to " + path)
     os.chdir(path)
-
-except:
+except FileNotFoundError:
     syslog.syslog("unable to chdir to:" + path)
     exit(22)
 
@@ -117,7 +116,7 @@ while True:
         cmd_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         cmd_socket.bind(("0.0.0.0", 9876))
         break
-    except:
+    except socket.SO_ERROR:
         traceback.print_exc(ferr)
         os.system("sleep 1")
         print("sleeping;")
@@ -153,18 +152,18 @@ def report_alive():
                 hw_addr = str(each.split(" ")[9]).replace(":", "_")
                 try:
                     message += "\n###status:" + str(device.status_field) + "\n###<br>"
-                except:
+                except ValueError:
                     message += "\nstatus: initialization " + str(vers) + "\n\n<br>"
                 try:
                     fd = os.open("RAM/err", os.O_RDONLY)
                     stats = os.stat("RAM/err")
-                    sizeT = stats.st_size
-                    if sizeT > 1024 * 5:
-                        sizeT = 1024 * 5
-                    os.lseek(fd, -sizeT, os.SEEK_END)
-                    temp = os.read(fd, sizeT)
+                    size_t = stats.st_size
+                    if size_t > 1024 * 5:
+                        size_t = 1024 * 5
+                    os.lseek(fd, -size_t, os.SEEK_END)
+                    temp = os.read(fd, size_t)
                     os.close(fd)
-                    if sizeT == 5 * 1024 and not "keep-log" in sys.argv:
+                    if size_t == 5 * 1024 and not "keep-log" in sys.argv:
                         os.lseek(ferr, 0, os.SEEK_SET)
                         os.ftruncate(ferr, 0)
                         os.fsync(ferr)
@@ -172,11 +171,11 @@ def report_alive():
                         os.fsync(ferr)
                     try:
                         if os.path.lexists("update.log"):
-                            log = os.open("update.log", os.O_RDONLY)
-                            logdata = os.read(log, 5000)
+                            log_file = os.open("update.log", os.O_RDONLY)
+                            logdata = os.read(log_file, 5000)
                             temp += bytes("\n\n", "utf-8")
                             temp += logdata
-                            os.close(log)
+                            os.close(log_file)
                         if os.path.lexists("./RAM/request.log"):
                             with open("./RAM/request.log") as reqlog:
                                 temp += bytes("\n\n", "utf-8")
@@ -345,11 +344,12 @@ class Systemair(object):
                              12: "VTR150K", 13: "VTR200B", 14: "VSR300", 15: "VSR500", 16: "VSR150",
                              17: "VTR300", 18: "VTR500", 19: "VSR300DE", 20: "VTC200", 21: "VTC100"}
         self.has_RH_sensor = ["VTR300", "VSR300", "savecair"]
-        self.rotor_states = {0: "Normal", 1: "Rotor Fault", 2: "Rotor Fault Detected"
-            , 3: "Summer Mode transitioning", 4: "Summer Mode"
-            , 5: "Leaving Summer Mode", 6: "Manual Summer Mode"
-            , 7: "Rotor Cleaning in Summer Mode", 8: "Rotor cleaning in manual summer mode"
-            , 9: "Fans off", 10: "Rotor Cleaning during fans off", 11: "Rotor Fault, but conditions normal"}
+        self.rotor_states = {0: "Normal", 1: "Rotor Fault", 2: "Rotor Fault Detected",
+                             3: "Summer Mode transitioning", 4: "Summer Mode",
+                             5: "Leaving Summer Mode", 6: "Manual Summer Mode",
+                             7: "Rotor Cleaning in Summer Mode", 8: "Rotor cleaning in manual summer mode",
+                             9: "Fans off", 10: "Rotor Cleaning during fans off",
+                             11: "Rotor Fault, but conditions normal"}
         self.speeds = {0: "Off", 1: "Low", 2: "Normal", 3: "High", 4: "undefined"}
         self.AC_energy = 0
         self.ac_active = False
@@ -421,7 +421,7 @@ class Systemair(object):
         self.sensor_humid = 0
         self.modetoken = 0
         self.cooling = 0
-        self.forcast = [-1, -1, -1]
+        self.forecast = [-1, -1, -1]
         self.dt_hold = 0
         self.dt_entries = 0
         self.extract_dt_long_time = time.time()
@@ -628,9 +628,10 @@ class Systemair(object):
             if int(temp_diff) not in keys:
                 self.coef_dict[self.get_coef_mode()][int(temp_diff)] = new_coef
             else:
+                # add 10% of diff from new coef to dict if already tested and rerun
                 self.coef_dict[self.get_coef_mode()][int(temp_diff)] += (new_coef -
                                                                          self.coef_dict[self.get_coef_mode()][
-                                                                             int(temp_diff)]) * 0.1  # add 10% of diff from new coef to dict
+                                                                             int(temp_diff)]) * 0.1
             if len(self.coef_dict) != 0:
                 pickle.dump(self.coef_dict, open("coeficients.dat", "wb"))
             self.coef_test_bool = False
@@ -678,7 +679,8 @@ class Systemair(object):
             except:
                 traceback.print_exc(ferr)
 
-            if self.filter_remaining < 0: self.filter_remaining = 0
+            if self.filter_remaining < 0:
+                self.filter_remaining = 0
         else:
             self.req.modbusregister(7000, 0)
             self.filter_limit = int(self.req.response) * 30
@@ -689,7 +691,8 @@ class Systemair(object):
             self.filter_raw = lowend + highend
             self.filter = self.filter_limit - (lowend + highend) / (3600 * 24)
             self.filter_remaining = round(100 * (1 - (float(self.filter) / self.filter_limit)), 1)
-            if self.filter_remaining < 0: self.filter_remaining = 0
+            if self.filter_remaining < 0:
+                self.filter_remaining = 0
 
     # get status byte for temp probes
     def get_temp_status(self):
@@ -703,7 +706,7 @@ class Systemair(object):
             exec(str("obj = self." + each))
             if isinstance(obj, (int, float, str, list)) or True:
                 exec(str("print (each,  self." + each + ")"))
-        if not "daemon" in sys.argv:
+        if "daemon" not in sys.argv:
             input("press enter to resume")
         else:
             print("break")
@@ -726,7 +729,8 @@ class Systemair(object):
         if not self.savecair:
             self.req.modbusregisters(213, 5)  # Tempsensors 1 -5
             self.time.insert(0, time.time())
-            if len(self.time) > self.average_limit: self.time.pop(-1)
+            if len(self.time) > self.average_limit:
+                self.time.pop(-1)
 
             # NEGATYIVE VAL sign bit twos complement
             if self.req.response[4] > 6000:
@@ -736,7 +740,8 @@ class Systemair(object):
 
             self.temps = self.req.response[:]
             self.rawdata.insert(0, self.temps)
-            if len(self.rawdata) > self.average_limit: self.rawdata.pop(-1)
+            if len(self.rawdata) > self.average_limit:
+                self.rawdata.pop(-1)
 
             # self.req.response[1] #EXTRACT
             # self.req.response[2] #EXHAUST
@@ -758,11 +763,12 @@ class Systemair(object):
 
             # limit array size
             for each in [self.inlet, self.supply, self.extract, self.exhaust]:
-                if len(each) > self.average_limit: each.pop(-1)
+                if len(each) > self.average_limit:
+                    each.pop(-1)
         else:  # self.savecair SECTION
             self.time.insert(0, time.time())
 
-            ##EXTRACT
+            # EXTRACT
             extract = "no data"
             cnt = 0
             while extract == "no data" and cnt < 10:
@@ -798,9 +804,9 @@ class Systemair(object):
                 self.rawdata.pop(-1)
             self.tcomp = self.get_tcomp(extract, inlet)
             self.extract.insert(0, float(extract + self.tcomp))
-            ## SUPPLY
+            # SUPPLY
             self.supply.insert(0, float(supply))
-            ### INLET
+            # INLET
             # if self.rotor_active =="No"  and self.inlet_coef <0.03:self.inlet_coef+= 0.0001 #OFF
             # if self.rotor_active =="Yes" and self.inlet_coef >0.00:self.inlet_coef-= 0.0001 # ON
             tweak = 0
@@ -811,11 +817,16 @@ class Systemair(object):
                 pass
             self.inlet.insert(0, float(inlet - tweak))
 
-            if len(self.extract) > self.average_limit: self.extract.pop(-1)
-            if len(self.exhaust) > self.average_limit: self.exhaust.pop(-1)
-            if len(self.supply) > self.average_limit: self.supply.pop(-1)
-            if len(self.inlet) > self.average_limit: self.inlet.pop(-1)
-            if len(self.time) > self.average_limit: self.time.pop(-1)
+            if len(self.extract) > self.average_limit:
+                self.extract.pop(-1)
+            if len(self.exhaust) > self.average_limit:
+                self.exhaust.pop(-1)
+            if len(self.supply) > self.average_limit:
+                self.supply.pop(-1)
+            if len(self.inlet) > self.average_limit:
+                self.inlet.pop(-1)
+            if len(self.time) > self.average_limit:
+                self.time.pop(-1)
         try:
             self.eff = (self.supply_ave - self.inlet_ave) / (self.extract_ave - self.inlet_ave) * 100
         except ZeroDivisionError:
@@ -1340,8 +1351,8 @@ class Systemair(object):
         tmp += "Filter has been installed for " + str(math.ceil(self.filter)) + " days ," + str(
             self.filter_remaining) + "% remaining. \n\n"
         tmp += "Ambient Pressure:" + str(round(self.airdata_inst.press, 2)) + "hPa\n"
-        if self.forcast[1] != -1: tmp += "Weather forecast: " + str(self.forcast[0]) + "C " + str(
-            self.forcast[1] / 8 * 100) + "% cloud cover RH:" + str(self.forcast[2]) + "%\n\n"
+        if self.forecast[1] != -1: tmp += "Weather forecast: " + str(self.forecast[0]) + "C " + str(
+            self.forecast[1] / 8 * 100) + "% cloud cover RH:" + str(self.forecast[2]) + "%\n\n"
         if "Timer" in threading.enumerate()[-1].name:
             tmp += "Ventilation timer on: " + count_down(self.timer, 120 * 60) + "\n"
         if self.shower: tmp += "Shower mode engaged at:" + time.ctime(self.shower_initial) + "\n"
@@ -1452,9 +1463,11 @@ class Systemair(object):
             self.flowOffset[0] -= 1
             self.flowOffset[1] = time.time()
 
-    # Monitor Logical crits for state changes on exchanger, pressure, rpms, forcast
+    # Monitor Logical crits for state changes on exchanger, pressure, rpms, forecast
     def monitor(self):
-        if "VTR400" in self.system_name:
+        # Set inhibit on VR400 systems if sudden drop in rpm,
+        # this is caused by increased supply flow not initiated by the unit.
+        if "VR400" in self.system_name:
             #### FAN RPM self.monitoring
             if self.sf_rpm < 1550 and self.fanspeed == 2:
                 self.inhibit = time.time()
@@ -1462,245 +1475,252 @@ class Systemair(object):
             if self.sf_rpm < 1000 and self.fanspeed == 1:
                 self.coef_inhibit = time.time()
                 self.inhibit = time.time()
-        if True:
-            #### EXCHANGER CONTROL
-            self.house_heat_limit = 7  # daily low limit on cooling
-            if self.inlet_ave < 13:
-                self.target = 24
-            else:
-                self.target = 23
-            if self.cool_mode:
-                self.target = 20.7
-            if self.modetoken <= 0 and self.cool_mode == 0:
 
-                if self.extract_ave > self.target \
-                        and self.exchanger_mode != 0 \
-                        and self.shower == False \
-                        and self.inlet_ave > 10:
-                    self.cycle_exchanger(0)
-                    self.modetoken = time.time()
-                    os.write(ferr,
-                             bytes("Exchange set to 0 inlet>10C and extr above target \t" + str(time.ctime()) + "\n",
-                                   encoding='utf8'))
+        #### EXCHANGER CONTROL
+        self.exchanger_control()
+        # FORECAST RELATED COOLING
+        self.check_cooling()
+        # DYNAMIC FANSPEED CONTROL
+        self.dynamic_fan_control()
+        # Dynamic pressure control
+        self.dynamic_pressure_control()
 
-                if self.supply_ave > self.target \
-                        and self.exchanger_mode != 0 \
-                        and self.shower == False:
-                    self.cycle_exchanger(0)
-                    self.modetoken = time.time()
-                    os.write(ferr,
-                             bytes("Exchange set to 0 supply>target \t" + str(time.ctime()) + "\n", encoding='utf8'))
+    def exchanger_control(self):
+        self.house_heat_limit = 7  # daily low limit on cooling
+        if self.inlet_ave < 13:
+            self.target = 24
+        else:
+            self.target = 23
+        if self.cool_mode:
+            self.target = 20.7
+        if self.modetoken <= 0 and self.cool_mode == 0:
 
-                if self.extract_ave < self.target - 1 \
-                        and self.exchanger_mode != 5 \
-                        and not self.cool_mode:
-                    self.cycle_exchanger(5)
-                    self.modetoken = time.time()
-                    os.write(ferr,
-                             bytes("1.Exchange set to 5. extract is less than target-1C \t" + str(time.ctime()) + "\n",
-                                   encoding='utf8'))
-
-                if self.supply_ave < 10 \
-                        and self.extract_ave < self.target \
-                        and self.exchanger_mode != 5 \
-                        and not self.cool_mode:
-                    self.cycle_exchanger(5)
-                    os.write(ferr,
-                             bytes("2.Exchange set to 5 supply<10C and extract< target \t" + str(time.ctime()) + "\n",
-                                   encoding='utf8'))
-                    self.modetoken = time.time()
-                if self.exchanger_mode != 5 \
-                        and self.inlet_ave < 10 \
-                        and self.forcast[0] <= 10 \
-                        and self.forcast[1] > -1 \
-                        and self.fanspeed == 1 \
-                        and not self.cool_mode \
-                        and not self.shower:
-                    self.modetoken = time.time()
-                    self.cycle_exchanger(5)
-                    os.write(ferr,
-                             bytes("3.Exchange set to 5 inlet<10C \t" + str(time.ctime()) + "\n", encoding='utf8'))
-
-            # FORECAST RELATED COOLING
-            try:
-                if self.forcast[0] > self.cooling_limit and self.tomorrows_low[0] > self.house_heat_limit \
-                        and self.integral_forcast > 0 \
-                        and self.cool_mode == False \
-                        and self.extract_ave > 20.7 \
-                        or self.inlet_ave > 25.0 and not self.cool_mode:
-                    self.msg += "Predictive Cooling enaged\n"
-                    if self.pressure_diff != 0:
-                        self.set_differential(0)
-                    if self.savecair:
-                        self.req.write_register(1407, 100)
-                        self.req.write_register(1406, 100)
-                    if self.exchanger_mode != 0:
-                        self.cycle_exchanger(0)
-                    self.set_differential(0)
-                    self.cool_mode = True
-                    os.write(ferr, bytes("Cooling activated \t" + str(time.ctime()) + "\n", encoding='utf8'))
-
-            except:
+            if self.extract_ave > self.target \
+                    and self.exchanger_mode != 0 \
+                    and self.shower is False \
+                    and self.inlet_ave > 10:
+                self.cycle_exchanger(0)
+                self.modetoken = time.time()
                 os.write(ferr,
-                         bytes("Forecast cooling error " + str(self.integral_forcast) + ' ' + str(time.ctime()) + "\n",
+                         bytes("Exchange set to 0 inlet>10C and extr above target \t" + str(time.ctime()) + "\n",
                                encoding='utf8'))
 
-            if self.cool_mode and not self.inhibit and not self.shower and not self.ac_active:
-                if (self.extract_ave < 20.7) and self.fanspeed != 1:
-                    self.set_fanspeed(1)
-                    self.msg += "Cooling complete\n"
-                    os.write(ferr,
-                             bytes("Cooling complete 20.7C reached \t" + str(time.ctime()) + "\n", encoding='utf8'))
+            if self.supply_ave > self.target \
+                    and self.exchanger_mode != 0 \
+                    and self.shower is False:
+                self.cycle_exchanger(0)
+                self.modetoken = time.time()
+                os.write(ferr,
+                         bytes("Exchange set to 0 supply>target \t" + str(time.ctime()) + "\n", encoding='utf8'))
 
-                if self.fanspeed == 3 and (self.supply_ave < 12 and self.extract_ave < 22):
-                    self.set_fanspeed(2)
-                    self.msg += "Cooling reduced\n"
-                    os.write(ferr, bytes("Cooling reduced to medium, supply below 12C \t" + str(time.ctime()) + "\n",
-                                         encoding='utf8'))
+            if self.extract_ave < self.target - 1 \
+                    and self.exchanger_mode != 5 \
+                    and not self.cool_mode:
+                self.cycle_exchanger(5)
+                self.modetoken = time.time()
+                os.write(ferr,
+                         bytes("1.Exchange set to 5. extract is less than target-1C \t" + str(time.ctime()) + "\n",
+                               encoding='utf8'))
 
-                if self.fanspeed == 2 and self.supply_ave > 13:
-                    self.set_fanspeed(3)
-                    self.msg += "Cooling returned to High.\n"
-                    os.write(ferr,
-                             bytes(
-                                 "Cooling returned to high from medium, supply above 13C \t" + str(time.ctime()) + "\n",
-                                 encoding='utf8'))
+            if self.supply_ave < 10 \
+                    and self.extract_ave < self.target \
+                    and self.exchanger_mode != 5 \
+                    and not self.cool_mode:
+                self.cycle_exchanger(5)
+                os.write(ferr,
+                         bytes("2.Exchange set to 5 supply<10C and extract< target \t" + str(time.ctime()) + "\n",
+                               encoding='utf8'))
+                self.modetoken = time.time()
+            if self.exchanger_mode != 5 \
+                    and self.inlet_ave < 10 \
+                    and self.forecast[0] <= 10 \
+                    and self.forecast[1] > -1 \
+                    and self.fanspeed == 1 \
+                    and not self.cool_mode \
+                    and not self.shower:
+                self.modetoken = time.time()
+                self.cycle_exchanger(5)
+                os.write(ferr,
+                         bytes("3.Exchange set to 5 inlet<10C \t" + str(time.ctime()) + "\n", encoding='utf8'))
 
-                if self.fanspeed == 1 and self.extract_ave > 21 and self.extract_ave + 0.1 > self.inlet_ave:
-                    self.set_fanspeed(3)
-                    self.msg += "Cooling returned to High, indoor is hotter than outside.\n"
-                    os.write(ferr, bytes("Cooling returned to high, indoor is hotter than outside. " + str(
-                        time.ctime()) + " " + str(self.fanspeed) + " " + str(self.extract_ave) + " " + str(
-                        self.inlet_ave) + "\n", encoding='utf8'))
-
-                if self.inlet_ave + 0.1 > self.extract_ave and self.fanspeed != 1 and self.extract_ave > 21:
-                    self.set_fanspeed(1)
-                    self.msg += "No cooling posible due to temperature conditions\n"
-                    os.write(ferr, bytes("Cooling will wait, will try to recycle cold air by low fanspeed \t" + str(
-                        time.ctime()) + "\n", "utf-8"))
-
-                try:
-                    if self.integral_forcast < 0 and time.localtime().tm_hour > 12 and self.inlet_ave < 24.9:
-                        self.cool_mode = False
-                        os.write(ferr, bytes("Cooling mode turned off " + str(time.ctime()) + "\n", encoding='utf8'))
-                        if self.savecair and self.ef == 100:
-                            self.req.write_register(1407, 90)
-                            self.req.write_register(1406, 90)
-                except ValueError:
-                    os.write(ferr, bytes("forcast error  " + str(time.ctime()) + "\n", encoding='utf8'))
-
-            # DYNAMIC FANSPEED CONTROL
-            if not self.inhibit and not self.shower and not self.cool_mode:
-                # dynamic with RHsensor
-                if self.RH_valid:
-                    if self.fanspeed == 1 \
-                            and ((self.extract_ave > self.target + 0.6
-                                  and self.extract_ave - self.supply_ave > 0.1)
-                                 or self.humidity_diff > 500):
-                        self.set_fanspeed(2)
-                        self.msg += "Dynamic fanspeed 2\n"
-                        if self.humidity_diff > 500:
-                            self.flowOffset = [self.flowOffset[0] + 5, time.time()]
-                            os.write(ferr,
-                                     bytes("Dynamic fanspeed 2 with RH \t" + str(time.ctime()) + "\n", encoding='utf8'))
-                        else:
-                            os.write(ferr,
-                                     bytes("Dynamic fanspeed 2 no RH\t" + str(time.ctime()) + "\n", encoding='utf8'))
-                    if self.fanspeed == 2 \
-                            and ((self.extract_ave < self.target + 0.5
-                                  and self.extract_ave - self.supply_ave > 0.1
-                                  and self.humidity_diff < 400
-                                  or (self.humidity_diff < 350
-                                      and not self.extract_ave > self.target + 0.5))):
-                        self.set_fanspeed(1)
-                        if self.humidity_diff < 350:
-                            self.msg += "Dynamic fanspeed 1, Air quality Good\n"
-                            os.write(ferr,
-                                     bytes("Dynamic fanspeed 1 with RH\t" + str(time.ctime()) + "\n", encoding='utf8'))
-                        else:
-                            self.msg += "Dynamic fanspeed 1\n"
-                            os.write(ferr,
-                                     bytes("Dynamic fanspeed 1 no RH\t" + str(time.ctime()) + "\n", encoding='utf8'))
-                # dynamic without Rhsensor
+    def dynamic_pressure_control(self):
+        if not self.shower:
+            if self.humidity > 20.0:  # Low humidity limit, restriction to not set margin lower than 20%RH
+                if self.savecair or self.RH_valid:
+                    self.indoor_dewpoint = self.airdata_inst.dew_point(self.humidity + 5, self.extract_ave)
                 else:
-                    if self.fanspeed == 2 \
-                            and self.extract_ave < self.target + 0.5 \
-                            and self.extract_ave - self.supply_ave > 0.1:
-                        self.set_fanspeed(1)
+                    self.indoor_dewpoint = self.airdata_inst.dew_point(self.humidity + 10, self.extract_ave)
+            else:
+                self.indoor_dewpoint = 5.0
+            if not self.cool_mode:
+                if self.inlet_ave > self.indoor_dewpoint + 0.2 and self.pressure_diff != 0 and not self.press_inhibit and not \
+                        self.forecast[1] == -1:
+                    self.set_differential(0)
+                    if "debug" in sys.argv: self.msg += "\nPressure diff to 0%"
+                if (
+                        self.inlet_ave < self.indoor_dewpoint - 0.1 and self.pressure_diff != 10 and self.inlet_ave < 15 and not self.press_inhibit) or (
+                        self.forecast[-1] == -1 and self.sf == self.ef):
+                    self.set_differential(10)
+                    if "debug" in sys.argv: self.msg += "\nPressure diff to +10%"
+
+    def dynamic_fan_control(self):
+        if not self.inhibit and not self.shower and not self.cool_mode:
+            # dynamic with RHsensor
+            if self.RH_valid:
+                if self.fanspeed == 1 \
+                        and ((self.extract_ave > self.target + 0.6
+                              and self.extract_ave - self.supply_ave > 0.1)
+                             or self.humidity_diff > 500):
+                    self.set_fanspeed(2)
+                    self.msg += "Dynamic fanspeed 2\n"
+                    if self.humidity_diff > 500:
+                        self.flowOffset = [self.flowOffset[0] + 5, time.time()]
+                        os.write(ferr,
+                                 bytes("Dynamic fanspeed 2 with RH \t" + str(time.ctime()) + "\n", encoding='utf8'))
+                    else:
+                        os.write(ferr,
+                                 bytes("Dynamic fanspeed 2 no RH\t" + str(time.ctime()) + "\n", encoding='utf8'))
+                if self.fanspeed == 2 \
+                        and ((self.extract_ave < self.target + 0.5
+                              and self.extract_ave - self.supply_ave > 0.1
+                              and self.humidity_diff < 400
+                              or (self.humidity_diff < 350
+                                  and not self.extract_ave > self.target + 0.5))):
+                    self.set_fanspeed(1)
+                    if self.humidity_diff < 350:
+                        self.msg += "Dynamic fanspeed 1, Air quality Good\n"
+                        os.write(ferr,
+                                 bytes("Dynamic fanspeed 1 with RH\t" + str(time.ctime()) + "\n", encoding='utf8'))
+                    else:
                         self.msg += "Dynamic fanspeed 1\n"
                         os.write(ferr,
-                                 bytes("Dynamic fanspeed 1 without RH\t" + str(time.ctime()) + "\n", encoding='utf8'))
-
-                    if self.fanspeed == 1 \
-                            and (self.extract_ave > self.target + 0.6
-                                 and self.extract_ave - self.supply_ave > 0.1):
-                        self.set_fanspeed(2)
-                        self.msg += "Dynamic fanspeed 2\n"
-                        os.write(ferr,
-                                 bytes("Dynamic fanspeed 2 extr > target +0.5C without RH\t" + str(time.ctime()) + "\n",
-                                       encoding='utf8'))
-                # dynamic 3 if temp is climbing and exchanger is off, and extract is above target +1.2C
+                                 bytes("Dynamic fanspeed 1 no RH\t" + str(time.ctime()) + "\n", encoding='utf8'))
+            # dynamic without Rhsensor
+            else:
                 if self.fanspeed == 2 \
-                        and self.extract_ave - 0.1 > self.supply_ave \
-                        and (self.extract_ave >= self.target + 1.2
-                             or (self.extract_dt_long >= 0.7 and self.inlet_ave > 5)) \
-                        and self.exchanger_mode != 5 \
-                        and not self.extract_dt_long < -0.2:
-                    self.set_fanspeed(3)
-                    self.msg += "Dynamic fanspeed 3\n"
-                    os.write(ferr, bytes("Dynamic fanspeed 3 target+1.2C or dt long > 0.7C/h (" + str(
-                        self.extract_dt_long) + ")\t" + str(time.ctime()) + "\n", encoding='utf8'))
-
-                # Recover cold air if outside is hotter
-                if self.extract_ave < self.supply_ave and self.fanspeed != 1 and self.cool_mode:
+                        and self.extract_ave < self.target + 0.5 \
+                        and self.extract_ave - self.supply_ave > 0.1:
                     self.set_fanspeed(1)
-                    self.msg += "Dynamic fanspeed, recover cool air\n"
-                    os.write(ferr, bytes("Dynamic fanspeed 1 recover cool air " + str(time.ctime()) + "\n" + str(
-                        self.extract_ave) + ' ' + str(self.supply_ave) + '\n', encoding='utf8'))
+                    self.msg += "Dynamic fanspeed 1\n"
+                    os.write(ferr,
+                             bytes("Dynamic fanspeed 1 without RH\t" + str(time.ctime()) + "\n", encoding='utf8'))
 
-                # Lower to fanspeed 2 if long dt is less than -0.5 and outside is less than 12C
-                # also lower from 3 when below target+0.8 and not rising above 0.7C/hr
-                if (self.fanspeed == 3
-                    and self.extract_ave < self.target + 0.8
-                    and not self.extract_dt_long > 0.7) \
-                        or (self.supply_ave < 12
-                            and self.extract_dt_long < -0.5):
+                if self.fanspeed == 1 \
+                        and (self.extract_ave > self.target + 0.6
+                             and self.extract_ave - self.supply_ave > 0.1):
                     self.set_fanspeed(2)
-                    self.msg += "Dynamic fanspeed 2 with long dt\n"
-                    os.write(ferr, bytes("Dynamic fanspeed 2 with long dt from 3\t" + str(time.ctime()) + "\n",
-                                         encoding='utf8'))
+                    self.msg += "Dynamic fanspeed 2\n"
+                    os.write(ferr,
+                             bytes("Dynamic fanspeed 2 extr > target +0.5C without RH\t" + str(time.ctime()) + "\n",
+                                   encoding='utf8'))
+            # dynamic 3 if temp is climbing and exchanger is off, and extract is above target +1.2C
+            if self.fanspeed == 2 \
+                    and self.extract_ave - 0.1 > self.supply_ave \
+                    and (self.extract_ave >= self.target + 1.2
+                         or (self.extract_dt_long >= 0.7 and self.inlet_ave > 5)) \
+                    and self.exchanger_mode != 5 \
+                    and not self.extract_dt_long < -0.2:
+                self.set_fanspeed(3)
+                self.msg += "Dynamic fanspeed 3\n"
+                os.write(ferr, bytes("Dynamic fanspeed 3 target+1.2C or dt long > 0.7C/h (" + str(
+                    self.extract_dt_long) + ")\t" + str(time.ctime()) + "\n", encoding='utf8'))
 
-            # Dynamic pressure control
-            if not self.shower:
-                if self.humidity > 20.0:  # Low humidity limit, restriction to not set margin lower than 20%RH
-                    if self.savecair or self.RH_valid:
-                        self.indoor_dewpoint = self.airdata_inst.dew_point(self.humidity + 5, self.extract_ave)
-                    else:
-                        self.indoor_dewpoint = self.airdata_inst.dew_point(self.humidity + 10, self.extract_ave)
-                else:
-                    self.indoor_dewpoint = 5.0
-                if not self.cool_mode:
-                    if self.inlet_ave > self.indoor_dewpoint + 0.2 and self.pressure_diff != 0 and not self.press_inhibit and not \
-                            self.forcast[1] == -1:
-                        self.set_differential(0)
-                        if "debug" in sys.argv: self.msg += "\nPressure diff to 0%"
-                    if (
-                            self.inlet_ave < self.indoor_dewpoint - 0.1 and self.pressure_diff != 10 and self.inlet_ave < 15 and not self.press_inhibit) or (
-                            self.forcast[-1] == -1 and self.sf == self.ef):
-                        self.set_differential(10)
-                        if "debug" in sys.argv: self.msg += "\nPressure diff to +10%"
-        # if "debug" in sys.argv: print "Pressure inhibit = " , str(time.ctime(self.press_inhibit))
+            # Recover cold air if outside is hotter
+            if self.extract_ave < self.supply_ave and self.fanspeed != 1 and self.cool_mode:
+                self.set_fanspeed(1)
+                self.msg += "Dynamic fanspeed, recover cool air\n"
+                os.write(ferr, bytes("Dynamic fanspeed 1 recover cool air " + str(time.ctime()) + "\n" + str(
+                    self.extract_ave) + ' ' + str(self.supply_ave) + '\n', encoding='utf8'))
 
-    # Get the active forcast
-    def get_forcast(self):
+            # Lower to fanspeed 2 if long dt is less than -0.5 and outside is less than 12C
+            # also lower from 3 when below target+0.8 and not rising above 0.7C/hr
+            if (self.fanspeed == 3
+                and self.extract_ave < self.target + 0.8
+                and not self.extract_dt_long > 0.7) \
+                    or (self.supply_ave < 12
+                        and self.extract_dt_long < -0.5):
+                self.set_fanspeed(2)
+                self.msg += "Dynamic fanspeed 2 with long dt\n"
+                os.write(ferr, bytes("Dynamic fanspeed 2 with long dt from 3\t" + str(time.ctime()) + "\n",
+                                     encoding='utf8'))
+
+    def check_cooling(self):
+        try:
+            if self.forecast[0] > self.cooling_limit and self.tomorrows_low[0] > self.house_heat_limit \
+                    and self.integral_forcast > 0 \
+                    and self.cool_mode == False \
+                    and self.extract_ave > 20.7 \
+                    or self.inlet_ave > 25.0 and not self.cool_mode:
+                self.msg += "Predictive Cooling engaged\n"
+                if self.pressure_diff != 0:
+                    self.set_differential(0)
+                if self.savecair:
+                    self.req.write_register(1407, 100)
+                    self.req.write_register(1406, 100)
+                if self.exchanger_mode != 0:
+                    self.cycle_exchanger(0)
+                self.set_differential(0)
+                self.cool_mode = True
+                os.write(ferr, bytes("Cooling activated \t" + str(time.ctime()) + "\n", encoding='utf8'))
+
+        except:
+            os.write(ferr,
+                     bytes("Forecast cooling error " + str(self.integral_forcast) + ' ' + str(time.ctime()) + "\n",
+                           encoding='utf8'))
+        if self.cool_mode and not self.inhibit and not self.shower and not self.ac_active:
+            if (self.extract_ave < 20.7) and self.fanspeed != 1:
+                self.set_fanspeed(1)
+                self.msg += "Cooling complete\n"
+                os.write(ferr,
+                         bytes("Cooling complete 20.7C reached \t" + str(time.ctime()) + "\n", encoding='utf8'))
+
+            if self.fanspeed == 3 and (self.supply_ave < 12 and self.extract_ave < 22):
+                self.set_fanspeed(2)
+                self.msg += "Cooling reduced\n"
+                os.write(ferr, bytes("Cooling reduced to medium, supply below 12C \t" + str(time.ctime()) + "\n",
+                                     encoding='utf8'))
+
+            if self.fanspeed == 2 and self.supply_ave > 13:
+                self.set_fanspeed(3)
+                self.msg += "Cooling returned to High.\n"
+                os.write(ferr,
+                         bytes(
+                             "Cooling returned to high from medium, supply above 13C \t" + str(time.ctime()) + "\n",
+                             encoding='utf8'))
+
+            if self.fanspeed == 1 and self.extract_ave > 21 and self.extract_ave + 0.1 > self.inlet_ave:
+                self.set_fanspeed(3)
+                self.msg += "Cooling returned to High, indoor is hotter than outside.\n"
+                os.write(ferr, bytes("Cooling returned to high, indoor is hotter than outside. " + str(
+                    time.ctime()) + " " + str(self.fanspeed) + " " + str(self.extract_ave) + " " + str(
+                    self.inlet_ave) + "\n", encoding='utf8'))
+
+            if self.inlet_ave + 0.1 > self.extract_ave and self.fanspeed != 1 and self.extract_ave > 21:
+                self.set_fanspeed(1)
+                self.msg += "No cooling posible due to temperature conditions\n"
+                os.write(ferr, bytes("Cooling will wait, will try to recycle cold air by low fanspeed \t" + str(
+                    time.ctime()) + "\n", "utf-8"))
+
+            try:
+                if self.integral_forcast < 0 and time.localtime().tm_hour > 12 and self.inlet_ave < 24.9:
+                    self.cool_mode = False
+                    os.write(ferr, bytes("Cooling mode turned off " + str(time.ctime()) + "\n", encoding='utf8'))
+                    if self.savecair and self.ef == 100:
+                        self.req.write_register(1407, 90)
+                        self.req.write_register(1406, 90)
+            except ValueError:
+                os.write(ferr, bytes("forecast error  " + str(time.ctime()) + "\n", encoding='utf8'))
+
+    # Get the active forecast
+    def get_forecast(self):
         ###### WEATHER FORCAST MODES
         forcast = [-1, -1, -1]
         try:
             forcast = os.popen("./forcast2.0.py tomorrow").readlines()
-            self.forcast[2] = float(forcast[1])
+            self.forecast[2] = float(forcast[1])
             forcast = forcast[0].split(" ")
-            self.forcast[0] = float(forcast[0])
-            self.forcast[1] = float(forcast[1])
+            self.forecast[0] = float(forcast[0])
+            self.forecast[1] = float(forcast[1])
             # get tomorrows-low values
             tomorrows_low = os.popen("./forcast2.0.py tomorrows-low").read()[:-1].split(" ")
             for index in range(len(tomorrows_low)):
@@ -1714,11 +1734,11 @@ class Systemair(object):
         except IOError:
             traceback.print_exc(ferr)
             self.msg += "error getting forecast.(io error)\n" + str(forcast)
-            self.forcast = [-1, -1, -1]
+            self.forecast = [-1, -1, -1]
         except IndexError:
             traceback.print_exc(ferr)
             self.msg += "error getting forecast.(index error)\n" + str(forcast)
-        # self.forcast=[-1,-1]
+        # self.forecast=[-1,-1]
         except FileError:
             traceback.print_exc(ferr)
             self.msg += "error getting forecast.(file too old)\n" + str(forcast)
@@ -1838,8 +1858,8 @@ class Systemair(object):
                                  encoding='utf8'))
             os.system(f"echo {self.inlet_ave} > ./RAM/latest_static")
             saturation_point = self.inlet_ave
-        # if no forcast is avail
-        if self.forcast[1] != -1:
+        # if no forecast is avail
+        if self.forecast[1] != -1:
             try:
                 # wthr = os.popen("./forcast2.0.py tomorrows-low").read().split(" ")
                 sun = int(os.popen("./forcast2.0.py sun").readlines()[0].split(":")[0])
@@ -1855,12 +1875,12 @@ class Systemair(object):
                                      encoding='utf8'))
 
         else:
-            os.write(ferr, bytes("forcast unavailible. " + " " + str(self.forcast) + str(time.ctime()) + "\n",
+            os.write(ferr, bytes("forecast unavailible. " + " " + str(self.forecast) + str(time.ctime()) + "\n",
                                  encoding='utf8'))
             sun = 7
             comp = 0
         try:
-            # comp = (self.airdata_inst.dew_point(wthr[0],float(wthr[3]))-self.airdata_inst.dew_point (self.extract_ave,self.local_humidity))/(24*50) # new comp calc with humidity forcast
+            # comp = (self.airdata_inst.dew_point(wthr[0],float(wthr[3]))-self.airdata_inst.dew_point (self.extract_ave,self.local_humidity))/(24*50) # new comp calc with humidity forecast
             pass
         except OverflowError:
             pass
@@ -1886,7 +1906,7 @@ class Systemair(object):
         if time.localtime().tm_hour == sun and time.localtime().tm_min < 5 or self.prev_static_temp == 8:
             self.prev_static_temp = saturation_point
             self.kinetic_compensation = 0
-            if self.forcast[1] != -1:
+            if self.forecast[1] != -1:
                 try:
                     weather = os.popen("./forcast2.0.py -f wind/fog ").read().split(" ")
                     fog_cover = float(weather[-1])
@@ -2136,7 +2156,7 @@ if __name__ == "__main__":
                     os.system("echo \"7200s\" >./RAM/exec_tree")
                 os.system("./backup.py &")
                 os.system("cp ./RAM/data.log ./data.save")
-            # restart HTTP SERVER get filter status, reset IP on buttons page, update weather forcast
+            # restart HTTP SERVER get filter status, reset IP on buttons page, update weather forecast
             if device.iter % (int(3600 * 2 / device.avg_frame_time)) == 0:
                 device.get_filter_status()
                 os.system("./http &")

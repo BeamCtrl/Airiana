@@ -42,7 +42,7 @@ def test_methods():
         dev.cycle_exchanger(1)
         dev.check_flags()
         dev.monitor()
-        dev.get_forcast()
+        dev.get_forecast()
         dev.set_differential(10)
         dev.check_flow_offset()
         dev.get_local()
