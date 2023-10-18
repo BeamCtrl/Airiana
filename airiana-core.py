@@ -1988,67 +1988,72 @@ if __name__ == "__main__":
         device.average_limit = 3400
         os.write(ferr, bytes("savecair unit set\n", 'utf8'))
 
+
+def system_start():
+    """This is run once at startup before the main iteration loop"""
+    global starttime
+    clear_screen()
+    print("First PASS;")
+    print("Updating fan-speeds;")
+    device.system_setup()
+    device.update_airflow()
+    sys.stdout.flush()
+    print("Updating fans rpms;")
+    device.update_fan_rpm()
+    sys.stdout.flush()
+    print("Reading Filter Status;")
+    device.get_filter_status()
+    sys.stdout.flush()
+    print("Reading internal heater state;")
+    device.get_heater()
+    sys.stdout.flush()
+    print("Retrieving weather forecast;")
+    device.get_forecast()
+    sys.stdout.flush()
+    print("Generating historical graphs;")
+    if "debug" in sys.argv:
+        os.system("nice ./grapher.py debug &")
+    else:
+        os.system("nice ./grapher.py &")
+    sys.stdout.flush()
+    if "debug" in sys.argv:
+        print("Checking for sensor data;")
+        update_sensors()
+        sys.stdout.flush()
+    print("Updating current rotor status;")
+    device.get_rotor_state()
+    print("Setting up coeficients;")
+    sys.stdout.flush()
+    if device.rotor_active == "No":
+        device.coef = 0.09
+        device.inlet_coef = 0.07
+    else:
+        device.coef = 0.09
+        device.inlet_coef = 0.07
+    print("Read initial temperatures;")
+    device.update_temps()
+    device.update_xchanger()
+    device.div = device.inlet_ave
+    if "humidity" in sys.argv:
+        device.get_RH()
+        # device.humidity = device.moisture_calcs(10.0)
+        device.get_local()
+    sys.stdout.flush()
+    if "ping" in sys.argv: report_alive()
+    starttime = time.time()
+    print("System started:", time.ctime(starttime), ";")
+
+
 #  RUN MAIN loop
 if __name__ == "__main__":
     monitoring = True
     reset_fans = False
 
-
-
     input_buffers = ""
     print("Going in for first PASS;")
     try:
         # FIRST PASS ONLY #
-        clear_screen()
-        print("First PASS;")
-        print("Updating fan-speeds;")
-        device.system_setup()
-        device.update_airflow()
-        sys.stdout.flush()
-        print("Updating fans rpms;")
-        device.update_fan_rpm()
-        sys.stdout.flush()
-        print("Reading Filter Status;")
-        device.get_filter_status()
-        sys.stdout.flush()
-        print("Reading internal heater state;")
-        device.get_heater()
-        sys.stdout.flush()
-        print("Retrieving weather forecast;")
-        device.get_forecast()
-        sys.stdout.flush()
-        print("Generating historical graphs;")
-        if "debug" in sys.argv:
-            os.system("nice ./grapher.py debug &")
-        else:
-            os.system("nice ./grapher.py &")
-        sys.stdout.flush()
-        if "debug" in sys.argv:
-            print("Checking for sensor data;")
-            update_sensors()
-            sys.stdout.flush()
-        print("Updating current rotor status;")
-        device.get_rotor_state()
-        print("Setting up coeficients;")
-        sys.stdout.flush()
-        if device.rotor_active == "No":
-            device.coef = 0.09
-            device.inlet_coef = 0.07
-        else:
-            device.coef = 0.09
-            device.inlet_coef = 0.07
-        print("Read initial temperatures;")
-        device.update_temps()
-        device.update_xchanger()
-        device.div = device.inlet_ave
-        if "humidity" in sys.argv:
-            device.get_RH()
-            # device.humidity = device.moisture_calcs(10.0)
-            device.get_local()
-        sys.stdout.flush()
-        if "ping" in sys.argv: report_alive()
-        starttime = time.time()
-        print("System started:", time.ctime(starttime), ";")
+        system_start()
 
         while Running:  ##### mainloop do each pass ###########
             # do temps,energy and derivatives
@@ -2163,8 +2168,8 @@ if __name__ == "__main__":
                 os.system("./public/ip-replace.sh &")  # reset ip-addresses on buttons.html
                 os.system("./public/ip-util.sh &")  # reset ip-addresses on buttons.html
                 device.get_forecast()
-                if device.status_field[0] > 0: device.status_field[
-                    0] -= 1  # remove one shower token from bucket every 2 hrs.
+                if device.status_field[0] > 0:
+                    device.status_field[0] -= 1  # remove one shower token from bucket every 2 hrs.
             device.iter += 1
 
             """Selection menu if not daemon"""
