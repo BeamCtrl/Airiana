@@ -1476,25 +1476,19 @@ class Systemair(object):
                 self.coef_inhibit = time.time()
                 self.inhibit = time.time()
 
-        #### EXCHANGER CONTROL
+        # Set target temperature
+        self.target_temperature()
+        # Exchanger Control
         self.exchanger_control()
-        # FORECAST RELATED COOLING
+        # Forecast related cooling
         self.check_cooling()
-        # DYNAMIC FANSPEED CONTROL
+        # Dynamic fanspeed control
         self.dynamic_fan_control()
         # Dynamic pressure control
         self.dynamic_pressure_control()
 
     def exchanger_control(self):
-        self.house_heat_limit = 7  # daily low limit on cooling
-        if self.inlet_ave < 13:
-            self.target = 24
-        else:
-            self.target = 23
-        if self.cool_mode:
-            self.target = 20.7
-        if self.modetoken <= 0 and self.cool_mode == 0:
-
+        if self.modetoken <= 0 and self.cool_mode is False:
             if self.extract_ave > self.target \
                     and self.exchanger_mode != 0 \
                     and self.shower is False \
@@ -1542,6 +1536,14 @@ class Systemair(object):
                 self.cycle_exchanger(5)
                 os.write(ferr,
                          bytes("3.Exchange set to 5 inlet<10C \t" + str(time.ctime()) + "\n", encoding='utf8'))
+
+    def target_temperature(self):
+        if self.inlet_ave < 13:
+            self.target = 24
+        else:
+            self.target = 23
+        if self.cool_mode:
+            self.target = 20.7
 
     def dynamic_pressure_control(self):
         if not self.shower:
@@ -1645,13 +1647,14 @@ class Systemair(object):
                                      encoding='utf8'))
 
     def check_cooling(self):
+        self.house_heat_limit = 7  # daily low limit on cooling
         try:
             if self.forecast[0] > self.cooling_limit and self.tomorrows_low[0] > self.house_heat_limit \
                     and self.integral_forcast > 0 \
-                    and self.cool_mode == False \
+                    and self.cool_mode is False \
                     and self.extract_ave > 20.7 \
-                    or self.inlet_ave > 25.0 and not self.cool_mode:
-                self.msg += "Predictive Cooling engaged\n"
+                    or self.inlet_ave > self.target + 2 and not self.cool_mode:
+                self.msg += "Cooling engaged\n"
                 if self.pressure_diff != 0:
                     self.set_differential(0)
                 if self.savecair:
@@ -1697,7 +1700,7 @@ class Systemair(object):
 
             if self.inlet_ave + 0.1 > self.extract_ave and self.fanspeed != 1 and self.extract_ave > 21:
                 self.set_fanspeed(1)
-                self.msg += "No cooling posible due to temperature conditions\n"
+                self.msg += "No cooling possible due to temperature conditions\n"
                 os.write(ferr, bytes("Cooling will wait, will try to recycle cold air by low fanspeed \t" + str(
                     time.ctime()) + "\n", "utf-8"))
 
@@ -1709,7 +1712,7 @@ class Systemair(object):
                         self.req.write_register(1407, 90)
                         self.req.write_register(1406, 90)
             except ValueError:
-                os.write(ferr, bytes("forecast error  " + str(time.ctime()) + "\n", encoding='utf8'))
+                os.write(ferr, bytes("Forecast error " + str(time.ctime()) + "\n", encoding='utf8'))
 
     # Get the active forecast
     def get_forecast(self):
@@ -1970,15 +1973,12 @@ class Systemair(object):
 
 # Init base class
 if __name__ == "__main__":
-    print("Reporting system start;")
-    report_alive()
-    # init request class for communication
+    # Init request class for communication
     req = Request()
     req.setup(unit, mode)
-
-    os.write(ferr, bytes("System started\t" + str(time.ctime()) + "\n", 'utf8'))
-
     device = Systemair(req)
+    os.write(ferr, bytes("System started\t" + str(time.ctime()) + "\n", 'utf8'))
+    report_alive()
     req.modbusregister(12543, 0)  # test for self.savecair extended address range
     if device.system_name == "VR400" and req.response != "no data":
         device.savecair = True
