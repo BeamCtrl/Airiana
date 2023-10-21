@@ -55,8 +55,8 @@ signal.signal(signal.SIGTERM, exit_callback)
 signal.signal(signal.SIGINT, exit_callback)
 
 try:
-    syslog.syslog("file is " + __file__.split("/")[-1])
     path = os.path.abspath(__file__).replace(__file__.split("/")[-1], "")
+    syslog.syslog("file is " + __file__.split("/")[-1])
     syslog.syslog("changing to " + path)
     os.chdir(path)
 except FileNotFoundError:
@@ -67,9 +67,9 @@ except FileNotFoundError:
 os.chdir(path + "/public")
 os.system("./ip-replace.sh")  # reset ip-addresses on buttons.html
 os.chdir(path)
-os.system("./http &> /dev/null")  ## START WEB SERVICE
+os.system("./http &> /dev/null")  #  Start web service
 listme = []
-## cpy saved data to RAM ##
+#  cpy saved data to RAM ##
 if not os.path.lexists("./data.save"):
     os.system("touch data.save")
 else:
@@ -107,12 +107,9 @@ else:
     unit = "/dev/ttyAMA0"
     os.write(ferr, bytes("\n\nUsing /dev/ttyAMA0" + "\n", encoding='utf8'))
 
-#################################
-# command socket setup
-
+# Command socket setup
 hostname = os.popen("hostname").read()[:-1]
 print("Trying to Run on host:", hostname, ", for 60sec;")
-
 while True:
     try:
         cmd_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -125,7 +122,7 @@ while True:
         print("sleeping;")
         if time.time() - starttime > 60: break
 
-########### global uty functions################
+#  Utility functions, clear screen, count_down etc.
 sensor_dict = {}
 
 
@@ -146,6 +143,9 @@ def count_down(inhibit, target):
 # SEND PING TO EPIC HEADMASTER
 def report_alive():
     global holdoff_t
+    message = ""
+    hw_addr = ""
+    fd = 0
     try:
         msg = os.popen("/sbin/ifconfig wlan0").readlines()
         for each in msg:
@@ -175,9 +175,9 @@ def report_alive():
                     try:
                         if os.path.lexists("update.log"):
                             log_file = os.open("update.log", os.O_RDONLY)
-                            logdata = os.read(log_file, 5000)
+                            log_data = os.read(log_file, 5000)
                             temp += bytes("\n\n", "utf-8")
-                            temp += logdata
+                            temp += log_data
                             os.close(log_file)
                         if os.path.lexists("./RAM/request.log"):
                             with open("./RAM/request.log") as reqlog:
@@ -195,7 +195,7 @@ def report_alive():
                     os.write(ferr, bytes("Ping error " + str(traceback.print_exc()) + "\n", encoding='utf8'))
                     try:
                         os.close(fd)
-                    except:
+                    except FileError:
                         os.write(ferr, bytes("File Error: " + str(traceback.print_exc()) + "\n", encoding='utf8'))
 
         html = """ <html>[DA]</html>"""
