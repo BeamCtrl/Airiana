@@ -2388,9 +2388,6 @@ if __name__ == "__main__":
     except TypeError:
         traceback.print_exc(ferr)
 
-    except KeyboardInterrupt:
-        print("KeyboardInterrupt")
-        exit_callback(2, None)
     except ControlledExit:
         exit(0)
     except:
