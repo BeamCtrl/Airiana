@@ -27,6 +27,12 @@ holdoff_t = time.time()
 if "TCP" in sys.argv:
     mode = "TCP"
 
+class ControlledExit(Exception):
+    """
+    Exit exception
+    """
+    pass
+
 
 # Register cleanup
 def exit_callback(self, arg=0):
@@ -42,13 +48,12 @@ def exit_callback(self, arg=0):
     cmd_socket.close()
     os.write(ferr, bytes("Exiting in a safe way" + "\n", encoding='utf8'))
     # Sleep until one iteration has passed, or we've been in shutdown for 3 sec.
-
-    while (time.time() < shutdown + 5):
+    while (time.time() < shutdown + 3):
         if device.iter > now:  # if main loop completes an iteration, exit.
             break
         time.sleep(0.5)
     syslog.syslog("Controlled shutdown of airiana-core")
-    exit(arg)
+    raise ControlledExit
 
 
 signal.signal(signal.SIGTERM, exit_callback)
@@ -2384,8 +2389,10 @@ if __name__ == "__main__":
         traceback.print_exc(ferr)
 
     except KeyboardInterrupt:
+        print("KeyboardInterrupt")
         exit_callback(2, None)
-
+    except ControlledExit:
+        exit(0)
     except:
         traceback.print_exc(ferr)
     syslog.syslog("Airiana-core not running, at end of line")
