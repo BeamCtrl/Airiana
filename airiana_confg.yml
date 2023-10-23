@@ -99,34 +99,34 @@ sensor:
     unit_of_measurement: ""
     value_template: "{{ value_json.rotorActive }}"
 
-  #Rest commands to airiana
-  rest_command:
-    toggle_pressure:
-      url: "http://airiana.local:8000/command?7"
-      method: "get"
-    toggle_auto:
-      url: "http://airiana.local:8000/command?1"
-      method: "get"
-    force_vent:
-      url: "http://airiana.local:8000/command?8"
-      method: "get"
-    fire_start:
-      url: "http://airiana.local:8000/command?9"
-      method: "get"
-    vent_high:
-      url: "http://airiana.local:8000/command?99"
-      method: "get"
-    vent_norm:
-      url: "http://airiana.local:8000/command?98"
-      method: "get"
-    vent_low:
-      url: "http://airiana.local:8000/command?97"
-      method: "get"
-    toggle_exchanger:
-      url: "http://airiana.local:8000/command?0"
-      method: "get"
-    auto_off:
-      url: "http://airiana.local:8000/command?14"
-      method: "get"
+#Rest commands to airiana
+rest_command:
+  toggle_pressure:
+    url: "http://airiana.local:8000/command?7"
+    method: "get"
+  toggle_auto:
+    url: "http://airiana.local:8000/command?1"
+    method: "get"
+  force_vent:
+    url: "http://airiana.local:8000/command?8"
+    method: "get"
+  fire_start:
+    url: "http://airiana.local:8000/command?9"
+    method: "get"
+  vent_high:
+    url: "http://airiana.local:8000/command?99"
+    method: "get"
+  vent_norm:
+    url: "http://airiana.local:8000/command?98"
+    method: "get"
+  vent_low:
+    url: "http://airiana.local:8000/command?97"
+    method: "get"
+  toggle_exchanger:
+    url: "http://airiana.local:8000/command?0"
+    method: "get"
+  auto_off:
+    url: "http://airiana.local:8000/command?14"
+    method: "get"
 
 
