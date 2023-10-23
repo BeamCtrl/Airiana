@@ -1,4 +1,4 @@
-class MockRequest():
+class MockRequest:
     """Mock the request class for unit testing"""
     def __init__(self):
         self.response = ""

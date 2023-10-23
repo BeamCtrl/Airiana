@@ -6,11 +6,11 @@ sys.path.append(".")
 import airiana_core
 os.dup2(sys.stdout.fileno(), airiana_core.ferr)  # Redirect log to screen
 
+
 def test_target_set():
     req = MockRequest.MockRequest()
     dev = airiana_core.Systemair(req)
     dev.savecair = False
-    monitoring = True
 
     # If inlet average is below 13, target temp should increase
     dev.inlet_ave = 20
@@ -31,7 +31,6 @@ def test_exchanger():
     req = MockRequest.MockRequest()
     dev = airiana_core.Systemair(req)
     dev.savecair = True
-    monitoring = True
     # Test for exchanger change to 0 when inlet is above 10C
     # and the extraction temp is higher than target.
     dev.cool_mode = False
@@ -54,18 +53,21 @@ def test_exchanger():
     dev.exchanger_control()
     assert dev.exchanger_mode == 0
 
+    # Test exchanger set to 5 when below target
     dev.extract_ave = dev.target - 1.1
     dev.modetoken = 0
     dev.exchanger_control()
     assert dev.exchanger_mode == 5
 
+    # Test that exchanger enables when supply is too low
     dev.supply_ave = 10 - 1
-    dev.extract_ave = dev.target - 1
+    dev.extract_ave = dev.target - 0.1
     dev.cycle_exchanger(0)
     dev.modetoken = 0
     dev.exchanger_control()
     assert dev.exchanger_mode == 5
 
+    # Test that exchanger sets on when inlet is below, fanspeed is low and forecast set
     dev.cycle_exchanger(0)
     dev.inlet_ave = 10 - 1
     dev.set_fanspeed(1)
@@ -73,11 +75,12 @@ def test_exchanger():
     dev.modetoken = 0
     dev.exchanger_control()
     assert dev.exchanger_mode == 5
+
+
 def test_cooling():
     req = MockRequest.MockRequest()
     dev = airiana_core.Systemair(req)
     dev.savecair = True
-    monitoring = True
     dev.cycle_exchanger(5)
     dev.extract_ave = 25
     dev.inlet_ave = 20
@@ -131,20 +134,19 @@ def test_cooling():
     dev.check_cooling()
     assert dev.fanspeed == 1
 
+
 def test_fan_control():
     req = MockRequest.MockRequest()
     dev = airiana_core.Systemair(req)
     dev.savecair = False
-    monitoring = True
     # Dynamic fanspeed control
     dev.dynamic_fan_control()
 
 
-def test_fan_control():
+def test_pressure_control():
     req = MockRequest.MockRequest()
     dev = airiana_core.Systemair(req)
     dev.savecair = False
-    monitoring = True
 
     # Dynamic pressure control
     dev.dynamic_pressure_control()

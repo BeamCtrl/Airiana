@@ -1444,7 +1444,7 @@ class Systemair(object):
                 else:
                     self.req.write_register(2000, 300)
 
-            if to == None:
+            if to is None:
                 self.req.modbusregister(2000, 0)
                 if int(self.req.response) == 120:
                     if not self.cool_mode:
@@ -1459,7 +1459,7 @@ class Systemair(object):
 
     # clear flags as timeouts occur
     def check_flags(self):
-        #### INHIBITS AND LIMITERS
+        #  Inhibits and limiters
         now = time.time()
         if self.inhibit < now - (60 * 10): self.inhibit = 0
         if self.modetoken < now - (60 * 60): self.modetoken = 0
@@ -1471,12 +1471,12 @@ class Systemair(object):
             self.flowOffset[0] -= 1
             self.flowOffset[1] = time.time()
 
-    # Monitor Logical crits for state changes on exchanger, pressure, rpms, forecast
+    # Monitor Logical criteria for state changes on exchanger, pressure, RPMs, forecast
     def monitor(self):
         # Set inhibit on VR400 systems if sudden drop in rpm,
         # this is caused by increased supply flow not initiated by the unit.
         if "VR400" in self.system_name:
-            #### FAN RPM self.monitoring
+            # FAN RPM VR400 monitoring
             if self.sf_rpm < 1550 and self.fanspeed == 2:
                 self.inhibit = time.time()
                 self.coef_inhibit = time.time()
@@ -1737,7 +1737,7 @@ class Systemair(object):
             for index in range(len(tomorrows_low)):
                 self.tomorrows_low[index] = float(tomorrows_low[index])
             # print self.tomorrows_low
-            # get integral for comming days
+            # get integral for coming days
             self.integral_forcast = float(os.popen("./forcast2.0.py integral " + str(self.cooling_limit)).read())
             # print self.integral_forcast
             if os.stat("./RAM/forecast.json").st_ctime < time.time() - 3600 * 24: raise Exception(
@@ -1776,12 +1776,15 @@ class Systemair(object):
             if "debug" in sys.argv:
                 if self.req.response == target: self.msg += "supply flow change completed \n"
             high_flow = 107
-            if percent < 0: high_flow += 107 * float(percent) / 100
-            if high_flow > 107: high_flow = 107
+            if percent < 0:
+                high_flow += 107 * float(percent) / 100
+            if high_flow > 107:
+                high_flow = 107
             # print "high should be extract:", int(high_flow)
             self.req.write_register(106, int(high_flow))  # reset high extract
             # raw_input(" diff set done")
-            if "debug" in sys.argv: self.msg += "change completed\n"
+            if "debug" in sys.argv:
+                self.msg += "change completed\n"
             self.press_inhibit = time.time()
 
         elif self.savecair and not self.shower:
@@ -1872,15 +1875,11 @@ class Systemair(object):
         # if no forecast is avail
         if self.forecast[1] != -1:
             try:
-                # wthr = os.popen("./forcast2.0.py tomorrows-low").read().split(" ")
                 sun = int(os.popen("./forcast2.0.py sun").readlines()[0].split(":")[0])
-            # comp = float(wthr[0])-(float(wthr[2])/8) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/8
             except ValueError:
                 sun = 7
                 os.write(ferr,
                          bytes("Unable set weather or sunrise " + "\t" + str(time.ctime()) + "\n", encoding='utf8'))
-            # wthr = [self.prev_static_temp, 0, 0,100]
-            # comp = float(wthr[0])-(float(wthr[2])/8) # tomorrows low temp +1C(5%RH) - Windspeed(m/s)/8
             except IndexError:
                 os.write(ferr, bytes("Forcast does not return proper data." + " " + str(time.ctime()) + "\n",
                                      encoding='utf8'))
@@ -1890,15 +1889,8 @@ class Systemair(object):
                                  encoding='utf8'))
             sun = 7
             comp = 0
-        try:
-            # comp = (self.airdata_inst.dew_point(wthr[0],float(wthr[3]))-self.airdata_inst.dew_point (self.extract_ave,self.local_humidity))/(24*50) # new comp calc with humidity forecast
-            pass
-        except OverflowError:
-            pass
-        # comp = (comp - (self.prev_static_temp-self.kinetic_compensation))/(24*3)
+
         self.kinetic_compensation -= comp * self.avg_frame_time
-        # if prev static is above saturation point
-        # if self.prev_static_temp >= saturation_point:
         if self.prev_static_temp >= self.inlet_ave:
             self.local_humidity = self.moisture_calcs(
                 saturation_point - self.kinetic_compensation)  # if 24hr low is higher than current temp
@@ -1909,11 +1901,7 @@ class Systemair(object):
         if self.prev_static_temp - self.kinetic_compensation > self.inlet_ave:
             # self.prev_static_temp = self.inlet_ave+self.kinetic_compensation
             self.kinetic_compensation = self.kinetic_compensation * 0.98
-        # if "debug" in sys.argv:
-        #    self.msg += "Comp set to: " + str(round(comp, 4)) + " Calc RH%: " + str(
-        #        self.local_humidity) + "% prev_static: " + str(self.prev_static_temp) + "C 24h-low: " + str(
-        #        saturation_point) + "C tomorrows low: " + str(wthr[0]) + "c\n"
-        # nightly refresh
+
         if time.localtime().tm_hour == sun and time.localtime().tm_min < 5 or self.prev_static_temp == 8:
             self.prev_static_temp = saturation_point
             self.kinetic_compensation = 0
@@ -1935,7 +1923,7 @@ class Systemair(object):
             os.write(fd, bytes(str(self.prev_static_temp - self.kinetic_compensation), encoding='utf8'))
             os.close(fd)
 
-    # print Json data to air.out for thrid party processing
+    # print Json data to air.out for third party processing
     def print_json(self):
         tmp = ""
         try:
@@ -1979,24 +1967,6 @@ class Systemair(object):
                 self.coef_debug()
 
 
-# Init base class
-if __name__ == "__main__":
-    # Init request class for communication
-    req = Request()
-    req.setup(unit, mode)
-    device = Systemair(req)
-    os.write(ferr, bytes("System started\t" + str(time.ctime()) + "\n", 'utf8'))
-    report_alive()
-    req.modbusregister(12543, 0)  # test for self.savecair extended address range
-    if device.system_name == "VR400" and req.response != "no data":
-        device.savecair = True
-        device.system_name = "savecair"
-        conversion_table = {}
-        device.status_field[3] = "savecair"
-        device.average_limit = 3400
-        os.write(ferr, bytes("savecair unit set\n", 'utf8'))
-
-
 def system_start():
     """This is run once at startup before the main iteration loop"""
     global starttime
@@ -2030,7 +2000,7 @@ def system_start():
         sys.stdout.flush()
     print("Updating current rotor status;")
     device.get_rotor_state()
-    print("Setting up coeficients;")
+    print("Setting up coefficients;")
     sys.stdout.flush()
     if device.rotor_active == "No":
         device.coef = 0.09
@@ -2052,23 +2022,37 @@ def system_start():
     print("System started:", time.ctime(starttime), ";")
 
 
-#  RUN MAIN loop
+# Init base class and run main loop
 if __name__ == "__main__":
+    # Init request class for communication
+    req = Request()
+    req.setup(unit, mode)
+    device = Systemair(req)
+    os.write(ferr, bytes("System started\t" + str(time.ctime()) + "\n", 'utf8'))
+    report_alive()
+    req.modbusregister(12543, 0)  # test for self.savecair extended address range
+    if device.system_name == "VR400" and req.response != "no data":
+        device.savecair = True
+        device.system_name = "savecair"
+        conversion_table = {}
+        device.status_field[3] = "savecair"
+        device.average_limit = 3400
+        os.write(ferr, bytes("savecair unit set\n", 'utf8'))
     monitoring = True
     reset_fans = False
 
     input_buffers = ""
     print("Going in for first PASS;")
     try:
-        # FIRST PASS ONLY #
+        # First pass only
         system_start()
-
-        while Running:  ##### mainloop do each pass ###########
+        # Main loop processing
+        while Running:
             # do temps,energy and derivatives
             device.update_temps()
             device.update_xchanger()
             device.derivatives()
-            ## EXEC TREE, exec steps uniqe if prime##
+            # Execution tree, execution steps unique if prime
             # check states and flags
             if device.iter % 3 == 0:
                 if "debug" in sys.argv:
