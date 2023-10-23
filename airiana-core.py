@@ -1871,11 +1871,12 @@ class Systemair(object):
 
         out = os.popen("./humid.py " + str(self.extract_ave)).readline()
         tmp = out.split(" ")
-        wthr = [-1, -1]
+        wthr = [-1, -1, -1]
         comp = 0
+        sun = 0
         try:
             saturation_point = float(tmp[1])
-        except:
+        except TypeError:
             os.write(ferr, bytes("Unable to cast 24h low temp " + str(tmp) + "\t" + str(time.ctime()) + "\n",
                                  encoding='utf8'))
             os.system(f"echo {self.inlet_ave} > ./RAM/latest_static")
@@ -2298,7 +2299,7 @@ if __name__ == "__main__":
                                 tim2 = threading.Timer(60.0 * 120 + 2, device.set_monitoring, [True])
                                 tim2.start()
                                 tim = threading.Timer(60.0 * 120, device.reset_fanspeed, [prev])
-                                tim.setName("Timer")
+                                tim.name = "Timer"
                                 device.timer = time.time()
                                 tim.start()
                         except:
@@ -2351,12 +2352,12 @@ if __name__ == "__main__":
                         device.set_fanspeed(3)
                         # device.coef_debug()
                         device.msg += "Fanspeed to High\n"
-                    if data == 11:  ## toggle electric heater set
+                    if data == 11:  # Toggle electric heater
                         if device.heater == 0:
-                            set = 2
+                            target = 2
                         else:
-                            set = 0
-                        device.set_heater(set)
+                            target = 0
+                        device.set_heater(target)
                     if data == 12:  # toggle shower mode
                         device.shower = not device.shower
                         if device.shower:
@@ -2371,9 +2372,9 @@ if __name__ == "__main__":
                         device.set_fanspeed(3)
                         device.coef_debug()
             except TypeError as e:
-                os.write(ferr, bytes("TypeError occured at:\t" + str(time.ctime()) + "\n" + str(e), encoding='utf8'))
+                os.write(ferr, bytes("TypeError occurred at:\t" + str(time.ctime()) + "\n" + str(e), encoding='utf8'))
             except ValueError:
-                os.write(ferr, bytes("ValueError occured at:\t" + str(time.ctime()) + "\n", encoding='utf8'))
+                os.write(ferr, bytes("ValueError occurred at:\t" + str(time.ctime()) + "\n", encoding='utf8'))
             except IOError:
                 os.write(ferr, bytes("Connection to the systemAir unit has been lost at:\t" + str(time.ctime()) + "\n",
                                      encoding='utf8'))
@@ -2384,4 +2385,4 @@ if __name__ == "__main__":
         exit(0)
     except:
         traceback.print_exc(ferr)
-    syslog.syslog("Airiana-core not running, at end of line")
+    syslog.syslog("Airiana-core not running, at end of line... this is bad")
