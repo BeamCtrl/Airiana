@@ -342,6 +342,8 @@ sys.stdout.flush()
 ############DEVICE CLASS FOR SYSTEMAIR VR400DCV#############################
 class Systemair(object):
     def __init__(self, req):
+        self.shower_initial = None
+        self.initial_fanspeed = None
         self.req = req
         self.savecair = False
         self.elec_now = 0
@@ -1107,14 +1109,14 @@ class Systemair(object):
         self.status_field[1] = self.exchanger_mode
 
     # do moisture calculations
-    def moisture_calcs(self, data=None):  ## calculate moisure/humidities
+    def moisture_calcs(self, data=None):  # Calculate moisture/humidities
         self.moist_in = 1000 * self.airdata_inst.sat_vapor_press(
             self.airdata_inst.dew_point(self.humidity, self.extract_ave))
         self.moist_out = 1000 * self.airdata_inst.sat_vapor_press(
             self.airdata_inst.dew_point(self.local_humidity, self.extract_ave))
         self.humidity_diff = self.moist_in - self.moist_out
         self.cond_eff = 1.0  # 1 -((self.extract_ave-self.supply_ave)/35)#!abs(self.inlet_ave-self.exhaust_ave)/20
-        ######### SAT MOIST UPDATE ############
+        # Update saturation moisture
         if self.energy_diff > 0 and self.rotor_active == "Yes":
             try:
                 d_pw = (self.airdata_inst.energy_to_pwdiff(self.energy_diff, self.extract_ave) / self.cond_eff) / (
@@ -1132,42 +1134,41 @@ class Systemair(object):
         if numpy.isnan(self.humidity):  # reset nan error
             self.humidity = 20
         if not self.RH_valid:
-            tmp_RH = ((low_pw + d_pw) / max_pw) * 100
-            self.humidity += (tmp_RH - self.humidity) * 0.001
+            tmp_rh = ((low_pw + d_pw) / max_pw) * 100
+            self.humidity += (tmp_rh - self.humidity) * 0.001
             self.hum_list.insert(0, self.humidity)
             if len(self.hum_list) > self.average_limit:
                 self.hum_list.pop(-1)
-        # if "debug" in sys.argv:
-        #	self.msg += str(self.new_humidity)+"  "+str( self.local_humidity)+"\n"
+
         # query for a ref humidity at temp
-        if data != None:
+        if data is not None:
             max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
             low_pw = self.airdata_inst.sat_vapor_press(data)
-        return ((low_pw) / max_pw) * 100
+        return low_pw / max_pw * 100
 
-    #####END
-
-    # calc long and short derivatives
+    # Calc long and short derivatives
     def derivatives(self):
-        # SHORT
+        # Short
         if len(self.extract) > self.average_limit - 1:
             self.extract_dt = (numpy.average(self.extract[0:14]) - numpy.average(
                 self.extract[self.average_limit - 15:self.average_limit - 1]))
             self.extract_dt = self.extract_dt / ((self.time[0] - self.time[self.average_limit - 1]) / 60)
             self.extract_dt_list.append(self.extract_dt)
-            if len(self.extract_dt_list) > 500: self.extract_dt_list.pop(0)
-        # LONG
+            if len(self.extract_dt_list) > 500:
+                self.extract_dt_list.pop(0)
+        # Long
         if self.iter % round(360 / self.avg_frame_time, -2) == 0:
-            if self.dt_hold == 0: self.dt_hold = self.extract_ave
+            if self.dt_hold == 0:
+                self.dt_hold = self.extract_ave
             self.extract_dt_long = float((self.extract_ave - self.dt_hold)) / (
                     (time.time() - self.extract_dt_long_time) / 360)
             self.extract_dt_long_time = time.time()
             self.dt_hold = self.extract_ave
             self.avg_frame_time = (time.time() - starttime) / self.iter
 
-    # decect if shower is on
+    # Detect if shower is on
     def shower_detect(self):
-        def turnoff(self):
+        def turnoff():
             if self.savecair:
                 self.req.write_register(1161, 2)
             else:
@@ -1199,13 +1200,14 @@ class Systemair(object):
             except IndexError:
                 pass
         elif not self.shower and not self.RH_valid:
-            # SHOWER derivative CONTROLER
+            # Shower derivative controller
             lim = 0.07
-            if self.ef > 50: lim = 0.07
+            if self.ef > 50:
+                lim = 0.07
             if len(self.extract_dt_list) and self.extract_dt > lim + float(
                     self.det_limit) / 100 and self.inhibit == 0 and numpy.average(self.extract_dt_list) * 60 > 1.40:
                 self.msg = "Shower mode engaged\n"
-                if self.shower == False:
+                if not self.shower:
                     self.shower = True
                     self.initial_temp = self.extract_ave
                     self.initial_fanspeed = self.fanspeed
@@ -1218,7 +1220,7 @@ class Systemair(object):
                     os.write(ferr, bytes("Engaged Shower mode at \t" + str(time.ctime()) + "\n", encoding='utf8'))
 
         if len(self.extract_dt_list) != 0 and numpy.average(self.extract_dt_list) * 60 < 0.25 \
-                and self.shower == True \
+                and self.shower \
                 and self.shower_initial - time.time() < -60:
             state = False
             if not self.RH_valid and self.extract_ave <= (self.initial_temp + 0.3):
@@ -1228,7 +1230,7 @@ class Systemair(object):
                     self.msg += "RH after shower now OK\n"
                     os.write(ferr, bytes("Shower mode off RH is ok \t" + str(time.ctime()) + "\n", encoding='utf8'))
                 state = True
-            if state == True:
+            if state is True:
                 if self.shower_initial - time.time() > -120:
                     self.det_limit += 1
                 try:
@@ -1240,12 +1242,12 @@ class Systemair(object):
                     pass
                 self.shower = False
                 self.shower_initial = 0
-                turnoff(self)
-        # SHOWER MODEwTIMEOUT #
-        if self.shower == True and self.shower_initial - time.time() < -45 * 60:
+                turnoff()
+        # Shower mode with timeout
+        if self.shower and self.shower_initial - time.time() < -45 * 60:
             self.shower = False
             os.write(ferr, bytes("Shower mode ended on timeout at:\t" + str(time.ctime()) + "\n", encoding='utf8'))
-            turnoff(self)
+            turnoff()
 
     # PRINT OUTPUT
     def print_xchanger(self):
@@ -1262,7 +1264,8 @@ class Systemair(object):
                     len(self.req.buff)) + " Multi: " + str(self.req.multi_errors) + "\n"
                 tmp += "temp sensor state: " + str(bin(self.temp_state)) + " Heater:" + str(self.heater) + "\n"
                 tmp += "Unit admin password: " + self.admin_password + "\n"
-                if len(self.req.buff) > 50: self.req.buff = ""
+                if len(self.req.buff) > 50:
+                    self.req.buff = ""
                 tmp += str(sys.argv) + "\n"
             except:
                 pass
@@ -1299,10 +1302,11 @@ class Systemair(object):
         if self.rotor_active == "Yes" or "debug" in sys.argv:
             tmp += "HeatExchange supply " + str(round(self.supply_power, 1)) + "W \n"
             tmp += "HeatExchange extract " + str(round(self.extract_power + self.condensate_compensation, 1)) + "W\n"
-            if "debug" in sys.argv: tmp += "Diff:" + str(round(numpy.average(self.diff_ave), 2)) + "% " + str(
+            if "debug" in sys.argv:
+                tmp += "Diff:" + str(round(numpy.average(self.diff_ave), 2)) + "% " + str(
                 round(self.energy_diff, 1)) + "W\n"
-            if "humidity" in sys.argv and "debug" in sys.argv: tmp += "\nCondensation  efficiency: " + str(
-                round(self.cond_eff, 2) * 100) + "%\n"
+            if "humidity" in sys.argv and "debug" in sys.argv:
+                tmp += "\nCondensation  efficiency: " + str(round(self.cond_eff, 2) * 100) + "%\n"
         if "humidity" in sys.argv:
             if "debug" in sys.argv:
                 tmp += "Static RH low: " + str(round(self.local_humidity, 2)) + "% " + str(
@@ -1322,11 +1326,9 @@ class Systemair(object):
             try:
                 tmp += "Fanspeed level: " + str(self.fanspeed) + "\n"
                 tmp += "Long dt: " + str(self.extract_dt_long) + "\n"
-                # tmp += "Current Coef: "+ str(self.get_coef_mode()) + str(self.coef_dict[self.get_coef_mode()])+"\n"
                 if self.coef_test_bool:
                     tmp += "In Test:" + str(time.ctime(self.coef_inhibit + 3600)) + "\n"
-
-            except:
+            except TypeError:
                 pass
             tmp += "diff. humidity partial pressure in-out: " + str(int(round(self.humidity_diff, 0))) + "Pa\n"
 
@@ -1344,7 +1346,7 @@ class Systemair(object):
         else:
             tmp += "Energy gain: " + str(round(self.loss, 1)) + "W\n"
         tmp += "Loss total: " + str(round(self.total_energy / 1000, 3)) + "kWh Average:" + str(
-            round((self.total_energy) / (((time.time() - starttime) / 3600)), 1)) + "W\n"
+            round(self.total_energy / ((time.time() - starttime) / 3600), 1)) + "W\n"
         tmp += "Cooling total: " + str(round(self.cooling / 1000, 3)) + "kWh\n"
         tmp += "Heat gain total: " + str(round(self.gain / 1000, 3)) + "kWh\n"
         tmp += "Unit electric total: " + str(round(self.electric_power_sum / 1000, 3)) + "kWh\n"
@@ -1379,7 +1381,7 @@ class Systemair(object):
         clear_screen()
         print(tmp)
 
-    # change exchanger mode to to, if to = None, flip 0 or 5
+    # change exchanger mode target is "to", if to = None, flip 0 or 5
     def cycle_exchanger(self, to=None):
         os.write(ferr, bytes("cycle exchanger to: " + str(to) + "\t" + str(time.ctime()) + "\n", encoding='utf8'))
         if not self.savecair:
@@ -1401,7 +1403,7 @@ class Systemair(object):
                 except:
                     pass  # print "read error"
 
-            ### SET FUNCTIONS ####
+            # Set functions
             try:
                 if to is None:
                     self.msg += "manual state change\n"
@@ -1414,14 +1416,14 @@ class Systemair(object):
                 i = 0
                 if to == 0:
                     while not set_val(0):
-                        # self.msg += "\nwrite error"
+                        # self.msg += "\n write error"
                         time.sleep(0.2)  # set summer mode
                         i += 1
                         if i > 10:
                             os.write(ferr, bytes("Exchanger write failed\n", encoding="utf-8"))
                 else:
                     while not set_val(5):
-                        # self.msg +="\nwrite error"
+                        # self.msg +="\n write error"
                         time.sleep(0.2)  # set winter mode
                         i += 1
                         if i > 10:
@@ -1429,7 +1431,7 @@ class Systemair(object):
                 self.modetoken = time.time()
                 self.inhibit = time.time()  # set inhibit time to prevent derivatives sensing when returning
             except:
-                # self.msg +=  "\nexit due to error"
+                # self.msg +=  "\n exit due to error"
                 traceback.print_exc(ferr)
             finally:
                 self.exchanger_mode = get_val()
@@ -1461,10 +1463,14 @@ class Systemair(object):
     def check_flags(self):
         #  Inhibits and limiters
         now = time.time()
-        if self.inhibit < now - (60 * 10): self.inhibit = 0
-        if self.modetoken < now - (60 * 60): self.modetoken = 0
-        if self.press_inhibit < now - (60 * 30): self.press_inhibit = 0
-        if self.coef_inhibit < now - (60 * 60): self.coef_inhibit = 0
+        if self.inhibit < now - (60 * 10):
+            self.inhibit = 0
+        if self.modetoken < now - (60 * 60):
+            self.modetoken = 0
+        if self.press_inhibit < now - (60 * 30):
+            self.press_inhibit = 0
+        if self.coef_inhibit < now - (60 * 60):
+            self.coef_inhibit = 0
         if self.flowOffset[1] - time.time() < -3600 \
                 and self.flowOffset[0] > 0 \
                 and self.humidity_diff < 350:
@@ -1724,14 +1730,16 @@ class Systemair(object):
 
     # Get the active forecast
     def get_forecast(self):
-        ###### WEATHER FORCAST MODES
+        # Weather forecast modes
         forcast = [-1, -1, -1]
         try:
             forcast = os.popen("./forcast2.0.py tomorrow").readlines()
-            self.forecast[2] = float(forcast[1])
+            # First line
             forcast = forcast[0].split(" ")
             self.forecast[0] = float(forcast[0])
             self.forecast[1] = float(forcast[1])
+            # Second line
+            self.forecast[2] = float(forcast[1])
             # get tomorrows-low values
             tomorrows_low = os.popen("./forcast2.0.py tomorrows-low").read()[:-1].split(" ")
             for index in range(len(tomorrows_low)):
