@@ -12,9 +12,8 @@ binary_sensor:
     value_template: "{{ value_json.coolingMode }}"
     payload_off: "false"
     payload_on:  "true"
-    
-sensor:
 
+sensor:
   - platform: mqtt
     name: "Exhaust"
     state_topic: "airiana"
@@ -99,7 +98,7 @@ sensor:
     unit_of_measurement: ""
     value_template: "{{ value_json.rotorActive }}"
 
-#Rest commands to airiana
+#Rest commands to Airiana
 rest_command:
   toggle_pressure:
     url: "http://airiana.local:8000/command?7"
