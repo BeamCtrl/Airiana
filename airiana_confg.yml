@@ -17,6 +17,7 @@ sensor:
   - platform: mqtt
     name: "Exhaust"
     state_topic: "airiana"
+    device_class: "temperature"
     value_template: "{{ value_json.exhaust | round(2)}}"
     unit_of_measurement: "  C"
 
