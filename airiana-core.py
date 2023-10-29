@@ -2166,8 +2166,10 @@ if __name__ == "__main__":
             if device.iter % (int(3600 * 2 / device.avg_frame_time)) == 0:
                 device.get_filter_status()
                 os.system("./http &")
-                os.system("./public/ip-replace.sh &")  # reset ip-addresses on buttons.html
-                os.system("./public/ip-util.sh &")  # reset ip-addresses on buttons.html
+                os.chdir("./public")
+                os.system("./ip-replace.sh &")  # reset ip-addresses on buttons.html
+                os.system("./ip-util.sh &")  # reset ip-addresses on buttons.html
+                os.chdir("..")
                 device.get_forecast()
                 if device.status_field[0] > 0:
                     device.status_field[0] -= 1  # remove one shower token from bucket every 2 hrs.
