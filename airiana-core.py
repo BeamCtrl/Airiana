@@ -1109,7 +1109,7 @@ class Systemair(object):
         self.status_field[1] = self.exchanger_mode
 
     # do moisture calculations
-    def moisture_calcs(self, data=None):  # Calculate moisture/humidities
+    def moisture_calcs(self, temperature_reference=None):  # Calculate moisture/humidities
         self.moist_in = 1000 * self.airdata_inst.sat_vapor_press(
             self.airdata_inst.dew_point(self.humidity, self.extract_ave))
         self.moist_out = 1000 * self.airdata_inst.sat_vapor_press(
@@ -1141,9 +1141,9 @@ class Systemair(object):
                 self.hum_list.pop(-1)
 
         # query for a ref humidity at temp
-        if data is not None:
+        if temperature_reference is not None:
             max_pw = self.airdata_inst.sat_vapor_press(self.extract_ave)
-            low_pw = self.airdata_inst.sat_vapor_press(data)
+            low_pw = self.airdata_inst.sat_vapor_press(temperature_reference)
         return low_pw / max_pw * 100
 
     # Calc long and short derivatives
