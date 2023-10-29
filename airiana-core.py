@@ -1254,7 +1254,7 @@ class Systemair(object):
         global vers
         tmp = self.system_name
         if self.savecair:
-            tmp += " Savecair"
+            tmp = "Airiana Savecair"
         tmp += " " + time.ctime() + " status: " + str(int(time.time() - starttime)) + '(' + str(self.iter) + ")" + str(
             round((time.time() - starttime) / self.iter, 2)) + " Vers. " + vers + " ***\n"
         if "debug" in sys.argv:
