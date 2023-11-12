@@ -1407,7 +1407,7 @@ class Systemair(object):
             try:
                 if to is None:
                     self.msg += "manual state change\n"
-                    os.write(ferr, bytes("Exchanger mode toggleing\n", encoding="utf-8"))
+                    os.write(ferr, bytes("Exchanger mode toggling\n", encoding="utf-8"))
                     self.current_mode = get_val()
                     if self.current_mode > 0:
                         to = 0
