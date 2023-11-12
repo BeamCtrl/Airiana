@@ -87,7 +87,9 @@ if "debug" in sys.argv and not os.path.lexists("./sensors"):
     os.system("touch sensors")
 #################################
 starttime = time.time()
-# Setup deamon env
+# Setup daemon env
+if not os.path.isdir("./RAM"):
+    os.system("mkdir ./RAM")
 ferr = os.open("./RAM/err", os.O_WRONLY | os.O_CREAT)
 air_out = os.open("./RAM/air.out", os.O_WRONLY | os.O_CREAT)
 if "daemon" in sys.argv:
