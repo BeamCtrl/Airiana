@@ -3,7 +3,6 @@ import airdata
 import os
 import time
 import sys
-import numpy
 import traceback
 
 airdata_inst = airdata.Energy()
@@ -32,7 +31,7 @@ def get_humidity():
 			print("error getting sunrise temp ranges")
 	# print templist
 	if len(templist) > 0:
-		inlet_min = numpy.average(templist)
+		inlet_min = sum(templist)/len(templist)
 	else:
 		try:
 			inlet_min = float(open("RAM/latest_static", 'r').read())
