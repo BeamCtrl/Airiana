@@ -1,4 +1,4 @@
-# Airiana
+# Airiana [![Run all Pytests](https://github.com/BeamCtrl/Airiana/actions/workflows/python-app.yml/badge.svg)](https://github.com/BeamCtrl/Airiana/actions/workflows/python-app.yml)
 SystemAir control,
 
 Get your Systemair unit under control.
