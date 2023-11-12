@@ -34,7 +34,7 @@ def test_methods():
         dev.check_ac_mode()
         dev.calc_exhaust()
         dev.get_rotor_state()
-        dev.moisture_calcs(data=None)
+        dev.moisture_calcs()
         dev.derivatives()
         dev.shower_detect()
         sys.argv = ["debug", "humidity", "keep-log", "temperatur.nu", "home-Ass"]

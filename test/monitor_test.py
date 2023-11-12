@@ -52,12 +52,22 @@ def test_exchanger():
     dev.supply_ave = dev.target + 0.1
     dev.exchanger_control()
     assert dev.exchanger_mode == 0
+    assert dev.modetoken != 0
+    dev.modetoken = 0
+    dev.exchanger_control()
+    assert dev.modetoken == 0
 
     # Test exchanger set to 5 when below target
     dev.extract_ave = dev.target - 1.1
+    dev.supply_ave = dev.target - 0.1
     dev.modetoken = 0
     dev.exchanger_control()
     assert dev.exchanger_mode == 5
+    assert dev.modetoken != 0
+    dev.modetoken = 0
+    dev.exchanger_control()
+
+    assert dev.modetoken == 0
 
     # Test that exchanger enables when supply is too low
     dev.supply_ave = 10 - 1
@@ -66,6 +76,10 @@ def test_exchanger():
     dev.modetoken = 0
     dev.exchanger_control()
     assert dev.exchanger_mode == 5
+    assert dev.modetoken != 0
+    dev.modetoken = 0
+    dev.exchanger_control()
+    assert dev.modetoken == 0
 
     # Test that exchanger sets on when inlet is below, fanspeed is low and forecast set
     dev.cycle_exchanger(0)
@@ -75,6 +89,10 @@ def test_exchanger():
     dev.modetoken = 0
     dev.exchanger_control()
     assert dev.exchanger_mode == 5
+    assert dev.modetoken != 0
+    dev.modetoken = 0
+    dev.exchanger_control()
+    assert dev.modetoken == 0
 
 
 def test_cooling():
