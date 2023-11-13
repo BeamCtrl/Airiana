@@ -1739,11 +1739,12 @@ class Systemair(object):
         try:
             forcast = os.popen("./forcast2.0.py tomorrow").readlines()
             # First line
-            forcast = forcast[0].split(" ")
-            self.forecast[0] = float(forcast[0])
-            self.forecast[1] = float(forcast[1])
+            forcast1 = forcast[0].split(" ")
+            forcast2 = forcast[1].split(" ")
+            self.forecast[0] = float(forcast1[0])
+            self.forecast[1] = float(forcast1[1])
             # Second line
-            self.forecast[2] = float(forcast[1])
+            self.forecast[2] = float(forcast2[0])
             # get tomorrows-low values
             tomorrows_low = os.popen("./forcast2.0.py tomorrows-low").read()[:-1].split(" ")
             for index in range(len(tomorrows_low)):
