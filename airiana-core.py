@@ -1111,7 +1111,7 @@ class Systemair(object):
                 self.rotor_active = "No"
         else:
             self.req.modbusregister(2140, 0)
-            check_req(self.req.response, self.exchanger_mode > 0, "rotor_state")
+            check_req(self.req.response > 0, self.exchanger_mode > 0, "exchanger_mode")
             if self.req.response:
                 self.rotor_active = "Yes"
                 self.exchanger_mode = 5
