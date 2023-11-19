@@ -896,18 +896,23 @@ class Systemair(object):
             self.status_field[0] += 1
             os.write(ferr,
                      bytes("Changing fanspeed to:" + str(target_fanspeed) + " \t\t"
-                           + str(time.ctime()) + "\n", encoding='utf8'))
+                           + str(time.ctime()) + "\n", encoding = 'utf8'))
         # print actual,"->",target
-        if target_fanspeed >= 4: target_fanspeed = 0
-        if target_fanspeed < 0: target_fanspeed = 0
-        # print "write to device", target
+        if target_fanspeed >= 4:
+            target_fanspeed = 0
+        if target_fanspeed < 0:
+            target_fanspeed = 0
+
         if not self.savecair:
             self.req.write_register(100, target_fanspeed)
+            self.fanspeed = target_fanspeed
         else:
             if target_fanspeed == 0:
                 self.req.write_register(1130, target_fanspeed)
+                self.fanspeed = target_fanspeed
             else:
                 self.req.write_register(1130, target_fanspeed + 1)
+                self.fanspeed = target_fanspeed
         if self.get_fanspeed() != target_fanspeed:
             os.write(ferr,
                      bytes("Incorrectly set fanspeed " + str(self.get_fanspeed())
