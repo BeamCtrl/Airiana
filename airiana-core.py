@@ -58,7 +58,7 @@ def exit_callback(self, arg=0):
 
 signal.signal(signal.SIGTERM, exit_callback)
 signal.signal(signal.SIGINT, exit_callback)
-
+path = ""
 try:
     path = os.path.abspath(__file__).replace(__file__.split("/")[-1], "")
     syslog.syslog("file is " + __file__.split("/")[-1])
@@ -342,11 +342,17 @@ sys.stdout.flush()
 
 
 ############DEVICE CLASS FOR SYSTEMAIR VR400DCV#############################
+def check_req(response, test, name):
+    if response != test:
+        os.write(ferr, bytes(f"Retrieved value for {name}={response}, but airiana was set to {test}, data updated."
+                             f"\t{time.ctime(time.time())}\n", "utf-8"))
+
+
 class Systemair(object):
-    def __init__(self, req):
+    def __init__(self, request_object):
         self.shower_initial = None
         self.initial_fanspeed = None
-        self.req = req
+        self.req = request_object
         self.savecair = False
         self.elec_now = 0
         self.showerRH = None
@@ -584,6 +590,7 @@ class Systemair(object):
     def get_heater(self):
         if not self.savecair:
             self.req.modbusregister(200, 0)
+            check_req(int(self.req.response), self.heater, "electric_heater")
             self.heater = int(self.req.response)
         else:
             self.heater = 0
@@ -727,10 +734,12 @@ class Systemair(object):
     def get_fanspeed(self):
         if not self.savecair:
             self.req.modbusregister(100, 0)
+            check_req(int(self.req.response), self.fanspeed, "fanspeed")
             self.fanspeed = int(self.req.response)
             return self.fanspeed
         else:
             self.req.modbusregister(1130, 0)
+            check_req(self.req.response - 1, self.fanspeed, "fanspeed")
             if self.req.response <= 0:
                 self.fanspeed = 0
             else:
@@ -739,12 +748,12 @@ class Systemair(object):
 
     def update_temps(self):
         if not self.savecair:
-            self.req.modbusregisters(213, 5)  # Tempsensors 1 -5
+            self.req.modbusregisters(213, 5)  # Temp sensors 1 -5
             self.time.insert(0, time.time())
             if len(self.time) > self.average_limit:
                 self.time.pop(-1)
 
-            # NEGATYIVE VAL sign bit twos complement
+            # NEGATIVE VAL sign bit twos complement
             if self.req.response[4] > 6000:
                 self.req.response[4] -= 0xFFFF
             if self.req.response[2] > 6000:
@@ -755,11 +764,11 @@ class Systemair(object):
             if len(self.rawdata) > self.average_limit:
                 self.rawdata.pop(-1)
 
-            # self.req.response[1] #EXTRACT
-            # self.req.response[2] #EXHAUST
-            # self.req.response[0] #Supply pre elec heater
-            # self.req.response[3] #Supply post electric heater
-            # self.req.response[4] Inlet
+            # self.request.response[1] #EXTRACT
+            # self.request.response[2] #EXHAUST
+            # self.request.response[0] #Supply pre elec heater
+            # self.request.response[3] #Supply post electric heater
+            # self.request.response[4] Inlet
 
             # update [4] with inlet coef
             self.req.response[4] -= (self.req.response[1] - self.req.response[
@@ -806,11 +815,11 @@ class Systemair(object):
             supply = self.req.response
             self.req.modbusregister(12101, 1)
             inlet = self.req.response
-            # self.req.response[1] #EXTRACT
-            # self.req.response[2] #EXHAUST
-            # self.req.response[0] #Supply pre elec heater
-            # self.req.response[3] #Supply post electric heater
-            # self.req.response[4] Inlet
+            # self.request.response[1] #EXTRACT
+            # self.request.response[2] #EXHAUST
+            # self.request.response[0] #Supply pre elec heater
+            # self.request.response[3] #Supply post electric heater
+            # self.request.response[4] Inlet
             self.rawdata.insert(0, (0, extract * 10, 0, supply * 10, inlet * 10))
             if len(self.rawdata) > self.average_limit:
                 self.rawdata.pop(-1)
@@ -1090,8 +1099,10 @@ class Systemair(object):
     def get_rotor_state(self):
         if not self.savecair:
             self.req.modbusregister(206, 0)
+            check_req(self.req.response, self.exchanger_mode, "exchanger_mode")
             self.exchanger_mode = self.req.response
             self.req.modbusregisters(350, 2)
+            check_req(self.req.response, self.rotor_state, "rotor_state")
             self.rotor_state = self.req.response[0]
             if self.req.response[1]:
                 self.rotor_active = "Yes"
@@ -1100,6 +1111,7 @@ class Systemair(object):
                 self.rotor_active = "No"
         else:
             self.req.modbusregister(2140, 0)
+            check_req(self.req.response, self.exchanger_mode > 0, "rotor_state")
             if self.req.response:
                 self.rotor_active = "Yes"
                 self.exchanger_mode = 5
@@ -1290,11 +1302,11 @@ class Systemair(object):
                         self.rawdata[0][0]) + "\tSupply,post:" + str(self.rawdata[0][3]) + "\n"
         except:
             pass
-        # self.req.response[1] #EXTRACT
-        # self.req.response[2] #EXHAUST
-        # self.req.response[0] #Supply pre elec heater
-        # self.req.response[3] #Supply post electric heater
-        # self.req.response[4] Inlet
+        # self.request.response[1] #EXTRACT
+        # self.request.response[2] #EXHAUST
+        # self.request.response[0] #Supply pre elec heater
+        # self.request.response[3] #Supply post electric heater
+        # self.request.response[4] Inlet
         if not self.savecair:
             tmp += "Exchanger Setting: " + str(self.exchanger_mode) + " State: " + self.rotor_states[
                 self.rotor_state] + ", Rotor Active: " + self.rotor_active + "\n"
@@ -1779,7 +1791,7 @@ class Systemair(object):
         if not self.savecair and not self.shower:
             if "debug" in sys.argv: self.msg += "start pressure change " + str(percent) + "\n"
             self.req.modbusregister(103, 0)  # nominal supply flow
-            # print "sf_nom is", self.req.response
+            # print "sf_nom is", self.request.response
             target = int(self.req.response + self.req.response * (float(percent) / 100))
             # print "to set ef_no to",target
             self.req.write_register(104, target)  # nominal extract flow
@@ -1805,7 +1817,7 @@ class Systemair(object):
 
             for each in range(1400, 1408, 2):
                 self.req.modbusregister(each, 0)
-                # raw_input(str(percent)+"% "+str(each)+"-"+str(int(self.req.response*(1+(float(percent)/100)))))
+                # raw_input(str(percent)+"% "+str(each)+"-"+str(int(self.request.response*(1+(float(percent)/100)))))
                 self.req.write_register(each + 1, int(self.req.response + percent))
         if not self.savecair and not self.shower and self.system_name == "VTR300":
             if "debug" in sys.argv: self.msg += "start pressure change " + str(percent) + "\n"
