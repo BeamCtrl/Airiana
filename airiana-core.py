@@ -882,35 +882,36 @@ class Systemair(object):
             except:
                 traceback.print_exc(ferr)
             tcomp = (
-                        diff) * -self.new_coef  # self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
+                        diff) * -self.new_coef
         except ZeroDivisionError:
             pass
         if numpy.isnan(tcomp):
             return 0
         return tcomp
 
-    def set_fanspeed(self, target):
+    def set_fanspeed(self, target_fanspeed):
         self.inhibit = time.time()
         self.coef_inhibit = time.time()
-        if target != self.fanspeed:  # add one to bucket
+        if target_fanspeed != self.fanspeed:  # add one to bucket
             self.status_field[0] += 1
             os.write(ferr,
-                     bytes("Changing fanspeed to:" + str(target) + " \t\t" + str(time.ctime()) + "\n", encoding='utf8'))
+                     bytes("Changing fanspeed to:" + str(target_fanspeed) + " \t\t"
+                           + str(time.ctime()) + "\n", encoding='utf8'))
         # print actual,"->",target
-        if target >= 4: target = 0
-        if target < 0: target = 0
+        if target_fanspeed >= 4: target_fanspeed = 0
+        if target_fanspeed < 0: target_fanspeed = 0
         # print "write to device", target
         if not self.savecair:
-            self.req.write_register(100, target)
+            self.req.write_register(100, target_fanspeed)
         else:
-            if target == 0:
-                self.req.write_register(1130, target)
+            if target_fanspeed == 0:
+                self.req.write_register(1130, target_fanspeed)
             else:
-                self.req.write_register(1130, target + 1)
-        if self.get_fanspeed() != target:
+                self.req.write_register(1130, target_fanspeed + 1)
+        if self.get_fanspeed() != target_fanspeed:
             os.write(ferr,
-                     bytes("Incorrectly set fanspeed " + str(self.get_fanspeed()) + " to " + str(target) + " \t" + str(
-                         time.ctime()) + "\n", encoding='utf8'))
+                     bytes("Incorrectly set fanspeed " + str(self.get_fanspeed())
+                           + " to " + str(target_fanspeed) + " \t" + str(time.ctime()) + "\n", encoding='utf8'))
         self.update_airflow()
 
     def update_fan_rpm(self):
@@ -921,15 +922,15 @@ class Systemair(object):
                 if self.system_name in ("VR400"):
                     self.electric_power = (
                             self.ef_rpm / (100 / (float(float(self.ef_rpm) / 1381) ** 1.89)) + self.sf_rpm / (
-                            100 / (float(float(self.sf_rpm) / 1381) ** 1.89)))
+                                100 / (float(float(self.sf_rpm) / 1381) ** 1.89)))
                 if self.system_name in ("VSR300"):
                     self.electric_power = 0.2 * (
                             self.ef_rpm / (100 / (float(float(self.ef_rpm) / 1381) ** 1.89)) + self.sf_rpm / (
-                            100 / (float(float(self.sf_rpm) / 1381) ** 1.89)))
+                                100 / (float(float(self.sf_rpm) / 1381) ** 1.89)))
                 if self.system_name in ("VTR300"):
                     self.electric_power = 0.2 * (
                             self.ef_rpm / (100 / (float(float(self.ef_rpm) / 1381) ** 1.89)) + self.sf_rpm / (
-                            100 / (float(float(self.sf_rpm) / 1381) ** 1.89)))
+                                100 / (float(float(self.sf_rpm) / 1381) ** 1.89)))
 
             except ZeroDivisionError:
                 self.electric_power = 0
