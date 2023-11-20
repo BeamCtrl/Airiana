@@ -201,7 +201,7 @@ for i in range(len(labels)):
             labels[i] = tm.strftime("%H:%M - %a", tm.gmtime(tm.time() - (float(labels[i])) - (tm.altzone)))
     except:
         pass  # print "label error"
-# TEMPS
+# Temperatures
 s1.set_xticklabels(labels)
 setp(s1.get_xticklabels(), rotation=45)
 # Humidities
@@ -210,9 +210,11 @@ if "debug" in sys.argv or "hasRH" in sys.argv:
     setp(s2.get_xticklabels(), rotation=45)
 # Partial Pressures
 if "moisture" in sys.argv:
-    s3.set_xticklabels(labels)
-    setp(s3.get_xticklabels(), rotation=45)
-
+    try:
+        s3.set_xticklabels(labels)
+        setp(s3.get_xticklabels(), rotation=45)
+    except ValueError:
+        os.system("echo \"Tick Error in grapher\" >> RAM/err")
 grid(True)
 # move to the right
 fig.subplots_adjust(right=0.90)
