@@ -1109,7 +1109,7 @@ class Systemair(object):
             self.exchanger_mode = self.req.response
             self.req.modbusregisters(350, 2)
             check_req(self.req.response[0], self.rotor_state, "rotor_state")
-            check_req(self.req.response[1], self.rotor_active is "Yes", "rotor_active")
+            check_req(self.req.response[1], self.rotor_active == "Yes", "rotor_active")
             self.rotor_state = self.req.response[0]
             if self.req.response[1]:
                 self.rotor_active = "Yes"
@@ -1120,7 +1120,7 @@ class Systemair(object):
             self.req.modbusregister(2140, 0)
             check_req(self.req.response > 0, self.exchanger_mode > 0, "exchanger_mode")
             if self.req.response:
-                self.rreqadotor_active = "Yes"
+                self.rotor_active = "Yes"
                 self.exchanger_mode = 5
             else:
                 self.exchanger_mode = 0
