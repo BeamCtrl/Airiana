@@ -202,15 +202,21 @@ for i in range(len(labels)):
     except:
         pass  # print "label error"
 # Temperatures
+if len(labels) < len(s1.get_xticklabels()):
+    labels.append("")
 s1.set_xticklabels(labels)
 setp(s1.get_xticklabels(), rotation=45)
 # Humidities
 if "debug" in sys.argv or "hasRH" in sys.argv:
+    if len(labels) < len(s2.get_xticklabels()):
+         labels.append("")
     s2.set_xticklabels(labels)
     setp(s2.get_xticklabels(), rotation=45)
 # Partial Pressures
 if "moisture" in sys.argv:
     try:
+        if len(labels) < len(s3.get_xticklabels()):
+            labels.append("")
         s3.set_xticklabels(labels)
         setp(s3.get_xticklabels(), rotation=45)
     except ValueError:
