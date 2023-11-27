@@ -23,7 +23,7 @@ numpy.seterr('ignore')
 Running = True
 savecair = False
 mode = "RTU"
-holdoff_t = time.time()
+holdoff_t = time.time() - 3000  # one hr - 10 minutes
 if "TCP" in sys.argv:
     mode = "TCP"
 
@@ -1905,6 +1905,9 @@ class Systemair(object):
                                  encoding='utf8'))
             os.system(f"echo {self.inlet_ave} > ./RAM/latest_static")
             saturation_point = self.inlet_ave
+        except IndexError:
+            os.write(ferr, bytes("Saturation point was unavailable. " + str(tmp) + "\t" + str(time.ctime()) + "\n",
+                                 encoding='utf8'))
         # if no forecast is avail
         if self.forecast[1] != -1:
             try:
@@ -2050,7 +2053,6 @@ def system_start():
         # device.humidity = device.moisture_calcs(10.0)
         device.get_local()
     sys.stdout.flush()
-    if "ping" in sys.argv: report_alive()
     starttime = time.time()
     print("System started:", time.ctime(starttime), ";")
 
@@ -2062,7 +2064,6 @@ if __name__ == "__main__":
     req.setup(unit, mode)
     device = Systemair(req)
     os.write(ferr, bytes("System started\t" + str(time.ctime()) + "\n", 'utf8'))
-    report_alive()
     req.modbusregister(12543, 0)  # test for self.savecair extended address range
     if device.system_name == "VR400" and req.response != "no data":
         device.savecair = True
