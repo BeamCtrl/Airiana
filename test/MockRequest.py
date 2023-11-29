@@ -3,6 +3,9 @@ class MockRequest:
     def __init__(self):
         self.response = ""
         self.data = {}
+        self.latest_request_mode = ""
+        self.latest_request_decimal = 0
+        self.latest_request_address = 0
 
     def write_register(self, address, value):
         # print("Writing to", address, "the value", value)

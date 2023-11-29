@@ -41,6 +41,10 @@ class Request:
         self.mode = "RTU"
         self.unit = ""
         self.reset = 0
+        self.latest_request_address = 0
+        self.latest_request_mode = 0
+        self.latest_request_decimals = 0
+        self.latest_request_count = 0
 
     def setup(self, unit, mode):
         self.unit = unit
@@ -99,6 +103,9 @@ class Request:
 
     def modbusregisters(self, start, count, signed=False):
         self.client.precalculate_read_size = True
+        self.latest_request_address = start
+        self.latest_request_mode = "Multi"
+        self.latest_request_count = count
         self.iter += 1
         try:
             self.response = "no data"
@@ -158,6 +165,9 @@ class Request:
 
         :type self: request Object for modbus comm
         """
+        self.latest_request_address = address
+        self.latest_request_mode = "Single"
+        self.latest_request_decimals = decimals
         if self.mode == "RTU":
             self.iter += 1
             self.client.precalculate_read_size = True

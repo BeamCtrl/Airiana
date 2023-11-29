@@ -342,11 +342,18 @@ sys.stdout.flush()
 
 
 ############DEVICE CLASS FOR SYSTEMAIR VR400DCV#############################
-def check_req(response, test, name):
-    if response != test:
-        os.write(ferr, bytes(f"Retrieved value for {name}={response}, but airiana was set to {test}, data updated."
-                             f"\t{time.ctime(time.time())}\n", "utf-8"))
-
+def check_req(request, test, name):
+    if request.response != test:
+        if request.latest_request_mode is "Single":
+            request.modbusregister(request.latest_request_address,
+                                   request.latest_request_decimals)
+        if request.response != test:
+            os.write(ferr, bytes(f"Retrieved value for {name}={request.response},"
+                                 f" but airiana was set to {test}, data updated."
+                                 f"\t{time.ctime(time.time())}\n", "utf-8"))
+            return False  # Return False as seccond request has been made and test is still false.
+        return True  # Return True as response test is valid after re-read.
+    return True  # Return True as response test is valid.
 
 class Systemair(object):
     def __init__(self, request_object):
@@ -590,7 +597,7 @@ class Systemair(object):
     def get_heater(self):
         if not self.savecair:
             self.req.modbusregister(200, 0)
-            check_req(int(self.req.response), self.heater, "electric_heater")
+            check_req(self.req, self.heater, "electric_heater")
             self.heater = int(self.req.response)
         else:
             self.heater = 0
@@ -734,12 +741,14 @@ class Systemair(object):
     def get_fanspeed(self):
         if not self.savecair:
             self.req.modbusregister(100, 0)
-            check_req(int(self.req.response), self.fanspeed, "fanspeed")
+            check_req(self.req, self.fanspeed, "fanspeed")
             self.fanspeed = int(self.req.response)
             return self.fanspeed
         else:
             self.req.modbusregister(1130, 0)
-            check_req(self.req.response - 1, self.fanspeed, "fanspeed")
+            self.req.response -= 1
+            check_req(self.req, self.fanspeed, "fanspeed")
+            self.req.modbusregister(1130, 0)
             if self.req.response <= 0:
                 self.fanspeed = 0
             else:
@@ -1105,20 +1114,21 @@ class Systemair(object):
     def get_rotor_state(self):
         if not self.savecair:
             self.req.modbusregister(206, 0)
-            check_req(self.req.response, self.exchanger_mode, "exchanger_mode")
+            check_req(self.req, self.exchanger_mode, "exchanger_mode")
             self.exchanger_mode = self.req.response
-            self.req.modbusregisters(350, 2)
-            check_req(self.req.response[0], self.rotor_state, "rotor_state")
-            check_req(self.req.response[1], self.rotor_active == "Yes", "rotor_active")
-            self.rotor_state = self.req.response[0]
-            if self.req.response[1]:
+            self.req.modbusregister(350, 0)
+            check_req(self.req, self.rotor_state, "rotor_state")
+            self.rotor_state = self.req.response
+            self.req.modbusregister(351, 0)
+            check_req(self.req, self.rotor_active == "Yes", "rotor_active")
+            if self.req.response:
                 self.rotor_active = "Yes"
                 self.exchanger_speed = 100
             else:
                 self.rotor_active = "No"
         else:
             self.req.modbusregister(2140, 0)
-            check_req(self.req.response > 0, self.exchanger_mode > 0, "exchanger_mode")
+            check_req(self.req, self.exchanger_mode, "exchanger_mode")
             if self.req.response:
                 self.rotor_active = "Yes"
                 self.exchanger_mode = 5
