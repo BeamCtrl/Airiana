@@ -137,7 +137,7 @@ Airana will every 4hrs check if there is a new stable release availible in this 
 
 #### Interface:
 
-System control and monitoring is done via a web-page at http://airana.local. from this interface you can toggle the winter/summer mode, set fanspeed low/mid/high, force the high mode on a timer for 2hrs if there is need for forced ventilation. System control is separated from the display so if you like you kan expose the web interface to the Internet without having outsiders change your settings. The sytem will not allow access from an external network unless explicitly directed to do so.
+System control and monitoring is done via a web-page at http://airiana.local. from this interface you can toggle the winter/summer mode, set fanspeed low/mid/high, force the high mode on a timer for 2hrs if there is need for forced ventilation. System control is separated from the display so if you like you kan expose the web interface to the Internet without having outsiders change your settings. The sytem will not allow access from an external network unless explicitly directed to do so.
 
 Tips and Tricks: if you want to run fans at low on a timer set forced ventilation and then manually set low speed. the timer inhibits the automation for 2 hrs
 
