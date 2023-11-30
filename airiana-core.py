@@ -1128,6 +1128,9 @@ class Systemair(object):
                 self.rotor_active = "No"
         else:
             self.req.modbusregister(2140, 0)
+            self.exchanger_speed = self.req.response
+            if self.req.response != 0:
+                self.req.response = 5
             check_req(self.req, self.exchanger_mode, "exchanger_mode")
             if self.req.response:
                 self.rotor_active = "Yes"
@@ -1136,7 +1139,6 @@ class Systemair(object):
                 self.exchanger_mode = 0
                 self.rotor_active = "No"
             self.rotor_state = 0
-            self.exchanger_speed = self.req.response
         self.status_field[1] = self.exchanger_mode
 
     # do moisture calculations
