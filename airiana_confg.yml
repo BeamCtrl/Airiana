@@ -1,105 +1,50 @@
-# MQTT sensors from Airiana
-binary_sensor:
-  - platform: mqtt
-    name: "Shower mode"
-    state_topic: "airiana"
-    value_template: "{{ value_json.shower }}"
-    payload_off: "false"
-    payload_on:  "true"
-  - platform: mqtt
-    name: "Cooling mode"
-    state_topic: "airiana"
-    value_template: "{{ value_json.coolingMode }}"
-    payload_off: "false"
-    payload_on:  "true"
+# Configure a default setup of Home Assistant (frontend, api, etc)
+default_config:
 
-sensor:
-  - platform: mqtt
-    name: "Exhaust"
-    state_topic: "airiana"
-    device_class: "temperature"
-    value_template: "{{ value_json.exhaust | round(2)}}"
-    unit_of_measurement: "  C"
+history:
+  exclude:
+    entity_globs:
+      - sensor.*
+      - binary_sensor.*
+logger:
+  default: warning
+  logs:
+    custom_components.kia_uvo: debug
 
-  - platform: mqtt
-    name: "Rotor speed"
-    state_topic: "airiana"
-    value_template: "{{ value_json.rotorSpeed }}"
-    unit_of_measurement: "%"
+recorder:
+#  purge_keep_days: 25
+#  db_url: sqlite:///dev/shm/database
+  include:
+    entities:
+      - binary_sensor.shower_mode
+      - sensor.rh
+      - sensor.power_transfer
+  exclude:
+    entity_globs:
+      - sensor.*
 
-  - platform: mqtt
-    name: "Inlet"
-    state_topic: "airiana"
-    device_class: "temperature"
-    unit_of_measurement: "°C"
-    value_template: "{{ value_json.inlet | round(2) }}"
+# Text to speech
+tts:
+  - platform: google_translate
 
-  - platform: mqtt
-    name: "Extract"
-    state_topic: "airiana"
-    device_class: "temperature"
-    unit_of_measurement: "°C"
-    value_template: "{{ value_json.extract | round(2) }}"
+group: !include groups.yaml
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
 
-  - platform: mqtt
-    name: "Supply"
-    state_topic: "airiana"
-    device_class: "temperature"
-    unit_of_measurement: "°C"
-    value_template: "{{ value_json.supply | round(2) }}"
 
-  - platform: mqtt
-    name: "ref RH%"
-    state_topic: "airiana"
-    device_class: "humidity"
-    unit_of_measurement: "%"
-    value_template: "{{ value_json.referenceHumidity | round(2) }}"
 
-  - platform: mqtt
-    name: "RH%"
-    state_topic: "airiana"
-    device_class: "humidity"
-    unit_of_measurement: "%"
-    value_template: "{{ value_json.measuredHumidity | round(2) }}"
+#HOMEKIT
+homekit:
+  - filter:
+      #include_domains:
+      #   - living_room
+      include_entity_globs:
+       - sensor.*
+      #include_entities:
+        #- demo.demo
 
-  - platform: mqtt
-    name: "Ambient Pressure"
-    state_topic: "airiana"
-    device_class: "pressure"
-    unit_of_measurement: "hPa"
-    value_template: "{{ value_json.pressure | round(0) }}"
-
-  - platform: mqtt
-    name: "Exchanger Efficiency"
-    state_topic: "airiana"
-    unit_of_measurement: "%"
-    value_template: "{{ value_json.efficiency | round(0) }}"
-
-  - platform: mqtt
-    name: "Filter remaining"
-    state_topic: "airiana"
-    unit_of_measurement: "%"
-    value_template: "{{ value_json.filterPercentRemaining | round(0) }}"
-
-  - platform: mqtt
-    name: "Filter time"
-    state_topic: "airiana"
-    unit_of_measurement: "days"
-    value_template: "{{ value_json.filterInstalledDays | round(0) }}"
-
-  - platform: mqtt
-    name: "Electric power"
-    state_topic: "airiana"
-    unit_of_measurement: "W"
-    value_template: "{{ value_json.electricPower | round(0) }}"
-
-  - platform: mqtt
-    name: "Rotor active"
-    state_topic: "airiana"
-    unit_of_measurement: ""
-    value_template: "{{ value_json.rotorActive }}"
-
-#Rest commands to Airiana
+#Rest commands to airiana
 rest_command:
   toggle_pressure:
     url: "http://airiana.local:8000/command?7"
@@ -129,4 +74,103 @@ rest_command:
     url: "http://airiana.local:8000/command?14"
     method: "get"
 
+# MQTT sensors from Airiana
+mqtt:
+  binary_sensor:
+    - state_topic: "airiana"
+      name: "Shower mode"
+      value_template: "{{ value_json.shower }}"
+      payload_off: "false"
+      payload_on:  "true"
 
+    - name: "Cooling mode"
+      state_topic: "airiana"
+      value_template: "{{ value_json.coolingMode }}"
+      payload_off: "false"
+      payload_on:  "true"
+
+    - name: "Rotor Active"
+      state_topic: "airiana"
+      value_template: "{{ value_json.rotorActive }}"
+      payload_off: "no"
+      payload_on:  "yes"
+
+
+  sensor:
+    - name: "Exhaust"
+      state_topic: "airiana"
+      device_class: "temperature"
+      value_template: "{{ value_json.exhaust | round(2)}}"
+      unit_of_measurement: "  C"
+
+    - name: "Rotor speed"
+      state_topic: "airiana"
+      value_template: "{{ value_json.rotorSpeed }}"
+      unit_of_measurement: "%"
+
+    - name: "Inlet"
+      state_topic: "airiana"
+      device_class: "temperature"
+      unit_of_measurement: "°C"
+      value_template: "{{ value_json.inlet | round(2) }}"
+
+    - name: "Extract"
+      state_topic: "airiana"
+      device_class: "temperature"
+      unit_of_measurement: "°C"
+      value_template: "{{ value_json.extract | round(2) }}"
+
+    - name: "Supply"
+      device_class: "temperature"
+      state_topic: "airiana"
+      unit_of_measurement: "°C"
+      value_template: "{{ value_json.supply | round(2) }}"
+
+    - name: "ref RH%"
+      device_class: "humidity"
+      state_topic: "airiana"
+      unit_of_measurement: "%"
+      value_template: "{{ value_json.referenceHumidity | round(2) }}"
+
+    - name: "RH%"
+      unique_id: "rh"
+      device_class: "humidity"
+      state_topic: "airiana"
+      unit_of_measurement: "%"
+      value_template: "{{ value_json.measuredHumidity | round(2) }}"
+
+    - name: "Ambient Pressure"
+      device_class: "pressure"
+      state_topic: "airiana"
+      unit_of_measurement: "hPa"
+      value_template: "{{ value_json.pressure | round(0) }}"
+
+    - name: "Exchanger Efficiency"
+      state_topic: "airiana"
+      unit_of_measurement: "%"
+      value_template: "{{ value_json.efficiency | round(0) }}"
+
+    - name: "Filter remaining"
+      state_topic: "airiana"
+      unit_of_measurement: "%"
+      value_template: "{{ value_json.filterPercentRemaining | round(0) }}"
+
+    - name: "Filter time"
+      state_topic: "airiana"
+      unit_of_measurement: "days"
+      value_template: "{{ value_json.filterInstalledDays | round(0) }}"
+
+    - name: "Electric power"
+      state_topic: "airiana"
+      unit_of_measurement: "W"
+      unique_id: "airiana.elec-power"
+      device_class: power
+      value_template: "{{ value_json.electricPower | round(0) }}"
+
+    - name: "Power transfer"
+      state_topic: "airiana"
+      state_class: "measurement"
+      unit_of_measurement: "W"
+      unique_id: "airiana.energyXfer"
+      device_class: energy
+      value_template: "{{ value_json.energyXfer | round(0) }}"
