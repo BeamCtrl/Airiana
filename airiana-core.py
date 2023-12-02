@@ -346,14 +346,14 @@ sys.stdout.flush()
 # ########### DEVICE CLASS FOR SYSTEMAIR #############################
 def check_req(request, test, name):
     if request.response != test:
-        if request.latest_request_mode is "Single":
+        if request.latest_request_mode == "Single":
             request.modbusregister(request.latest_request_address,
                                    request.latest_request_decimals)
         if request.response != test:
             os.write(ferr, bytes(f"Retrieved value for {name}={request.response},"
                                  f" but airiana was set to {test}, data updated."
                                  f"\t{time.ctime(time.time())}\n", "utf-8"))
-            return False  # Return False as seccond request has been made and test is still false.
+            return False  # Return False as second request has been made and test is still false.
         return True  # Return True as response test is valid after re-read.
     return True  # Return True as response test is valid.
 
