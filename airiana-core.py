@@ -2,20 +2,20 @@
 # -*- coding: utf-8 -*-
 ############################
 vers = "11.0"
-import airdata
-import numpy
-import select
-import threading
-import os
-import traceback
-import time
-import sys
-import signal
-import math
-import pickle
-import socket
-import syslog
-from request import Request
+import airdata  # noqa
+import numpy  # noqa
+import select  # noqa
+import threading  # noqa
+import os  # noqa
+import traceback  # noqa
+import time  # noqa
+import sys  # noqa
+import signal  # noqa
+import math  # noqa
+import pickle  # noqa
+import socket  # noqa
+import syslog  # noqa
+from request import Request  # noqa
 
 numpy.seterr('ignore')
 #############################
@@ -27,6 +27,7 @@ holdoff_t = time.time() - 3000  # one hr - 10 minutes
 if "TCP" in sys.argv:
     mode = "TCP"
 
+
 class ControlledExit(Exception):
     """
     Exit exception
@@ -35,7 +36,7 @@ class ControlledExit(Exception):
 
 
 # Register cleanup
-def exit_callback(self, arg=0):
+def exit_callback(self):
     global Running
     Running = False
     print("Graceful shutdown\nexiting on signal", self)
@@ -44,11 +45,11 @@ def exit_callback(self, arg=0):
     shutdown = time.time()
     os.system("cp ./RAM/data.log ./data.save")
     if threading.enumerate()[-1].name == "Timer":
-        threading.enumerate()[-1].cancel()
+        threading.enumerate()[-1].cancel() # noqa this is a threading.Timer, is has cancel()
     cmd_socket.close()
     os.write(ferr, bytes("Exiting in a safe way" + "\n", encoding='utf8'))
     # Sleep until one iteration has passed, or we've been in shutdown for 3 sec.
-    while (time.time() < shutdown + 3):
+    while time.time() < shutdown + 3:
         if device.iter > now:  # if main loop completes an iteration, exit.
             break
         time.sleep(0.5)
@@ -56,8 +57,8 @@ def exit_callback(self, arg=0):
     raise ControlledExit
 
 
-signal.signal(signal.SIGTERM, exit_callback)
-signal.signal(signal.SIGINT, exit_callback)
+signal.signal(signal.SIGTERM, exit_callback)  # noqa ignore arg type check
+signal.signal(signal.SIGINT, exit_callback)  # noqa ignore arg type check
 path = ""
 try:
     path = os.path.abspath(__file__).replace(__file__.split("/")[-1], "")
@@ -72,7 +73,7 @@ except FileNotFoundError:
 os.chdir(path + "/public")
 os.system("./ip-replace.sh")  # reset ip-addresses on buttons.html
 os.chdir(path)
-os.system("./http &> /dev/null")  #  Start web service
+os.system("./http &> /dev/null")  # Start web service
 listme = []
 #  cpy saved data to RAM ##
 if not os.path.lexists("./data.save"):
@@ -117,6 +118,7 @@ else:
 # Command socket setup
 hostname = os.popen("hostname").read()[:-1]
 print("Trying to Run on host:", hostname, ", for 60sec;")
+cmd_socket = None
 while True:
     try:
         cmd_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -127,14 +129,14 @@ while True:
         traceback.print_exc(ferr)
         os.system("sleep 1")
         print("sleeping;")
-        if time.time() - starttime > 60: break
-
+        if time.time() - starttime > 60:
+            break
 #  Utility functions, clear screen, count_down etc.
 sensor_dict = {}
 
 
-def count_down(inhibit, target):
-    inhibit = int(target - (time.time() - inhibit))
+def count_down(inhibit, target_time):
+    inhibit = int(target_time - (time.time() - inhibit))
     if inhibit > 3600:
         hrs = math.floor(inhibit / 3600)
         inhibit = int(inhibit - (hrs * 3600))
@@ -173,7 +175,7 @@ def report_alive():
                     os.lseek(fd, -size_t, os.SEEK_END)
                     temp = os.read(fd, size_t)
                     os.close(fd)
-                    if size_t == 5 * 1024 and not "keep-log" in sys.argv:
+                    if size_t == 5 * 1024 and "keep-log" not in sys.argv:
                         os.lseek(ferr, 0, os.SEEK_SET)
                         os.ftruncate(ferr, 0)
                         os.fsync(ferr)
@@ -197,8 +199,9 @@ def report_alive():
                     message += temp.decode("utf-8") + "<br>"
                     message += os.popen("df |grep RAM").read() + "<br>"
                     message += os.popen("df |grep var").read() + "<br>"
-                    if os.path.lexists("RAM/error_rate"): message += os.popen("cat RAM/error_rate").read() + "<br>"
-                except:
+                    if os.path.lexists("RAM/error_rate"):
+                        message += os.popen("cat RAM/error_rate").read() + "<br>"
+                except: # noqa do not care if this is failing
                     os.write(ferr, bytes("Ping error " + str(traceback.print_exc()) + "\n", encoding='utf8'))
                     try:
                         os.close(fd)
@@ -221,7 +224,7 @@ def report_alive():
 
         # sock =  socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
         # sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
-        ##sock.close()
+        # #sock.close()
     except NameError:
         os.write(ferr, bytes("unable to ping, network error\t" + time.ctime() + "\n", "utf8"))
         traceback.print_exc(ferr)
@@ -232,20 +235,20 @@ def update_sensors():
     try:
         with open("sensors", "r") as fd:
             for each in fd.readlines():
-                unit = each.split(":")
-                id = unit[0]
-                unit.pop(0)
+                sensor_unit = each.split(":")
+                sensor_id = sensor_unit[0]
+                sensor_unit.pop(0)
                 tmp = {}
-                for sensor in unit:
+                for sensor in sensor_unit:
                     dat = sensor.split(";")
                     tmp[dat[0]] = dat[1]
-                sensor_dict[id] = tmp
+                sensor_dict[sensor_id] = tmp
             try:
                 device.sensor_temp = float(sensor_dict["91"]["temperature"])
                 device.sensor_humid = int(sensor_dict["91"]["humidity"])
                 device.airdata_inst.humid = float(device.sensor_humid) / 100
             except KeyError:
-                pass  # device.msg +="\nerror on sensor 91"
+                pass
             try:
                 device.inside = float(sensor_dict["92"]["temperature"])
                 device.inside_humid = int(sensor_dict["92"]["humidity"])
@@ -265,7 +268,6 @@ def update_sensors():
 # WRITE TO DATA.LOG
 def logger():
     try:
-
         with open("./RAM/data.log", "a+") as fdo:
             # +str(device.extract_humidity*100)\
             cmd = "" \
@@ -295,7 +297,7 @@ def logger():
                   + ":" + str(device.moist_out) \
                   + ":" + str(device.humidity_diff)
             fdo.write(cmd + "\n")
-    except:
+    except FileError:
         traceback.print_exc(ferr)
     if "homeAss" in sys.argv:
         os.system("./ha-httpsensor.py -n ftx_Indoor -u °C -d temperature -v " + str(
@@ -305,7 +307,7 @@ def logger():
         try:
             os.system("./ha-httpsensor.py -n ftx_Efficiency -u % -d calculated -v " + str(
                 round(numpy.average(device.eff_ave), 2)) + ">/dev/null &")
-        except:
+        except: # noqa this section is deprecated
             traceback.print_exc(ferr)
 
         os.system(
@@ -336,12 +338,12 @@ class FileError(Exception):
     pass
 
 
-#################################################################################
+# ####################################################################
 start = time.time()  # START TIME
 sys.stdout.flush()
 
 
-############DEVICE CLASS FOR SYSTEMAIR VR400DCV#############################
+# ########### DEVICE CLASS FOR SYSTEMAIR #############################
 def check_req(request, test, name):
     if request.response != test:
         if request.latest_request_mode is "Single":
@@ -355,8 +357,11 @@ def check_req(request, test, name):
         return True  # Return True as response test is valid after re-read.
     return True  # Return True as response test is valid.
 
+
 class Systemair(object):
     def __init__(self, request_object):
+        self.eff = None
+        self.coef_prev_inlet = None
         self.shower_initial = None
         self.initial_fanspeed = None
         self.req = request_object
@@ -615,12 +620,12 @@ class Systemair(object):
 
     # get the coef mode, for dict matching
     def get_coef_mode(self):
-        mode = 0
+        operating_mode = 0
         if self.exchanger_mode == 5 and self.exchanger_speed == 100:
-            mode += 1
+            operating_mode += 1
         if self.sf != self.ef:
-            mode += 2
-        return mode
+            operating_mode += 2
+        return operating_mode
 
     # calculate a new coef if fanspeed change renders high dt values  //UNused
     def coef_debug(self):
@@ -636,7 +641,7 @@ class Systemair(object):
                 self.coef_prev_temp += float(each[1]) / 10
             self.coef_prev_temp = self.coef_prev_temp / len(self.rawdata)
             self.coef_prev_inlet = self.inlet_ave
-        if (self.inhibit == 0 or self.fanspeed == 2) and self.coef_test_bool == True:
+        if (self.inhibit == 0 or self.fanspeed == 2) and self.coef_test_bool:
             temp = 0
             for each in self.rawdata:
                 temp += float(each[1]) / 10
@@ -684,14 +689,12 @@ class Systemair(object):
             if len(self.hum_list) > self.average_limit:
                 self.hum_list.pop(-1)
             try:
-                # if an update of the humidity value on the sensor exeeds 2points reuse last known value
+                # if an update of the humidity value on the sensor exceeds 2 points reuse last known value
                 if abs(self.humidity - self.hum_list[1]) > 2:
                     self.humidity = self.hum_list[1]
                     self.hum_list[0] = self.humidity
             except IndexError:
                 pass
-            except:
-                traceback.print_exc(ferr)
 
     # get the nr of days  used and alarm lvl for filters
     def get_filter_status(self):
@@ -702,7 +705,7 @@ class Systemair(object):
             self.filter = self.req.response
             try:
                 self.filter_remaining = round(100 * (1 - (float(self.filter) / self.filter_limit)), 1)
-            except:
+            except ValueError:
                 traceback.print_exc(ferr)
 
             if self.filter_remaining < 0:
@@ -804,7 +807,7 @@ class Systemair(object):
             while extract == "no data" and cnt < 10:
                 self.req.modbusregister(12543, 1)
                 extract = self.req.response
-            try:  # replace erronous data input when temp diff exceeds 1C between samples
+            try:  # replace erroneous data input when temp diff exceeds 1C between samples
                 if extract - self.rawdata[0][1] > 50 and (extract != 0.0 or self.rawdata[1][1] != 0.0):
                     os.write(ferr, bytes("temp read error at: " + str(extract) + "C \t" + str(time.ctime()) + "\n",
                                          encoding='utf8'))
@@ -817,8 +820,6 @@ class Systemair(object):
                 traceback.print_exc(ferr)
                 extract = self.rawdata[1][1]
                 pass
-            except:
-                traceback.print_exc(ferr)
 
             self.req.modbusregister(12102, 1)
             supply = self.req.response
@@ -862,7 +863,8 @@ class Systemair(object):
         except ZeroDivisionError:
             self.eff = 100
         self.eff_ave.insert(0, self.eff)
-        if len(self.eff_ave) > self.average_limit: self.eff_ave.pop(-1)
+        if len(self.eff_ave) > self.average_limit:
+            self.eff_ave.pop(-1)
 
     # Return the Tcomp temperature offset for extraction temps
     def get_tcomp(self, extract, inlet):
@@ -872,8 +874,10 @@ class Systemair(object):
             dyn_coef = 0
             try:
                 if self.fanspeed and len(self.coef_dict[self.get_coef_mode()]) != 0:
-                    dyn_coef = numpy.median(list(self.coef_dict[self.get_coef_mode()].values())) * float(1) / (
-                        self.fanspeed)  # self.dyn_coef #float(7*34)/self.sf # compensation (heat transfer from duct) + (supply flow component)
+                    dyn_coef = (numpy.median(list(self.coef_dict[self.get_coef_mode()].values()))
+                                * float(1) / self.fanspeed)
+                    # self.dyn_coef #float(7*34)/self.sf
+                    # compensation (heat transfer from duct) + (supply flow component)
                 if self.fanspeed == 3:
                     dyn_coef = 0
             except KeyError:
@@ -881,17 +885,14 @@ class Systemair(object):
                     dyn_coef = numpy.average(list(self.coef_dict[self.get_coef_mode()].values()))
                     if numpy.isnan(dyn_coef):
                         dyn_coef = 0
-            except:
+            except ZeroDivisionError:
                 traceback.print_exc(ferr)
-            try:
-                if dyn_coef != self.new_coef:
-                    self.new_coef += 0.0001 * (dyn_coef - self.new_coef)
-                    if abs(dyn_coef - self.new_coef) < 0.001:
-                        self.new_coef = dyn_coef
-            except:
-                traceback.print_exc(ferr)
-            tcomp = (
-                        diff) * -self.new_coef
+
+            if dyn_coef != self.new_coef:
+                self.new_coef += 0.0001 * (dyn_coef - self.new_coef)
+                if abs(dyn_coef - self.new_coef) < 0.001:
+                    self.new_coef = dyn_coef
+            tcomp = diff * -self.new_coef
         except ZeroDivisionError:
             pass
         if numpy.isnan(tcomp):
@@ -1394,7 +1395,7 @@ class Systemair(object):
         tmp += "Filter has been installed for " + str(math.ceil(self.filter)) + " days ," + str(
             self.filter_remaining) + "% remaining. \n\n"
         tmp += "Ambient Pressure:" + str(round(self.airdata_inst.press, 2)) + "hPa\n"
-        if self.forecast[1] != -1: tmp += "Weather forecast: " + str(self.forecast[0]) + "C " + str(
+        if self.forecast[1] != -1: tmp += "Weather forecast (12:00 tomorrow): " + str(self.forecast[0]) + "C " + str(
             self.forecast[1] / 8 * 100) + "% cloud cover RH:" + str(self.forecast[2]) + "%\n\n"
         if "Timer" in threading.enumerate()[-1].name:
             tmp += "Ventilation timer on: " + count_down(self.timer, 120 * 60) + "\n"
@@ -1510,7 +1511,7 @@ class Systemair(object):
                 and self.flowOffset[0] > 0 \
                 and self.humidity_diff < 350:
             self.flowOffset[0] -= 1
-            self.flowOffset[1] = time.time()
+            self.flowOffset[1] = time.time()  # noqa
 
     # Monitor Logical criteria for state changes on exchanger, pressure, RPMs, forecast
     def monitor(self):
@@ -1766,7 +1767,7 @@ class Systemair(object):
     # Get the active forecast
     def get_forecast(self):
         # Weather forecast modes
-        forcast = [-1, -1, -1]
+        self.forecast = [-1, -1, -1]
         try:
             forcast = os.popen("./forcast2.0.py tomorrow").readlines()
             # First line
@@ -1779,7 +1780,7 @@ class Systemair(object):
             # get tomorrows-low values
             tomorrows_low = os.popen("./forcast2.0.py tomorrows-low").read()[:-1].split(" ")
             for index in range(len(tomorrows_low)):
-                self.tomorrows_low[index] = float(tomorrows_low[index])
+                self.tomorrows_low[index] = float(tomorrows_low[index])  # noqa
             # print self.tomorrows_low
             # get integral for coming days
             self.integral_forcast = float(os.popen("./forcast2.0.py integral " + str(self.cooling_limit)).read())
@@ -1788,15 +1789,15 @@ class Systemair(object):
                 "FileError: file too old")
         except IOError:
             traceback.print_exc(ferr)
-            self.msg += "error getting forecast.(io error)\n" + str(forcast)
+            self.msg += "error getting forecast.(io error)\n" + str(self.forecast)
             self.forecast = [-1, -1, -1]
         except IndexError:
             traceback.print_exc(ferr)
-            self.msg += "error getting forecast.(index error)\n" + str(forcast)
+            self.msg += "error getting forecast.(index error)\n" + str(self.forecast)
         # self.forecast=[-1,-1]
         except FileError:
             traceback.print_exc(ferr)
-            self.msg += "error getting forecast.(file too old)\n" + str(forcast)
+            self.msg += "error getting forecast.(file too old)\n" + str(self.forecast)
 
     # set the fan pressure diff
     def set_differential(self, percent):
@@ -1939,6 +1940,7 @@ class Systemair(object):
             comp = 0
 
         self.kinetic_compensation -= comp * self.avg_frame_time
+        saturation_point = 0
         if self.prev_static_temp >= self.inlet_ave:
             self.local_humidity = self.moisture_calcs(
                 saturation_point - self.kinetic_compensation)  # if 24hr low is higher than current temp
@@ -1962,7 +1964,7 @@ class Systemair(object):
                         self.kinetic_compensation += wind / 16
                     if fog_cover > 75:  # if fog over 75%
                         self.kinetic_compensation = 0
-                except:
+                except ValueError:
                     os.write(ferr, bytes("Unable to update morning low with wind/fog compensation" + "\t" + str(
                         time.ctime()) + "\n", "utf-8"))
 
@@ -2234,15 +2236,17 @@ if __name__ == "__main__":
             except IndexError:
                 pass
             data = -1
+            sender = ""
             input_buffers = select.select([sys.stdin, cmd_socket], [], [], timeout)[0]
             try:
                 if cmd_socket in input_buffers:
                     try:
-                        sock = cmd_socket.recvfrom(128)
-                        data = sock[0]
+                        data, sender = cmd_socket.recvfrom(128)
                         data = int(data.decode("utf-8"))
-                        sender = sock[1]
-                    except:
+                    except ValueError:
+                        data = None
+                        sender = "invalid"
+                    except socket.error:
                         pass
                     try:
                         log = "echo \"" + str(time.ctime()) + ":" + str(sender) + ":" + str(data) + "\" >> netlog.log &"
@@ -2318,38 +2322,40 @@ if __name__ == "__main__":
                             traceback.print_exc(ferr)
 
                     if data == 8:  # toggle forced vent timer
+                        if threading.enumerate()[-1].name != "Timer":
+                            os.write(ferr,
+                                     bytes("Vent timer started at:\t" + str(time.ctime()) + "\n", encoding='utf8'))
+                            prev = device.fanspeed
+                            device.set_fanspeed(3)
+                            device.monitoring = False
+                            device.msg += "Forced Ventilation on timer\n"
+                            tim2 = threading.Timer(60.0 * 120 + 2, device.set_monitoring, [True])
+                            tim2.start()
+                            tim = threading.Timer(60.0 * 120, device.reset_fanspeed, [prev])
+                            tim.name = "Timer"
+                            device.timer = time.time()
+                            tim.start()
+
                         try:
                             if threading.enumerate()[-1].name == "Timer":
-                                if tim.name == "Timer": tim.cancel()
-                                if tim2.name == "Timer": tim2.cancel()
+                                for thread in threading.enumerate():
+                                    if thread.name == "Timer":
+                                        thread.cancel()  # noqa the class is actually threading.Timer
                                 device.msg += "Removed Forced ventilation timer\n"
                                 os.write(ferr, bytes(
                                     bytes("Vent Timer canceled at:\t" + str(time.ctime()) + "\n", encoding='utf8')))
                                 device.monitoring = True
                                 device.timer = False
-
-                            if threading.enumerate()[-1].name != "Timer":
-                                os.write(ferr,
-                                         bytes("Vent timer started at:\t" + str(time.ctime()) + "\n", encoding='utf8'))
-                                prev = device.fanspeed
-                                device.set_fanspeed(3)
-                                device.monitoring = False
-                                device.msg += "Forced Ventilation on timer\n"
-                                tim2 = threading.Timer(60.0 * 120 + 2, device.set_monitoring, [True])
-                                tim2.start()
-                                tim = threading.Timer(60.0 * 120, device.reset_fanspeed, [prev])
-                                tim.name = "Timer"
-                                device.timer = time.time()
-                                tim.start()
-                        except:
+                        except IndexError:
                             traceback.print_exc(ferr)
                             print("force vent error")
 
                     if data == 9:  #
                         try:
                             if threading.enumerate()[-1].name == "fire":
-                                if tim.name == "fire": tim.cancel()
-                                if tim2.name == "fire": tim2.cancel()
+                                for thread in threading.enumerate():
+                                    if thread.name == "fire":
+                                        thread.cancel()  # noqa the class is actually threading.Timer
                                 device.msg += "Removed fire starter ventilation timer\n"
                                 os.write(ferr, bytes(
                                     bytes("Fire timer canceled at:\t" + str(time.ctime()) + "\n", encoding='utf8')))
@@ -2368,9 +2374,9 @@ if __name__ == "__main__":
                                 tim2 = threading.Timer(60.0 * 10 + 2, device.set_monitoring, [True])
                                 tim2.start()
                                 tim = threading.Timer(60.0 * 10, device.reset_fanspeed, [prev])
-                                tim.setName("fire")
+                                tim.name = "fire"
                                 tim.start()
-                        except:
+                        except IndexError:
                             traceback.print_exc(ferr)
                             print("fire starter error")
                     if data == 0:  # cycle exchanger mode
@@ -2419,9 +2425,8 @@ if __name__ == "__main__":
                                      encoding='utf8'))
     except TypeError:
         traceback.print_exc(ferr)
-
     except ControlledExit:
         exit(0)
-    except:
+    except:  # noqa
         traceback.print_exc(ferr)
     syslog.syslog("Airiana-core not running, at end of line... this is bad")
