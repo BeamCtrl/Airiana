@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 # density -50C: 1.534 kg/m3  +40C:1.127kg/m3
-# specifc heat capacity -50C:1.005KJ/kg*K +40:1.005 KJ/kg*K
+# specific heat capacity -50C:1.005KJ/kg*K +40:1.005 KJ/kg*K
 # roh = p/RT pressure / 287058 *  273,15+T isa press 101325Pa
 import os
 import sys
@@ -10,10 +10,22 @@ import math
 """ Energy class for handling airdata calculations"""
 
 
+def condensation_mass(energy):
+    """Return equivalent mass of a given energy of condensing water vapor"""
+    return float(energy) / 2490  # (g) 2490kJ/kg latent heat conversion
+
+
+def condensation_energy(grams):
+    """Return latent energy in a given mass of condensing water vapor"""
+    return float(grams * 2490)  # 2490 kJ/kg condensate water
+
+
 class Energy(object):
     def __init__(self):
+        self.abs = None
+        self.pw = None
         try:
-            # GET AMBIENT PRESURE##
+            # GET AMBIENT PRESSURE##
             self.P_RED = 0.12  # hPa per meter
             self.press = float(os.popen("./forcast2.0.py pressure").read())
             self.alt = int(os.popen("./forcast2.0.py altitude").read())
@@ -24,8 +36,8 @@ class Energy(object):
             err.write("Airdata.py pressure error: " + str(sys.exc_info()))
             err.close()
             print("1013.25")
-        except:
-            print("error occured getting current pressure ISA assumed")
+        except FileNotFoundError:
+            print("error occurred getting current pressure ISA assumed")
             self.press = 1013.25
             err = open("airdata_error.log", "w")
             err.write("Airdata.py pressure error: " + str(sys.exc_info()))
@@ -65,7 +77,7 @@ class Energy(object):
         # print dt
         return d_temp
 
-    # CALCULATE THE ENERGY REQUIRED TO SENSIBLY RAISE OR LOWER TEMPERATURE FOR A GIVVEN VOLUME
+    # CALCULATE THE ENERGY REQUIRED TO SENSIBLY RAISE OR LOWER TEMPERATURE FOR A GIVEN VOLUME
     def energy_flow(self, litres, high, low):
         total = 0
         step = 1
@@ -78,7 +90,7 @@ class Energy(object):
         try:
             mass = volume * self.press * 100 / self.R * (math.log(self.T + high) - math.log(self.T + low)) / (
                     high - low)
-        except:
+        except ZeroDivisionError:
             mass = 0
         energy = mass * self.specific_heat * (high - low) * 1000  # kg * J/gK * K = J
         return energy
@@ -86,7 +98,7 @@ class Energy(object):
     # RETURN MAXIMUM VAPOR CONTENT BY MASS
     def vapor_max(self, T):
         self.pw = 6.1121 * math.exp((18.678 - T / 234.5) * (T / (T + 257.14)))
-        self.abs = (self.pw * 2.16679) / (self.T + T) * 100  #### BUG WHY FACTOR 100//solved convertsion from hPa
+        self.abs = (self.pw * 2.16679) / (self.T + T) * 100  # BUG WHY FACTOR 100//solved conversion from hPa
         # print self.abs,"g/m3 vapor_max"," temp:",T," sat. pressure:",self.pw
         return self.abs
 
@@ -110,45 +122,36 @@ class Energy(object):
         return (self.mass_const * pw) / (self.press - pw)
 
     def energy_to_pwdiff(self, energy, temp):
-        mass_quiv = self.condensation_mass(energy)  # grams condensate per kilogram air
-        # d_pw = self.press*100*(float(mass_quiv*0.001)/self.mass_const)
-        d_pw = (mass_quiv / 1000 * self.press * 100) / (self.mass_const + mass_quiv)  # /(self.get_mass(temp)*1000)
+        mass_equiv = condensation_mass(energy)  # grams condensate per kilogram air
+        # d_pw = self.press*100*(float(mass_equiv*0.001)/self.mass_const)
+        d_pw = (mass_equiv / 1000 * self.press * 100) / (self.mass_const + mass_equiv)  # /(self.get_mass(temp)*1000)
         return d_pw
-
-    def condensation_mass(self, energy):
-        return float(energy) / 2490  # (g) 2490kJ/kg latent heat convertsion
 
     def xchange_humid(self, T):
         content = (self.abs * self.humid) / 100
         rel = float(content / self.vapor_max(T)) * 100
 
-    # print "extraction relative humidity:", round(rel,0), "% ", "vapor content is:",round(content,2), "grams per cubic meter"
+    def dew_point(self, rh, temp):
+        """CALCULATE DEWPOINT FROM temperature and relative humidity"""
+        if rh == 100: return temp
 
-    # Return latent energy in a givven mas of condensing water vapor
-    def condensation_energy(self, grams):
-        return float(grams * (2490))  # 2490 kJ/kg consensated water
-
-    # CALCULATE DEWPOINT FROM temperature and relative humidity
-    def dew_point(self, RH, temp):
-        if RH == 100: return temp
-
-        def gamma(RH, temp):
-            Ps = math.log((float(RH) / 100) * self.sat_vapor_press(temp))
-            return Ps
+        def gamma(relative, temperature):
+            ps = math.log((float(relative) / 100) * self.sat_vapor_press(temperature))
+            return ps
 
         # return (257.14*gamma(RH,temp))/(18.678-gamma(RH,temp))
         diff = -10000000
-        T = temp
-        reference = self.sat_vapor_press(T) * (float(RH) / 100)
+        t = temp
+        reference = self.sat_vapor_press(t) * (float(rh) / 100)
         while diff < 0:
-            diff = reference - self.sat_vapor_press(T)
-            T = T - 0.1
-        return T + 0.1
+            diff = reference - self.sat_vapor_press(t)
+            t = t - 0.1
+        return t + 0.1
 
 
 # Abs_hum  = C * Pw/T  C = 2.16679 gK/J Pw vapor press T temp in Kelvin
 # Pw = A*10^(mT/T+Tn)  -->A=6.116441 m=7.591386 Tn=240.7263   vl -20C ->+50C
-# ref Vaisala.comhumidity conversion formulas
+# ref Vaisala.com humidity conversion formulas
 if "__main__" in __name__:
     air = Energy()
     if len(sys.argv) > 1:
@@ -164,6 +167,9 @@ if "__main__" in __name__:
     print("")
     # air.a = 16.500
     """for RH in range(1,100,8):
-		print  RH,"%:",round(air.dew_point(RH,each),1)," ", 
-	print """
+        print  RH,"%:",round(air.dew_point(RH,each),1)," ", 
+        print """
     print(str(air.press) + "hPa")
+
+    print (air.energy_flow(30, 5.5, -0.2))
+    print (condensation_mass(air.energy_flow(30, 5.5, -0.3)))

@@ -360,6 +360,7 @@ def check_req(request, test, name):
 
 class Systemair(object):
     def __init__(self, request_object):
+        self.used_energy = None
         self.eff = None
         self.coef_prev_inlet = None
         self.shower_initial = None
@@ -1006,13 +1007,11 @@ class Systemair(object):
                 self.exhaust_ave = self.exhaust[0]
 
         if self.fanspeed != 0:
-            # self.availible_energy =  self.airdata_inst.energy_flow(self.ef,self.extract_ave,self.inlet_ave)+self.airdata_inst.condensation_energy((self.airdata_inst.vapor_max(self.exhaust_ave)-self.airdata_inst.vapor_max(self.inlet_ave))*((self.ef)/1000))
-
-            try:
-                self.used_energy = self.airdata_inst.energy_flow(self.sf, self.supply_ave, self.inlet_ave)
-            except:
-                traceback.print_exc(ferr)
-                self.used_energy = 0
+            # self.available_energy =  self.airdata_inst.energy_flow(self.ef, self.extract_ave, self.inlet_ave)
+            #                             + self.airdata_inst.condensation_energy(
+            #                             (self.airdata_inst.vapor_max(self.exhaust_ave)
+            #                             - self.airdata_inst.vapor_max(self.inlet_ave)) * ((self.ef) / 1000))
+            self.used_energy = self.airdata_inst.energy_flow(self.sf, self.supply_ave, self.inlet_ave)
             factor = 1  # casing transfer correction factor
             if self.rotor_active == "Yes":
                 if self.fanspeed == 3:
@@ -1101,7 +1100,7 @@ class Systemair(object):
         if "sensors" in sys.argv and self.ac_active:
             self.exhaust_ave = self.sensor_exhaust
 
-    # For units whithout exhaust temp sensor calc expected exhaust temp based on transfered energy in supply
+    # For units without exhaust temp sensor calc expected exhaust temp based on transferred energy in supply
     def calc_exhaust(self):
         if self.supply_power and self.ef and not self.ac_active:
             if self.supply_ave > self.inlet_ave:
