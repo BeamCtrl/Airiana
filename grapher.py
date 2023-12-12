@@ -1,15 +1,15 @@
 #!/usr/bin/python3
-import numpy as np
-import matplotlib
 import traceback
 import time as tm
 import os
-import sys
 import math
-matplotlib.use('Agg')
+import warnings
 from pylab import *
 
+matplotlib.use('Agg')
+
 ioff()
+warnings.filterwarnings("ignore", module='matplotlib\..*')  # noqa
 
 if len(sys.argv) >= 2:
     try:
@@ -19,7 +19,7 @@ if len(sys.argv) >= 2:
         day = 3600 * 24
 else:
     day = 3600 * 24
-lines = int(math.ceil(day/5))
+lines = int(math.ceil(day / 5))
 if day > 3600 * 24:
     fil = os.popen("tail -n " + str(lines) + " ./data.log")
     data = fil.readlines()
@@ -138,7 +138,7 @@ try:
 except ValueError:
     exit(0)
 low, high = ax.get_ylim()
-step = floor((high - low)/30)+1
+step = floor((high - low) / 30) + 1
 ax.yaxis.set_ticks(np.arange(int(low), int(high + 1), 1))
 try:
     ax.set_xlim(min(time[-day:-1]), max(time[-day:-1]))
@@ -209,7 +209,7 @@ setp(s1.get_xticklabels(), rotation=45)
 # Humidities
 if "debug" in sys.argv or "hasRH" in sys.argv:
     if len(labels) < len(s2.get_xticklabels()):
-         labels.append("")
+        labels.append("")
     s2.set_xticklabels(labels)
     setp(s2.get_xticklabels(), rotation=45)
 # Partial Pressures
