@@ -62,7 +62,8 @@ try:
                 sys.stdout.flush()
                 tmp = each.split(":")
                 for entry in tmp:
-                    if entry == np.nan: entry = 0
+                    if entry == np.nan:
+                        entry = 0
 
                 temp = (tm.time() - day) - ((tm.time() - day) % (3600))
                 if float(tmp[0]) > temp:
