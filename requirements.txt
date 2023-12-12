@@ -10,4 +10,5 @@ progressbar~=2.5
 numpy~=1.22.1
 pyserial~=3.5
 pyModbusTCP~=0.1.10
-pytest
+pytest~=7.4.2
+pylab
