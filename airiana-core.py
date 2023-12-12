@@ -36,10 +36,10 @@ class ControlledExit(Exception):
 
 
 # Register cleanup
-def exit_callback(self):
+def exit_callback(self, return_code):
     global Running
     Running = False
-    print("Graceful shutdown\nexiting on signal", self)
+    print("Graceful shutdown\nexiting on signal", self, return_code)
     sys.stdout.flush()
     now = device.iter
     shutdown = time.time()
