@@ -2399,7 +2399,7 @@ if __name__ == "__main__":
                         forced_ventilation(device)
 
                     if data == 9:  #
-                        fireplace_mode()
+                        fireplace_mode(device)
                     if data == 0:  # cycle exchanger mode
                         device.cycle_exchanger(None)
                         device.modetoken = time.time()
