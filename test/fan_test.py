@@ -71,3 +71,37 @@ def test_forced_fans():
     assert ok is True
 
 
+def test_fireplace_mode():
+    """Test the forced ventilation 2hrs timer"""
+    req = MockRequest.MockRequest()
+    dev = airiana_core.Systemair(req)
+    dev.inlet_ave = 20.0
+    dev.indoor_dewpoint = 5.0
+    dev.extract_ave = 21.0
+    dev.set_fanspeed(1)
+    assert dev.fanspeed == 1
+    airiana_core.fireplace_mode(dev)
+    time.sleep(1)
+    assert dev.inhibit != 0
+    assert dev.pressure_diff == -10
+    ok = False
+    for thread in threading.enumerate():
+        if thread.name == "fire":
+            ok = True
+    assert ok is True
+    assert dev.fanspeed == 3
+
+    airiana_core.fireplace_mode(dev)
+    dev.inhibit = 0
+    dev.forecast = [1, 2, 3]
+    dev.dynamic_fan_control()
+    dev.inhibit = 0
+    dev.dynamic_pressure_control()
+    time.sleep(1.5)
+    assert dev.pressure_diff >= 0
+    ok = True
+    for thread in threading.enumerate():
+        if thread.name == "fire" and thread.is_alive():
+            ok = False
+    assert ok is True
+    assert dev.fanspeed != 3

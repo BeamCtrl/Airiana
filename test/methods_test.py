@@ -50,4 +50,5 @@ def test_methods():
         dev.check_coef()
         dev.reset_fanspeed(3)
         airiana_core.forced_ventilation(dev)
+        airiana_core.fireplace_mode(dev)
         dev.savecair = True
