@@ -1607,16 +1607,18 @@ class Systemair(object):
                 if self.inlet_ave > self.indoor_dewpoint + 0.2 and self.pressure_diff != 0 and not self.press_inhibit and not \
                         self.forecast[1] == -1:
                     self.set_differential(0)
-                    if "debug" in sys.argv: self.msg += "\nPressure diff to 0%"
+                    if "debug" in sys.argv:
+                        self.msg += "Pressure diff to 0%\n"
                 if (
                         self.inlet_ave < self.indoor_dewpoint - 0.1 and self.pressure_diff != 10 and self.inlet_ave < 15 and not self.press_inhibit) or (
                         self.forecast[-1] == -1 and self.sf == self.ef):
                     self.set_differential(10)
-                    if "debug" in sys.argv: self.msg += "\nPressure diff to +10%"
+                    if "debug" in sys.argv:
+                        self.msg += "Pressure diff to +10%\n"
 
     def dynamic_fan_control(self):
         if not self.inhibit and not self.shower and not self.cool_mode:
-            # dynamic with RHsensor
+            # dynamic with RH-sensor
             if self.RH_valid:
                 if self.fanspeed == 1 \
                         and ((self.extract_ave > self.target + 0.6
