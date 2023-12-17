@@ -505,6 +505,9 @@ class Systemair(object):
         self.electric_power_sum = 0.0
 
     def set_monitoring(self, val):
+        self.inhibit = 0
+        self.press_inhibit = 0
+        self.modetoken = 0
         self.monitoring = val
 
     def reset_fanspeed(self, speed):
@@ -1602,10 +1605,12 @@ class Systemair(object):
                 else:
                     self.indoor_dewpoint = self.airdata_inst.dew_point(self.humidity + 10, self.extract_ave)
             else:
-                self.indoor_dewpoint = 5.0
+                self.indoor_dewpoint = 5.0  # lock indoor dew point at 5C for extra safety margin
             if not self.cool_mode:
-                if self.inlet_ave > self.indoor_dewpoint + 0.2 and self.pressure_diff != 0 and not self.press_inhibit and not \
-                        self.forecast[1] == -1:
+                if (self.inlet_ave > self.indoor_dewpoint + 0.2
+                        and self.pressure_diff != 0
+                        and not self.press_inhibit
+                        and not self.forecast[1] == -1):
                     self.set_differential(0)
                     if "debug" in sys.argv:
                         self.msg += "Pressure diff to 0%\n"
@@ -1810,17 +1815,18 @@ class Systemair(object):
         if percent < -20:
             percent = -20
         if not self.savecair and not self.shower:
-            if "debug" in sys.argv: self.msg += "start pressure change " + str(percent) + "\n"
+            if "debug" in sys.argv:
+                self.msg += "start pressure change " + str(percent) + "\n"
             self.req.modbusregister(103, 0)  # nominal supply flow
             # print "sf_nom is", self.request.response
-            target = int(self.req.response + self.req.response * (float(percent) / 100))
+            target_flow = int(self.req.response + self.req.response * (float(percent) / 100))
             # print "to set ef_no to",target
-            self.req.write_register(104, target)  # nominal extract flow
+            self.req.write_register(104, target_flow)  # nominal extract flow
             self.req.modbusregister(104, 0)  # nominal supply flow
-            if self.req.response == target:
+            if self.req.response == target_flow:
                 self.press_inhibit = time.time()
             if "debug" in sys.argv:
-                if self.req.response == target: self.msg += "supply flow change completed \n"
+                if self.req.response == target_flow: self.msg += "supply flow change completed \n"
             high_flow = 107
             if percent < 0:
                 high_flow += 107 * float(percent) / 100
@@ -1844,18 +1850,18 @@ class Systemair(object):
             if "debug" in sys.argv: self.msg += "start pressure change " + str(percent) + "\n"
 
             self.req.modbusregister(101, 0)  # LOW supply flow
-            target = int(self.req.response + self.req.response * (float(percent) / 100))
-            self.req.write_register(102, target)  # LOW extract flow
+            target_flow = int(self.req.response + self.req.response * (float(percent) / 100))
+            self.req.write_register(102, target_flow)  # LOW extract flow
 
             self.req.modbusregister(103, 0)  # nominal supply flow
-            target = int(self.req.response + self.req.response * (float(percent) / 100))
-            self.req.write_register(104, target)  # nominal extract flow
+            target_flow = int(self.req.response + self.req.response * (float(percent) / 100))
+            self.req.write_register(104, target_flow)  # nominal extract flow
 
             self.req.modbusregister(106, 0)  # nominal supply flow
-            target = int(self.req.response - self.req.response * abs(float(percent) / 100))
-            self.req.write_register(105, target)  # nominal extract flow
+            target_flow = int(self.req.response - self.req.response * abs(float(percent) / 100))
+            self.req.write_register(105, target_flow)  # nominal extract flow
 
-            if self.req.response == target:
+            if self.req.response == target_flow:
                 self.press_inhibit = time.time()
             if "debug" in sys.argv:
                 self.msg += "change completed\n"
@@ -2073,24 +2079,24 @@ def system_start():
 
 
 def forced_ventilation(dev):
-    global prev, tim2, tim, thread
+    thread_counter = 0
     for thread in threading.enumerate():
         if thread.name == "MonitorTimer" and thread.is_alive():
             thread.cancel()  # noqa the class is actually threading.Timer
-        try:
-            if thread.name == "Timer" and thread.is_alive():
-                thread.cancel()  # noqa the class is actually threading.Timer
-                dev.msg += "Removed Forced ventilation timer\n"
-                os.write(ferr, bytes(
-                    bytes("Vent Timer canceled at:\t" + str(time.ctime()) + "\n", encoding='utf8')))
-                dev.set_monitoring(True)
-                dev.monitor()
-                dev.timer = False
-                dev.inhibit = 0
-                return
-        except IndexError:
-            traceback.print_exc(ferr)
-            print("force vent error")
+            thread_counter += 1
+
+        if thread.name == "Timer" and thread.is_alive():
+            thread.cancel()  # noqa the class is actually threading.Timer
+            dev.msg += "Removed Forced ventilation timer\n"
+            os.write(ferr, bytes(
+                bytes("Vent Timer canceled at:\t" + str(time.ctime()) + "\n", encoding='utf8')))
+            dev.set_monitoring(True)
+            dev.monitor()
+            dev.timer = False
+            dev.inhibit = 0
+            thread_counter += 1
+        if thread_counter == 2:
+            return
 
     os.write(ferr,
              bytes("Vent timer started at:\t" + str(time.ctime()) + "\n", encoding='utf8'))
@@ -2107,6 +2113,41 @@ def forced_ventilation(dev):
     dev.inhibit = 0
     tim.start()
 
+
+def fireplace_mode(dev):
+    try:
+        thread_counter = 0
+        for thread in threading.enumerate():
+            if thread.name == "fire" and thread.is_alive():
+                thread.cancel()  # noqa the class is actually threading.Timer.
+                dev.msg += "Removed fire starter ventilation timer\n"
+                os.write(ferr, bytes(
+                    bytes("Fire timer canceled at:\t" + str(time.ctime()) + "\n", encoding='utf8')))
+                dev.set_monitoring(True)
+                thread_counter += 1
+            if thread.name == "fireMonitor" and thread.is_alive():
+                thread.cancel()  # noqa the class is actually threading.Timer.
+                thread_counter += 1
+            if thread_counter == 2:
+                return
+
+        os.write(ferr,
+                 bytes("Fire start at:\t" + str(time.ctime()) + "\n", encoding='utf8'))
+        dev.set_monitoring(False)
+        prev = dev.fanspeed
+        dev.set_differential(-10)
+        dev.press_inhibit = 0
+        dev.set_fanspeed(3)
+        dev.msg += "Fire start Ventilation on timer\n"
+        tim2 = threading.Timer(60.0 * 10 + 2, dev.set_monitoring, [True])
+        tim2.name = "fireMonitor"
+        tim2.start()
+        tim = threading.Timer(60.0 * 10, dev.reset_fanspeed, [prev])
+        tim.name = "fire"
+        tim.start()
+    except IndexError:
+        traceback.print_exc(ferr)
+        print("fire starter error")
 
 
 # Init base class and run main loop
@@ -2345,52 +2386,20 @@ if __name__ == "__main__":
                             print("break")
 
                     if data == 7:  # set pressure differential
-                        try:
-                            if "daemon" not in sys.argv:
-                                inp = int(input("set differential pressure(-20% -> 20%):"))
+                        if "daemon" not in sys.argv:
+                            inp = int(input("set differential pressure(-20% -> 20%):"))
+                        else:
+                            if device.ef == device.sf:
+                                inp = 10
                             else:
-                                if device.ef == device.sf:
-                                    inp = 10
-                                else:
-                                    inp = 0
-                            device.set_differential(inp)
-                        except IOError:
-                            print("not used")
-                        except:
-                            traceback.print_exc(ferr)
+                                inp = 0
+                        device.set_differential(inp)
 
                     if data == 8:  # toggle forced vent timer
                         forced_ventilation(device)
 
                     if data == 9:  #
-                        try:
-                            if threading.enumerate()[-1].name == "fire":
-                                for thread in threading.enumerate():
-                                    if thread.name == "fire":
-                                        thread.cancel()  # noqa the class is actually threading.Timer
-                                device.msg += "Removed fire starter ventilation timer\n"
-                                os.write(ferr, bytes(
-                                    bytes("Fire timer canceled at:\t" + str(time.ctime()) + "\n", encoding='utf8')))
-                                device.press_inhibit = 0
-                                monitoring = True
-
-                            if threading.enumerate()[-1].name != "fire":
-                                os.write(ferr,
-                                         bytes("Fire start at:\t" + str(time.ctime()) + "\n", encoding='utf8'))
-                                monitoring = False
-                                prev = device.fanspeed
-                                device.set_differential(-10)
-                                device.press_inhibit = 0
-                                device.set_fanspeed(3)
-                                device.msg += "Fire start Ventilation on timer\n"
-                                tim2 = threading.Timer(60.0 * 10 + 2, device.set_monitoring, [True])
-                                tim2.start()
-                                tim = threading.Timer(60.0 * 10, device.reset_fanspeed, [prev])
-                                tim.name = "fire"
-                                tim.start()
-                        except IndexError:
-                            traceback.print_exc(ferr)
-                            print("fire starter error")
+                        fireplace_mode()
                     if data == 0:  # cycle exchanger mode
                         device.cycle_exchanger(None)
                         device.modetoken = time.time()
