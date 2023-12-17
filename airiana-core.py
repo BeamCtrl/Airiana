@@ -2070,6 +2070,40 @@ def system_start():
     print("System started:", time.ctime(starttime), ";")
 
 
+def forced_ventilation(dev):
+    global prev, tim2, tim, thread
+    for thread in threading.enumerate():
+        if thread.name == "MonitorTimer" and thread.is_alive():
+            thread.cancel()  # noqa the class is actually threading.Timer
+        try:
+            if thread.name == "Timer" and thread.is_alive():
+                thread.cancel()  # noqa the class is actually threading.Timer
+                dev.msg += "Removed Forced ventilation timer\n"
+                os.write(ferr, bytes(
+                    bytes("Vent Timer canceled at:\t" + str(time.ctime()) + "\n", encoding='utf8')))
+                dev.set_monitoring(True)
+                dev.timer = False
+                return
+        except IndexError:
+            traceback.print_exc(ferr)
+            print("force vent error")
+
+    os.write(ferr,
+             bytes("Vent timer started at:\t" + str(time.ctime()) + "\n", encoding='utf8'))
+    prev = dev.fanspeed
+    dev.set_fanspeed(3)
+    dev.set_monitoring(False)
+    dev.msg += "Forced Ventilation on timer\n"
+    tim2 = threading.Timer(60.0 * 120 + 2, dev.set_monitoring, [True])
+    tim2.name = "MonitorTimer"
+    tim2.start()
+    tim = threading.Timer(60.0 * 120, dev.reset_fanspeed, [prev])
+    tim.name = "Timer"
+    dev.timer = time.time()
+    tim.start()
+
+
+
 # Init base class and run main loop
 if __name__ == "__main__":
     # Init request class for communication
@@ -2321,33 +2355,7 @@ if __name__ == "__main__":
                             traceback.print_exc(ferr)
 
                     if data == 8:  # toggle forced vent timer
-                        if threading.enumerate()[-1].name != "Timer":
-                            os.write(ferr,
-                                     bytes("Vent timer started at:\t" + str(time.ctime()) + "\n", encoding='utf8'))
-                            prev = device.fanspeed
-                            device.set_fanspeed(3)
-                            device.monitoring = False
-                            device.msg += "Forced Ventilation on timer\n"
-                            tim2 = threading.Timer(60.0 * 120 + 2, device.set_monitoring, [True])
-                            tim2.start()
-                            tim = threading.Timer(60.0 * 120, device.reset_fanspeed, [prev])
-                            tim.name = "Timer"
-                            device.timer = time.time()
-                            tim.start()
-
-                        try:
-                            if threading.enumerate()[-1].name == "Timer":
-                                for thread in threading.enumerate():
-                                    if thread.name == "Timer":
-                                        thread.cancel()  # noqa the class is actually threading.Timer
-                                device.msg += "Removed Forced ventilation timer\n"
-                                os.write(ferr, bytes(
-                                    bytes("Vent Timer canceled at:\t" + str(time.ctime()) + "\n", encoding='utf8')))
-                                device.monitoring = True
-                                device.timer = False
-                        except IndexError:
-                            traceback.print_exc(ferr)
-                            print("force vent error")
+                        forced_ventilation(device)
 
                     if data == 9:  #
                         try:
