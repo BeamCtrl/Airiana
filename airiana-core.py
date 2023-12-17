@@ -2083,6 +2083,7 @@ def forced_ventilation(dev):
                     bytes("Vent Timer canceled at:\t" + str(time.ctime()) + "\n", encoding='utf8')))
                 dev.set_monitoring(True)
                 dev.timer = False
+                dev.inhibit = 0
                 return
         except IndexError:
             traceback.print_exc(ferr)
@@ -2100,6 +2101,7 @@ def forced_ventilation(dev):
     tim = threading.Timer(60.0 * 120, dev.reset_fanspeed, [prev])
     tim.name = "Timer"
     dev.timer = time.time()
+    dev.inhibit = 0
     tim.start()
 
 
