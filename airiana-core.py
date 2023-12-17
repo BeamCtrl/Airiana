@@ -2082,6 +2082,7 @@ def forced_ventilation(dev):
                 os.write(ferr, bytes(
                     bytes("Vent Timer canceled at:\t" + str(time.ctime()) + "\n", encoding='utf8')))
                 dev.set_monitoring(True)
+                dev.monitor()
                 dev.timer = False
                 dev.inhibit = 0
                 return
