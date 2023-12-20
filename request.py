@@ -41,6 +41,10 @@ class Request:
         self.mode = "RTU"
         self.unit = ""
         self.reset = 0
+        self.latest_request_address = 0
+        self.latest_request_mode = "Single"
+        self.latest_request_decimals = 0
+        self.latest_request_count = 0
 
     def setup(self, unit, mode):
         self.unit = unit
@@ -84,12 +88,12 @@ class Request:
         os.write(fd, bytes("Testing Non-savecair address 101:" + str(first) + "\n", "utf-8"))
         print("Testing Non-savecair address 101:" + str(first) + ";")
         self.modbusregister(12543, 0)  # Read savecair address space
-        seccond = self.response
-        print("Testing savecair address 12543:" + str(seccond) + ";")
-        os.write(fd, bytes("Testing savecair address 12543:" + str(seccond) + "\n", "utf-8"))
-        if (first == 0 and seccond == 0) \
-                or (first == "no data" and seccond == "no data") \
-                or (first == '' and seccond == ''):
+        second = self.response
+        print("Testing savecair address 12543:" + str(second) + ";")
+        os.write(fd, bytes("Testing savecair address 12543:" + str(second) + "\n", "utf-8"))
+        if (first == 0 and second == 0) \
+                or (first == "no data" and second == "no data") \
+                or (first == '' and second == ''):
             os.write(fd, bytes("Request object Failed communications test.\n", "utf-8"))
             os.close(fd)
             return False
@@ -99,6 +103,9 @@ class Request:
 
     def modbusregisters(self, start, count, signed=False):
         self.client.precalculate_read_size = True
+        self.latest_request_address = start
+        self.latest_request_mode = "Multi"
+        self.latest_request_count = count
         self.iter += 1
         try:
             self.response = "no data"
@@ -141,7 +148,7 @@ class Request:
             fd = os.open("RAM/err", os.O_WRONLY)
             os.lseek(fd, os.SEEK_SET, os.SEEK_END)
             os.write(fd, bytes("""read error high rate,
-            possible no comms with unit error rate over 90%\n""", "utf-8"))
+            possible no communication with unit, error rate over 90%\n""", "utf-8"))
             os.close(fd)
             exit(-1)
         os.system("echo " + str(rate)
@@ -158,6 +165,9 @@ class Request:
 
         :type self: request Object for modbus comm
         """
+        self.latest_request_address = address
+        self.latest_request_mode = "Single"
+        self.latest_request_decimals = decimals
         if self.mode == "RTU":
             self.iter += 1
             self.client.precalculate_read_size = True
@@ -185,13 +195,14 @@ class Request:
             # self.client.precalculate_read_size = False
             # print "request om address ", address, "returned", self.response
         else:
+            data = "noData"
             try:
                 data = self.client.read_holding_registers(address, 1)
                 self.response = data[0]
                 if decimals != 0:
                     self.response /= (decimals * 10)
             except TypeError:
-                print("TCP read error on addrs:", address, data)
+                print("TCP read error on address:", address, data)
 
         self.reset = 0  # set reset counter to 0
 

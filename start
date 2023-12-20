@@ -17,6 +17,7 @@ if "alive_logger.py" in sys.argv:
 	os.system("./alive_logger.py 91&")
 	os.system("./alive_logger.py 92&")
 	os.system("./alive_logger.py 93&")
+	os.system("./alive_logger.py 94&")
 if "http" in sys.argv:
 	os.system("./httpsrv.py&")
 

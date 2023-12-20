@@ -19,8 +19,12 @@ def get_sun(lat, long):
     o.long = str(long)
     s = ephem.Sun()
     s.compute()
-    return ephem.localtime(o.next_rising(s)), ephem.localtime(o.next_setting(s))
-
+    try:
+        return ephem.localtime(o.next_rising(s)), ephem.localtime(o.next_setting(s))
+    except (ephem.NeverUpError, ephem.AlwaysUpError):
+        up = datetime.time(minute = 0, hour = 6)
+        down = datetime.time(minute = 0, hour = 19)
+        return up, down
 
 def print_weather(tm, weather, rain):
     print(tm, str(weather["air_temperature"]) + "C", str(weather["wind_speed"]) + "m/s", "at",
@@ -67,12 +71,12 @@ if "sun" in sys.argv:
           str(setting.hour).zfill(2) + ":" + str(setting.minute).zfill(2) + ":" + str(setting.second).zfill(2))
     exit(0)
 
-# save forcast to file in RAM
+# save forecast to file in RAM
 if not os.path.lexists("RAM/forecast.json"):
     os.system("touch RAM/forecast.json")
 if os.stat("RAM/forecast.json").st_ctime - time.time() < -3600 or os.stat(
         "RAM/forecast.json").st_size == 0 or "-f" in sys.argv:
-    # print "updateing forcast", os.stat("RAM/forecast.json").st_ctime - time.time() 
+    # print "updateing forecast", os.stat("RAM/forecast.json").st_ctime - time.time()
     loc = "\"https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=" + str(latlong["lat"]) + "&lon=" + str(
         latlong["long"]) + "\""
     os.system("wget -q -U \"Airiana-forecast-agent github.com/beamctrl/Airiana/\" -O ./RAM/forecast.json " + loc)

@@ -1,11 +1,10 @@
 #!/usr/bin/python
 #################################################################
-#   	                                 		        	    #
-#   	                                 		             	#
-#  Installation script for airiana system                		#
-#   							                                #
-#   							                                #
-#   							                                #
+#   	                                 			#
+#  Installation script for airiana system            	        #
+#   							        #
+#   							        #
+#   							        #
 #################################################################
 #                                                               #
 # INSTALL BY CLONING                                            #
@@ -46,6 +45,7 @@ def install_deps():
     os.system("pip3 install requests --user")
     os.system("pip3 install pyModbusTCP --user")
     os.system("pip3 install setuptools --user")
+    os.system("pip3 install pytest --user")
     os.system("pip3 install pyephem --user")
     os.system("sudo apt-get -y --force-yes install libatlas-dev")
     os.system("sudo apt-get -y --force-yes install ntp")
