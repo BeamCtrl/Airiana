@@ -79,7 +79,7 @@ if os.stat("RAM/forecast.json").st_ctime - time.time() < -3600 or os.stat(
     # print "updateing forecast", os.stat("RAM/forecast.json").st_ctime - time.time()
     loc = "\"https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=" + str(latlong["lat"]) + "&lon=" + str(
         latlong["long"]) + "\""
-    os.system("wget -q -U \"Airiana-forecast-agent github.com/beamctrl/Airiana/\" -O ./RAM/forecast.json " + loc)
+    os.system("wget -q -T 5 -U \"Airiana-forecast-agent github.com/beamctrl/Airiana/\" -O ./RAM/forecast.json " + loc)
 # get long lat alt from forecast
 with open("RAM/forecast.json") as source:
     try:
