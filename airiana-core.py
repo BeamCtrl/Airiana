@@ -370,7 +370,7 @@ class Systemair(object):
         self.elec_now = 0
         self.showerRH = None
         self.initial_temp = None
-        self.fanspeed = 1
+        self.fanspeed = -1
         self.system_types = {0: "VR400", 1: "VR700", 2: "VR700DK", 3: "VR400DE", 4: "VTC300", 5: "VTC700",
                              12: "VTR150K", 13: "VTR200B", 14: "VSR300", 15: "VSR500", 16: "VSR150",
                              17: "VTR300", 18: "VTR500", 19: "VSR300DE", 20: "VTC200", 21: "VTC100"}
@@ -709,7 +709,7 @@ class Systemair(object):
             self.filter = self.req.response
             try:
                 self.filter_remaining = round(100 * (1 - (float(self.filter) / self.filter_limit)), 1)
-            except ValueError:
+            except (ValueError, ZeroDivisionError):
                 traceback.print_exc(ferr)
 
             if self.filter_remaining < 0:
@@ -723,7 +723,10 @@ class Systemair(object):
             highend = self.req.response << 16
             self.filter_raw = lowend + highend
             self.filter = self.filter_limit - (lowend + highend) / (3600 * 24)
-            self.filter_remaining = round(100 * (1 - (float(self.filter) / self.filter_limit)), 1)
+            try:
+                self.filter_remaining = round(100 * (1 - (float(self.filter) / self.filter_limit)), 1)
+            except ZeroDivisionError:
+                traceback.print_exc(ferr)
             if self.filter_remaining < 0:
                 self.filter_remaining = 0
 

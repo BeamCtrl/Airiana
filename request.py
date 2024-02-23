@@ -91,9 +91,11 @@ class Request:
         second = self.response
         print("Testing savecair address 12543:" + str(second) + ";")
         os.write(fd, bytes("Testing savecair address 12543:" + str(second) + "\n", "utf-8"))
-        if (first == 0 and second == 0) \
-                or (first == "no data" and second == "no data") \
-                or (first == '' and second == ''):
+        if ((first == 0 and second == 0)
+                or (first == "no data" and second == "no data")
+                or (first == '' and second == '')
+                or (first == 0  and second == 'no data')
+                or (first == "no data"  and second == 0)):
             os.write(fd, bytes("Request object Failed communications test.\n", "utf-8"))
             os.close(fd)
             return False
@@ -178,7 +180,7 @@ class Request:
                 self.response = self.client.read_register(
                     address, decimals,
                     signed=True)
-            except IOError:
+            except (IOError, ValueError, TypeError):
                 self.connect_errors += 1
                 if self.connect_errors > 100:
                     self.error_review()
@@ -186,14 +188,6 @@ class Request:
                 if address == 12543 and self.connect_errors >= 10:
                     return 0
                 self.modbusregister(address, decimals)
-            except ValueError:
-                self.buff += os.read(self.bus, 20)  # bus purge
-                self.checksum_errors += 1
-                if address == 12543 and self.checksum_errors >= 10:
-                    return 0
-                self.modbusregister(address, decimals)
-            # self.client.precalculate_read_size = False
-            # print "request om address ", address, "returned", self.response
         else:
             data = "noData"
             try:
@@ -214,13 +208,7 @@ class Request:
             try:
                 if tries > 0:
                     self.client.write_register(reg, value, 0, 6)
-            except IOError:
-
-                self.write_errors += 1
-                if tries > 0:
-                    self.write_register(reg, value, tries=tries - 1)
-
-            except ValueError:
+            except (IOError, ValueError):
                 self.write_errors += 1
                 if tries > 0:
                     self.write_register(reg, value, tries=tries - 1)
