@@ -1903,7 +1903,7 @@ class Systemair(object):
 
     # get and set the local low/static humidity
     def get_local(self):
-        if self.prev_static_temp == 8:
+        if self.prev_static_temp == 8:  # 8 Is initialization value.
             if os.path.lexists("RAM/latest_static"):
                 try:
                     self.prev_static_temp = float(os.popen("cat RAM/latest_static").readline().split("\n")[0])
@@ -1950,20 +1950,18 @@ class Systemair(object):
             comp = 0
 
         self.kinetic_compensation -= comp * self.avg_frame_time
-        saturation_point = 0
         if self.prev_static_temp >= self.inlet_ave:
             self.local_humidity = self.moisture_calcs(
-                saturation_point - self.kinetic_compensation)  # if 24hr low is higher than current temp
+                self.inlet_ave - self.kinetic_compensation)  # if 24hr low is higher than current temp
         else:
             self.local_humidity = self.moisture_calcs(
                 self.prev_static_temp - self.kinetic_compensation)  # if 24hr low is lower than current temp
 
         if self.prev_static_temp - self.kinetic_compensation > self.inlet_ave:
-            # self.prev_static_temp = self.inlet_ave+self.kinetic_compensation
+            self.prev_static_temp = self.inlet_ave - self.kinetic_compensation
             self.kinetic_compensation = self.kinetic_compensation * 0.98
 
         if time.localtime().tm_hour == sun and time.localtime().tm_min < 5 or self.prev_static_temp == 8:
-            self.prev_static_temp = saturation_point
             self.kinetic_compensation = 0
             if self.forecast[1] != -1:
                 try:
