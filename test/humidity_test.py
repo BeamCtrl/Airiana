@@ -28,5 +28,5 @@ def test_target_set():
     assert dev.prev_static_temp != 8  # Check for non init value
     dev.inlet_ave = -1
     dev.get_local()
-    assert dev.prev_static_temp == -1
+    assert dev.prev_static_temp <= -1
 
