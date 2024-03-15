@@ -23,7 +23,6 @@ def test_target_set():
     dev.extract_ave = 23
     dev.humidity = 35
     dev.inlet_ave = 10
-    dev.get_forecast()
     dev.get_local()
     print_locals(dev)
     assert dev.prev_static_temp != 8  # Check for non init value
