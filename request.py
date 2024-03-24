@@ -184,7 +184,10 @@ class Request:
                 self.connect_errors += 1
                 if self.connect_errors > 100:
                     self.error_review()
-                self.buff += os.read(self.bus, 20)  # bus purge
+                try:
+                    self.buff += os.read(self.bus, 20)  # bus purge
+                except TypeError:
+                    pass  # read should not typeError here, but does somehow.
                 if address == 12543 and self.connect_errors >= 10:
                     return 0
                 self.modbusregister(address, decimals)
