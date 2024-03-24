@@ -1957,7 +1957,7 @@ class Systemair(object):
             self.local_humidity = self.moisture_calcs(
                 self.prev_static_temp - self.kinetic_compensation)  # if 24hr low is lower than current temp
 
-        if self.prev_static_temp - self.kinetic_compensation > self.inlet_ave:
+        if self.prev_static_temp + self.kinetic_compensation > self.inlet_ave:
             self.prev_static_temp = self.inlet_ave - self.kinetic_compensation
             self.kinetic_compensation = self.kinetic_compensation * 0.98
 
@@ -1976,7 +1976,8 @@ class Systemair(object):
                     os.write(ferr, bytes("Unable to update morning low with wind/fog compensation" + "\t" + str(
                         time.ctime()) + "\n", "utf-8"))
 
-            self.prev_static_temp -= self.kinetic_compensation
+            self.prev_static_temp = self.inlet_ave  # Set inlet static low to current inlet ave.
+            self.prev_static_temp -= self.kinetic_compensation  # Compensate for low alt. atmospheric mixing.
             fd = os.open("RAM/latest_static", os.O_WRONLY | os.O_CREAT | os.O_TRUNC)
             os.write(fd, bytes(str(self.prev_static_temp - self.kinetic_compensation), encoding='utf8'))
             os.close(fd)
