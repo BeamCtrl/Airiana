@@ -1901,7 +1901,7 @@ class Systemair(object):
                 self.ef = base + self.flowOffset[0]
                 self.sf = self.sf_base + self.flowOffset[0]
 
-    # get and set the local low/static humidity
+    # get and set the local low/static temperature and humidity
     def get_local(self):
         if self.prev_static_temp == 8:  # 8 Is initialization value.
             if os.path.lexists("RAM/latest_static"):
@@ -1919,7 +1919,6 @@ class Systemair(object):
         out = os.popen("./humid.py " + str(self.extract_ave)).readline()
         tmp = out.split(" ")
         wthr = [-1, -1, -1]
-        comp = 0
         sun = 0
         try:
             saturation_point = float(tmp[1])
@@ -1947,9 +1946,7 @@ class Systemair(object):
             os.write(ferr, bytes("forecast unavailible. " + " " + str(self.forecast) + str(time.ctime()) + "\n",
                                  encoding='utf8'))
             sun = 7
-            comp = 0
 
-        self.kinetic_compensation -= comp * self.avg_frame_time
         if self.prev_static_temp >= self.inlet_ave:
             self.local_humidity = self.moisture_calcs(
                 self.inlet_ave - self.kinetic_compensation)  # if 24hr low is higher than current temp
@@ -1957,7 +1954,7 @@ class Systemair(object):
             self.local_humidity = self.moisture_calcs(
                 self.prev_static_temp - self.kinetic_compensation)  # if 24hr low is lower than current temp
 
-        if self.prev_static_temp + self.kinetic_compensation > self.inlet_ave:
+        if self.prev_static_temp + self.kinetic_compensation > self.inlet_ave:  # Reduce the effect of kinet_comp when near inlet_ave
             self.prev_static_temp = self.inlet_ave - self.kinetic_compensation
             self.kinetic_compensation = self.kinetic_compensation * 0.98
 
@@ -1970,7 +1967,7 @@ class Systemair(object):
                     wind = float(weather[-2])
                     if wind > 2:  # compensate for windy conditions
                         self.kinetic_compensation += wind / 16
-                    if fog_cover > 75:  # if fog over 75%
+                    if fog_cover > 75:  # if fog over 75% compensate at 0
                         self.kinetic_compensation = 0
                 except ValueError:
                     os.write(ferr, bytes("Unable to update morning low with wind/fog compensation" + "\t" + str(
@@ -1979,7 +1976,7 @@ class Systemair(object):
             self.prev_static_temp = self.inlet_ave  # Set inlet static low to current inlet ave.
             self.prev_static_temp -= self.kinetic_compensation  # Compensate for low alt. atmospheric mixing.
             fd = os.open("RAM/latest_static", os.O_WRONLY | os.O_CREAT | os.O_TRUNC)
-            os.write(fd, bytes(str(self.prev_static_temp - self.kinetic_compensation), encoding='utf8'))
+            os.write(fd, bytes(str(self.prev_static_temp - self.kinetic_compensation), encoding='utf8'))  # Write2file
             os.close(fd)
 
     # print Json data to air.out for third party processing
