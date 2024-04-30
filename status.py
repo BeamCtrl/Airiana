@@ -47,12 +47,14 @@ def checkLocation(user):
 			#print "user known",user, location[user]
 			return None
 	except KeyError:
-		with open("./public/local_links/"+user+".html") as log:
-			ip = log.read().split("Source:('")[-1].split("\'")[0]
-		#print "checking ip:",ip
-		loc = os.popen("./geoloc.py " + ip ).read()
-		location.update( {user:loc})
-		#print "got new location", loc
+                if user.count("_") > 0:
+                    with open("./public/local_links/"+user+".html") as log:
+                        ip = log.read().split("Source:('")[-1].split("\'")[0]
+                        if ip.count(".") == 3:
+                            print ("checking ip:",ip)
+                            loc = os.popen("./geoloc.py " + ip + " 2>/dev/null").read()
+                            location.update( {user:loc})
+                            #print "got new location", loc
 def analyse_stat(status,user):
 	# if "debug" in sys.argv:
 	# print "Analyze", status, users[user]
@@ -119,7 +121,7 @@ while True:
 				content = stat_field.replace("nan", " -1 ")
 				#print content
 				user = str(each.split(".")[0])
-				#checkLocation(user)
+				checkLocation(user)
 				#try: print "userID",user,"location:", location[user]
 				#except:
 				#	print "\n"

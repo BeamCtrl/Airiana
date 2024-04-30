@@ -199,6 +199,7 @@ def report_alive():
                     message += temp.decode("utf-8") + "<br>"
                     message += os.popen("df |grep RAM").read() + "<br>"
                     message += os.popen("df |grep var").read() + "<br>"
+                    message += "Source:('" + os.popen("./geoloc.py printIp 2>/dev/null").read() + "\')<br>"
                     if os.path.lexists("RAM/error_rate"):
                         message += os.popen("cat RAM/error_rate").read() + "<br>"
                 except: # noqa do not care if this is failing
@@ -2263,8 +2264,8 @@ if __name__ == "__main__":
                     device.status_field[14] = round(device.exhaust_ave, 2)
                     device.status_field[15] = round(device.pressure_diff, 2)
                     device.status_field[16] = round(device.det_limit, 0)
-
                     report_alive()
+
                 if "humidity" in sys.argv:
                     device.get_local()
                 if "temperatur.nu" in sys.argv:

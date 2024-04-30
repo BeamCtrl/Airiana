@@ -45,6 +45,7 @@ class Request:
         self.latest_request_mode = "Single"
         self.latest_request_decimals = 0
         self.latest_request_count = 0
+        self.connection_timeout = 0
 
     def setup(self, unit, mode):
         self.unit = unit
@@ -79,6 +80,9 @@ class Request:
         print("request object created: ", self.mode, ";\n")
         test = self.comm_test()
         print("Comm test: ", test, ";\n")
+
+    def close(self):
+        self.client.serial.close()
 
     def comm_test(self):
         print("Running Comm test;")
@@ -128,9 +132,9 @@ class Request:
             self.modbusregisters(start, count)
         except IOError:
             self.connect_errors += 1
-            if self.connect_errors > 100 or self.multi_errors > 100:
+            if self.connect_errors > 1000 or self.multi_errors > 1000:
                 self.error_review()
-            if self.rate < 0.9:
+            if self.rate < 0.99:
                 self.modbusregisters(start, count)
         self.client.precalculate_read_size = False
 
@@ -144,15 +148,19 @@ class Request:
                          self.multi_errors) / delta
         else:
             rate = 0.0
-        if rate >= 0.9:
+        if rate >= 0.99:
             os.read(self.bus, 1000)
-            time.sleep(1)
+            self.connection_timeout += 1
+            time.sleep(10)
             fd = os.open("RAM/err", os.O_WRONLY)
             os.lseek(fd, os.SEEK_SET, os.SEEK_END)
             os.write(fd, bytes("""read error high rate,
-            possible no communication with unit, error rate over 90%\n""", "utf-8"))
+            possible no communication with unit, error rate over 99%\n""", "utf-8"))
+            os.fsync(fd)
             os.close(fd)
-            exit(-1)
+            self.close()
+            self.setup(self.unit, self.mode)
+            #exit(-1)
         os.system("echo " + str(rate)
                   + " "
                   + str(self.wait_time)
@@ -182,7 +190,7 @@ class Request:
                     signed=True)
             except (IOError, ValueError, TypeError):
                 self.connect_errors += 1
-                if self.connect_errors > 100:
+                if self.connect_errors > 1000:
                     self.error_review()
                 try:
                     self.buff += os.read(self.bus, 20)  # bus purge
@@ -238,7 +246,7 @@ class Request:
 
             except:
                 with os.open("RAM/err", os.O_WRONLY) as fd:
-                    os.write(fd, bytes("TCP write error on addrs:" + str(reg) + "\n", "utf-8"))
+                    os.write(fd,	 bytes("TCP write error on addrs:" + str(reg) + "\n", "utf-8"))
 
 
 if "__main__" == __name__:

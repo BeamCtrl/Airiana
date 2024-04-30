@@ -8,7 +8,9 @@ ip = sys.argv[-1]
 if ip.count(".") != 3:
     ip = eval(os.popen("curl \'https://api.ipify.org?format=json\'").read())
     ip = ip["ip"]
-
+    if "printIp" in sys.argv:
+        print(ip)
+        exit(0)
 # try to read a location
 location = os.popen("curl http://www.geoplugin.net/json.gp?ip=" + ip)
 try:
