@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 ############################
-vers = "11.0"
+vers = "11.01"
 import airdata  # noqa
 import numpy  # noqa
 import select  # noqa
