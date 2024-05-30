@@ -23,7 +23,7 @@ numpy.seterr('ignore')
 Running = True
 savecair = False
 mode = "RTU"
-holdoff_t = time.time() - 3000  # one hr - 10 minutes
+holdoff_t = time.time() - 3000  # now - 50 minutes
 if "TCP" in sys.argv:
     mode = "TCP"
 
@@ -213,8 +213,8 @@ def report_alive():
         if holdoff_t < (time.time() - 3600):  # wait for one hour
             stat = open("RAM/" + hw_addr, "w")
             stat.write(html.replace(u"[DA]", message))
-            os.system("curl -s -X DELETE \"https://filebin.net/airiana_ping_status_store/" + hw_addr + ".html\"")
-            tmp = "-s -X POST \"https://filebin.net/airiana_ping_status_store/" + hw_addr + ".html\""
+            os.system("curl -s -X DELETE \"https://filebin.net/ehf5e4bfzof8m18m/" + hw_addr + ".html\"")
+            tmp = "-s -X POST \"https://filebin.net/ehf5e4bfzof8m18m/" + hw_addr + ".html\""
             tmp += " -d @RAM/" + hw_addr
             # os.write(ferr, "curl " + tmp + "\n")
             stat.close()
@@ -1299,13 +1299,11 @@ class Systemair(object):
             round((time.time() - starttime) / self.iter, 2)) + " Vers. " + vers + " ***\n"
         if "debug" in sys.argv:
             try:
-                tmp += "Errors -- Connect: " + str(self.req.connect_errors) + " Checksum: " + str(
-                    self.req.checksum_errors) + " Write: " + str(self.req.write_errors) + " drain: " + str(
-                    len(self.req.buff)) + " Multi: " + str(self.req.multi_errors) + "\n"
+                tmp += "Errors -- Connect: " + str(self.req.connect_errors) + " Checksum: " \
+                    + str(self.req.checksum_errors) + " Write: " + str(self.req.write_errors) \
+                    + " Multi: " + str(self.req.multi_errors) + "\n"
                 tmp += "temp sensor state: " + str(bin(self.temp_state)) + " Heater:" + str(self.heater) + "\n"
                 tmp += "Unit admin password: " + self.admin_password + "\n"
-                if len(self.req.buff) > 50:
-                    self.req.buff = ""
                 tmp += str(sys.argv) + "\n"
             except:
                 pass
@@ -1931,6 +1929,7 @@ class Systemair(object):
         except IndexError:
             os.write(ferr, bytes("Saturation point was unavailable. " + str(tmp) + "\t" + str(time.ctime()) + "\n",
                                  encoding='utf8'))
+            saturation_point = self.inlet_ave
         # if no forecast is avail
         if self.forecast[1] != -1:
             try:

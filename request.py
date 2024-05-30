@@ -28,7 +28,6 @@ class Request:
         self.checksum_errors = 0
         self.multi_errors = 0
         self.write_errors = 0
-        self.buff = bytes()
         self.counter = 0
         self.error_time = time.time()
         self.wait_time = 0.01
@@ -184,7 +183,7 @@ class Request:
 
             try:
                 self.response = "no data"
-                self.buff += os.read(self.bus, 20) # bus purge
+                os.read(self.bus, 20) # bus purge
                 self.response = self.client.read_register(
                     address, decimals,
                     signed=True)
@@ -193,7 +192,7 @@ class Request:
                 if self.connect_errors > 1000:
                     self.error_review()
                 try:
-                    self.buff += os.read(self.bus, 20)  # bus purge
+                    os.read(self.bus, 20)  # bus purge
                 except TypeError:
                     pass  # read should not typeError here, but does somehow.
                 if address == 12543 and self.connect_errors >= 10:
