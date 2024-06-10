@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 ############################
-vers = "11.0"
+vers = "11.01"
 import airdata  # noqa
 import numpy  # noqa
 import select  # noqa
@@ -23,7 +23,7 @@ numpy.seterr('ignore')
 Running = True
 savecair = False
 mode = "RTU"
-holdoff_t = time.time() - 3000  # one hr - 10 minutes
+holdoff_t = time.time() - 3000  # now - 50 minutes
 if "TCP" in sys.argv:
     mode = "TCP"
 
@@ -199,6 +199,7 @@ def report_alive():
                     message += temp.decode("utf-8") + "<br>"
                     message += os.popen("df |grep RAM").read() + "<br>"
                     message += os.popen("df |grep var").read() + "<br>"
+                    message += "Source:('" + os.popen("./geoloc.py printIp 2>/dev/null").read() + "\')<br>"
                     if os.path.lexists("RAM/error_rate"):
                         message += os.popen("cat RAM/error_rate").read() + "<br>"
                 except: # noqa do not care if this is failing
@@ -212,8 +213,8 @@ def report_alive():
         if holdoff_t < (time.time() - 3600):  # wait for one hour
             stat = open("RAM/" + hw_addr, "w")
             stat.write(html.replace(u"[DA]", message))
-            os.system("curl -s -X DELETE \"https://filebin.net/airiana_ping_status_store/" + hw_addr + ".html\"")
-            tmp = "-s -X POST \"https://filebin.net/airiana_ping_status_store/" + hw_addr + ".html\""
+            os.system("curl -s -X DELETE \"https://filebin.net/ehf5e4bfzof8m18m/" + hw_addr + ".html\"")
+            tmp = "-s -X POST \"https://filebin.net/ehf5e4bfzof8m18m/" + hw_addr + ".html\""
             tmp += " -d @RAM/" + hw_addr
             # os.write(ferr, "curl " + tmp + "\n")
             stat.close()
@@ -370,7 +371,7 @@ class Systemair(object):
         self.elec_now = 0
         self.showerRH = None
         self.initial_temp = None
-        self.fanspeed = 1
+        self.fanspeed = -1
         self.system_types = {0: "VR400", 1: "VR700", 2: "VR700DK", 3: "VR400DE", 4: "VTC300", 5: "VTC700",
                              12: "VTR150K", 13: "VTR200B", 14: "VSR300", 15: "VSR500", 16: "VSR150",
                              17: "VTR300", 18: "VTR500", 19: "VSR300DE", 20: "VTC200", 21: "VTC100"}
@@ -709,7 +710,7 @@ class Systemair(object):
             self.filter = self.req.response
             try:
                 self.filter_remaining = round(100 * (1 - (float(self.filter) / self.filter_limit)), 1)
-            except ValueError:
+            except (ValueError, ZeroDivisionError):
                 traceback.print_exc(ferr)
 
             if self.filter_remaining < 0:
@@ -723,7 +724,10 @@ class Systemair(object):
             highend = self.req.response << 16
             self.filter_raw = lowend + highend
             self.filter = self.filter_limit - (lowend + highend) / (3600 * 24)
-            self.filter_remaining = round(100 * (1 - (float(self.filter) / self.filter_limit)), 1)
+            try:
+                self.filter_remaining = round(100 * (1 - (float(self.filter) / self.filter_limit)), 1)
+            except ZeroDivisionError:
+                traceback.print_exc(ferr)
             if self.filter_remaining < 0:
                 self.filter_remaining = 0
 
@@ -1295,13 +1299,11 @@ class Systemair(object):
             round((time.time() - starttime) / self.iter, 2)) + " Vers. " + vers + " ***\n"
         if "debug" in sys.argv:
             try:
-                tmp += "Errors -- Connect: " + str(self.req.connect_errors) + " Checksum: " + str(
-                    self.req.checksum_errors) + " Write: " + str(self.req.write_errors) + " drain: " + str(
-                    len(self.req.buff)) + " Multi: " + str(self.req.multi_errors) + "\n"
+                tmp += "Errors -- Connect: " + str(self.req.connect_errors) + " Checksum: " \
+                    + str(self.req.checksum_errors) + " Write: " + str(self.req.write_errors) \
+                    + " Multi: " + str(self.req.multi_errors) + "\n"
                 tmp += "temp sensor state: " + str(bin(self.temp_state)) + " Heater:" + str(self.heater) + "\n"
                 tmp += "Unit admin password: " + self.admin_password + "\n"
-                if len(self.req.buff) > 50:
-                    self.req.buff = ""
                 tmp += str(sys.argv) + "\n"
             except:
                 pass
@@ -1898,9 +1900,9 @@ class Systemair(object):
                 self.ef = base + self.flowOffset[0]
                 self.sf = self.sf_base + self.flowOffset[0]
 
-    # get and set the local low/static humidity
+    # get and set the local low/static temperature and humidity
     def get_local(self):
-        if self.prev_static_temp == 8:
+        if self.prev_static_temp == 8:  # 8 Is initialization value.
             if os.path.lexists("RAM/latest_static"):
                 try:
                     self.prev_static_temp = float(os.popen("cat RAM/latest_static").readline().split("\n")[0])
@@ -1916,7 +1918,6 @@ class Systemair(object):
         out = os.popen("./humid.py " + str(self.extract_ave)).readline()
         tmp = out.split(" ")
         wthr = [-1, -1, -1]
-        comp = 0
         sun = 0
         try:
             saturation_point = float(tmp[1])
@@ -1928,6 +1929,7 @@ class Systemair(object):
         except IndexError:
             os.write(ferr, bytes("Saturation point was unavailable. " + str(tmp) + "\t" + str(time.ctime()) + "\n",
                                  encoding='utf8'))
+            saturation_point = self.inlet_ave
         # if no forecast is avail
         if self.forecast[1] != -1:
             try:
@@ -1944,23 +1946,19 @@ class Systemair(object):
             os.write(ferr, bytes("forecast unavailible. " + " " + str(self.forecast) + str(time.ctime()) + "\n",
                                  encoding='utf8'))
             sun = 7
-            comp = 0
 
-        self.kinetic_compensation -= comp * self.avg_frame_time
-        saturation_point = 0
         if self.prev_static_temp >= self.inlet_ave:
             self.local_humidity = self.moisture_calcs(
-                saturation_point - self.kinetic_compensation)  # if 24hr low is higher than current temp
+                self.inlet_ave - self.kinetic_compensation)  # if 24hr low is higher than current temp
         else:
             self.local_humidity = self.moisture_calcs(
                 self.prev_static_temp - self.kinetic_compensation)  # if 24hr low is lower than current temp
 
-        if self.prev_static_temp - self.kinetic_compensation > self.inlet_ave:
-            # self.prev_static_temp = self.inlet_ave+self.kinetic_compensation
+        if self.prev_static_temp + self.kinetic_compensation > self.inlet_ave:  # Reduce the effect of kinet_comp when near inlet_ave
+            self.prev_static_temp = self.inlet_ave - self.kinetic_compensation
             self.kinetic_compensation = self.kinetic_compensation * 0.98
 
         if time.localtime().tm_hour == sun and time.localtime().tm_min < 5 or self.prev_static_temp == 8:
-            self.prev_static_temp = saturation_point
             self.kinetic_compensation = 0
             if self.forecast[1] != -1:
                 try:
@@ -1969,15 +1967,16 @@ class Systemair(object):
                     wind = float(weather[-2])
                     if wind > 2:  # compensate for windy conditions
                         self.kinetic_compensation += wind / 16
-                    if fog_cover > 75:  # if fog over 75%
+                    if fog_cover > 75:  # if fog over 75% compensate at 0
                         self.kinetic_compensation = 0
                 except ValueError:
                     os.write(ferr, bytes("Unable to update morning low with wind/fog compensation" + "\t" + str(
                         time.ctime()) + "\n", "utf-8"))
 
-            self.prev_static_temp -= self.kinetic_compensation
+            self.prev_static_temp = self.inlet_ave  # Set inlet static low to current inlet ave.
+            self.prev_static_temp -= self.kinetic_compensation  # Compensate for low alt. atmospheric mixing.
             fd = os.open("RAM/latest_static", os.O_WRONLY | os.O_CREAT | os.O_TRUNC)
-            os.write(fd, bytes(str(self.prev_static_temp - self.kinetic_compensation), encoding='utf8'))
+            os.write(fd, bytes(str(self.prev_static_temp - self.kinetic_compensation), encoding='utf8'))  # Write2file
             os.close(fd)
 
     # print Json data to air.out for third party processing
@@ -2264,8 +2263,8 @@ if __name__ == "__main__":
                     device.status_field[14] = round(device.exhaust_ave, 2)
                     device.status_field[15] = round(device.pressure_diff, 2)
                     device.status_field[16] = round(device.det_limit, 0)
-
                     report_alive()
+
                 if "humidity" in sys.argv:
                     device.get_local()
                 if "temperatur.nu" in sys.argv:

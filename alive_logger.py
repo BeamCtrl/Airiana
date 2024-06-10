@@ -5,27 +5,30 @@ import select
 import time
 import os
 import pathlib
+import time
+
 
 path = pathlib.Path(__file__).parent.resolve()
 os.chdir(path)
 print ("started in", os.getcwd())
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
+#sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
 html = """ 
 <html>
 [DA]
 </html>
 """
 
-sock.bind(("0.0.0.0", 59999))
+#sock.bind(("0.0.0.0", 59999))
 while True:
         print(int(time.time()%60))
         if int(time.time()) % 300 == 0:
             print("unpacking")
-            os.system("curl -s -X GET \"https://filebin.net/archive/airiana_ping_status_store/zip\" --output ./RAM/filebin.zip")
+            os.system("curl -s -X GET \"https://filebin.net/archive/ehf5e4bfzof8m18m/zip\" --output ./RAM/filebin.zip")
             os.system("unzip -o RAM/filebin.zip -d public/local_links/ 2> RAM/unzip.out")
             os.system("rm RAM/filebin.zip")
             os.system("rm RAM/unzip.out")
-        if sock in select.select( [sock], [], [], 1)[0]:
+        time.sleep(1)
+        """if sock in select.select( [sock], [], [], 1)[0]:
             incoming_msg, addr=sock.recvfrom(37000)
             # print "***", incomming_msg, "***"
             # print incomming_msg.find("ether")
@@ -49,4 +52,4 @@ while True:
                 if len(mac) != 0:
                     open(filename, "w+").write(for_file)
             except IOError:
-                print ("file missing", filename)
+                print ("file missing", filename)"""

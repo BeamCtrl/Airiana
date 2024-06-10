@@ -20,15 +20,18 @@ if len(sys.argv) >= 2:
 else:
     day = 3600 * 24
 lines = int(math.ceil(day / 5))
+seconds_remainder = tm.time() % 3600
+quarter_day = day / 24 * 4
 if day > 3600 * 24:
     fil = os.popen("tail -n " + str(lines) + " ./data.log")
     data = fil.readlines()
     fil = os.popen("tail -n " + str(lines) + " ./RAM/data.log")
     data += fil.readlines()
-
 else:
     fil = os.popen("tail -n " + str(lines) + " ./RAM/data.log")
     data = fil.readlines()
+
+
 sen_hum = []
 sen_temp = []
 extract = []
@@ -105,6 +108,7 @@ except:
 red_hum = []
 red_time = []
 i = 0
+max_time =  max(time[-day:-1]) + 4 * 3600
 for each in measured_hum:
     i += 1
     if float(each) != 0.0:
@@ -145,8 +149,8 @@ try:
     ax.set_xlim(min(time[-day:-1]), max(time[-day:-1]))
 except ValueError:
     sys.exit(0)
-ax.xaxis.set_ticks(np.arange(tm.time() % 3600, max(time[-day:-1]) + 4 * 3600, day / 24 * 4))
-ax.set_xticklabels(np.arange(tm.time() % 3600, max(time[-day:-1]) + 4 * 3600, day / 24 * 4))
+ax.xaxis.set_ticks(np.arange(seconds_remainder, max_time, quarter_day))
+ax.set_xticklabels(np.arange(seconds_remainder, max_time, quarter_day))
 ax.invert_xaxis()
 lgd = legend(bbox_to_anchor=(0.5, -0.3), loc=1, ncol=2, mode="expand", borderaxespad=.0)
 
@@ -168,8 +172,8 @@ if "debug" in sys.argv or "hasRH" in sys.argv:
     ax.yaxis.set_ticks(np.arange(low, high, 10))
     ax.set_xlim(min(time[-day:-1]), max(time[-day:-1]))
 
-    ax.xaxis.set_ticks(np.arange(tm.time() % 3600, max(time[-day:-1]) + 4 * 3600, day / 24 * 4))
-    ax.set_xticklabels(np.arange(tm.time() % 3600, max(time[-day:-1]) + 4 * 3600, day / 24 * 4))
+    ax.xaxis.set_ticks(np.arange(seconds_remainder, max_time, quarter_day))
+    ax.set_xticklabels(np.arange(seconds_remainder, max_time, quarter_day))
     ax.invert_xaxis()
     lgd = legend(bbox_to_anchor=(0.5, -0.3), loc=2, ncol=2, mode="expand", borderaxespad=.0)
 
@@ -187,8 +191,8 @@ if "moisture" in sys.argv:
     low, high = ax.get_ylim()
     ax.yaxis.set_ticks(np.arange(low, high, 200))
     ax.set_xlim(min(time[-day:-1]), max(time[-day:-1]))
-    ax.xaxis.set_ticks(np.arange(tm.time() % 3600, max(time[-day:-1]) + 4 * 3600, day / 24 * 4))
-    ax.set_xticklabels(np.arange(tm.time() % 3600, max(time[-day:-1]) + 4 * 3600, day / 24 * 4))
+    ax.xaxis.set_ticks(np.arange(seconds_remainder, max_time, quarter_day))
+    ax.set_xticklabels(np.arange(seconds_remainder, max_time, quarter_day))
     lgd = legend(bbox_to_anchor=(0.5, -0.5), loc=0, ncol=2, mode="expand", borderaxespad=.0)
     ax.invert_xaxis()
 
