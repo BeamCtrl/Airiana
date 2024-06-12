@@ -204,11 +204,11 @@ def main():
     # setup virtual environment
     try:
         venv_path = create_virtual_env(path)
+        install_deps(venv_path)
     except OSError:
-        print("Virtual environment is already running, manually remove if you want to reinstall.")
-        print("cmd: rm -r venv")
-    install_deps(venv_path)
-
+        print("Virtual environment is already running, stop or manually remove if you want to reinstall.")
+        print("cmd:'./stop airiana-core.py' or  'rm -r venv'")
+        exit(-1)
     # clean up the exec paths to match current installation
     clean_paths()
 
