@@ -15,7 +15,8 @@ wifidev="wlan0" #device name to use. Default is wlan0.
 IFSdef=$IFS
 cnt=0
 #These four lines capture the wifi networks the RPi is setup to use
-wpassid=$(awk '/ssid="/{ print $0 }' /etc/wpa_supplicant/wpa_supplicant.conf | awk -F'ssid=' '{ print $2 }' | sed 's/\r//g'| awk 'BEGIN{ORS=","} {print}' | sed 's/\"/''/g' | sed 's/,$//')
+wpassid=$(awk '/ssid=/{ print $0 }' /etc/NetworkManager/system-connections/preconfigured.nmconnection  | awk -F'ssid=' '{ print $2 }' | sed 's/\r//g'| awk 'BEGIN{ORS=","} {print}' | sed 's/\"/''/g' | sed 's/,$//')
+
 IFS=","
 ssids=($wpassid)
 IFS=$IFSdef #reset back to defaults
@@ -37,7 +38,8 @@ createAdHocNetwork()
     echo "Autohotspot by RaspberryConnect.com"
     echo "Creating Hotspot"
     ip link set dev "$wifidev" down
-    ip a add 10.0.0.5/24 brd + dev "$wifidev"
+    sudo nmcli device set "$wifidev" managed no
+    ip a add 10.0.0.1/24 brd + dev "$wifidev"
     ip link set dev "$wifidev" up
     dhcpcd -k "$wifidev" >/dev/null 2>&1
     systemctl start dnsmasq
@@ -46,12 +48,17 @@ createAdHocNetwork()
 
 KillHotspot()
 {
+    if sudo iw dev wlan0 station dump|grep Station; then
+         echo "User connected to AP, exiting"
+         exit 1
+    fi
     echo "Autohotspot by RaspberryConnect.com"
     echo "Shutting Down Hotspot"
     ip link set dev "$wifidev" down
     systemctl stop hostapd
     systemctl stop dnsmasq
     ip addr flush dev "$wifidev"
+    sudo nmcli device set "$wifidev" managed yes
     ip link set dev "$wifidev" up
     dhcpcd  -n "$wifidev" >/dev/null 2>&1
 }

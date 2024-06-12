@@ -25,6 +25,9 @@ class MyHandler(socketserver.BaseRequestHandler):
         self.request.send(bytes(
             "HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://"
             + self.ip + "/\" /></head></html> \n\r", "utf-8"))
+    def send_home(self):
+        self.request.send(bytes(
+            "HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://airiana.local /></head></html> \n\r", "utf-8"))
 
     def handle(self):
         self.ip = os.popen("hostname -I").readline().split(" ")[0]
@@ -64,11 +67,31 @@ class MyHandler(socketserver.BaseRequestHandler):
                 if password != "" and network != "":
                     os.system(f"echo {network}:{password} >> ./wifi.dat")
                 print("Wificonfig:", network, password)
+                network_conf = \
+                f"""
+[connection]
+id=preconfigured
+uuid=6bd00b15-baac-4fb7-ab8a-1cf655aaa60a
+type=wifi
+[wifi]
+mode=infrastructure
+ssid={network}
+hidden=false
+[ipv4]
+method=auto
+[ipv6]
+addr-gen-mode=default
+method=auto
+[proxy]
+[wifi-security]
+key-mgmt=wpa-psk
+psk={password}
+                """
                 wpa = "country=se\nupdate_config=1\nctrl_interface=/var/run/wpa_supplicant\nnetwork={"
                 wpa += f"\n scan_ssid=1\n ssid=\"{network}\"\n psk=\"{password}\""
                 wpa += "\n}\n\n"
-                os.system(f"sudo echo '{wpa}' > /etc/wpa_supplicant/wpa_supplicant.conf")
-                self.send_ok()
+                os.system(f"sudo echo '{network_conf}' > /etc/NetworkManager/system-connections/preconfigured.nmconnection")
+                self.send_home()
                 os.system("sudo reboot &")
 
             if "command" in data[0]:
@@ -83,7 +106,7 @@ class MyHandler(socketserver.BaseRequestHandler):
 
             if "utility" in data[0]:
                 print(data[0])
-                os.chdir("/home/pi/airiana/")
+                os.chdir("/home/pi/Airiana/")
                 if "shutdown" in data[0]:
                     self.send_ok()
                     os.system("sudo shutdown")
@@ -106,7 +129,7 @@ class MyHandler(socketserver.BaseRequestHandler):
                         "HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://" + str(
                             self.ip) + "/coffee.txt\" /></head></html> \n\r", "utf-8"))
                     return 0
-                os.chdir("/home/pi/airiana/public/")
+                os.chdir("/home/pi/Airiana/public/")
 
 
 socketserver.TCPServer.allow_reuse_address = True

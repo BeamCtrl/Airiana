@@ -1,301 +1,244 @@
 #!/usr/bin/python
 #################################################################
-#   	                                 			#
-#  Installation script for airiana system            	        #
-#   							        #
-#   							        #
-#   							        #
-#################################################################
 #                                                               #
-# INSTALL BY CLONING                                            #
-# git clone https://github.com/beamctrl/Airiana/                #
-# cd Airiana                                                    #
-# python install.py                                             #
+#  Installation script for airiana system                       #
 #                                                               #
 #################################################################
 import os
 import sys
-osname = os.popen("./osname.py").read()
+import subprocess
+import venv
+import time
 
-
-def setUart():
-    global boot_cmd, lines, reboot
-    # Enable UART for RS485 HAT
-    boot_cmd = "enable_uart=1\n"
-    boot_file = open("/boot/config.txt", "r+")
-    lines = boot_file.readlines()
-    if boot_cmd in lines:
-        print("Uart already enabled")
-    else:
-        print("Enabling uart")
-        boot_file.write(boot_cmd)
-        boot_file.close()
-        reboot = True
-
-
-# INSTALL DEPS #
-def install_deps():
-    os.system("sudo apt-get update")
-    os.system("sudo apt-get -y --force-yes install python3-pip")
-    os.system("sudo apt-get -y --force-yes install python3-dev")
-    os.system("sudo apt-get -y --force-yes install python3-matplotlib")
-    os.system("sudo apt-get -y --force-yes install python3-numpy")
-    os.system("pip3 install minimalmodbus --user")
-    os.system("pip3 install progressbar --user")
-    os.system("pip3 install requests --user")
-    os.system("pip3 install pyModbusTCP --user")
-    os.system("pip3 install setuptools --user")
-    os.system("pip3 install pytest --user")
-    os.system("pip3 install pyephem --user")
-    os.system("sudo apt-get -y --force-yes install libatlas-dev")
-    os.system("sudo apt-get -y --force-yes install ntp")
-
-
-# Autohotspot #
-def disable_auto_connect_services():
-    print("Autohotspot disabling connection services.")
-    os.system("sudo systemctl unmask hostapd")
-    os.system("sudo systemctl disable hostapd")
-    os.system("sudo systemctl disable dnsmasq")
-
-
-def copy_hostapd():
-    print("Copy the hostapd configuration")
-    if not os.path.lexists("/etc/hostapd/hostapd"):
-        os.system("sudo cp ./systemfiles/hostapd /etc/hostapd/hostapd.conf")
-
-
-def add_dnsmasq_conf():
-    conf = "#AutoHotspot Config\n#stop DNSmasq from using resolv.conf\nno-resolv\n#Interface to use\n"
-    conf += "interface=wlan0\nbind-interfaces\ndhcp-range=10.0.0.50,10.0.0.150,12h\n"
-    with open("/etc/dnsmasq.conf", "r") as dnsmasq:
-        if dnsmasq.read().find(conf) == -1:
-            print("adding configuration to dnsmasq.conf")
-            os.system("sudo echo \"" + conf + "\" |sudo tee -a /etc/dnsmasq.conf")
-        else:
-            print("Dnsmasq already has AutoHotspot configured")
-
-
-def add_dhcpcd_conf():
-    conf = "nohook wpa_supplicant\n"
-    with open("/etc/dhcpcd.conf", "r") as dhcpcd:
-        if dhcpcd.read().find(conf) == -1:
-            print("adding configuration to dhcpcd.conf")
-            os.system("sudo echo \"" + conf + "\" >> /etc/dhcpcd.conf")
-        else:
-            print("dhcpcd already has AutoHotspot configured")
-
-
-def add_sudoer_conf():
-    conf = "pi ALL= NOPASSWD: /home/pi/Airiana/systemfiles/autohotspot.sh\n"
-    with os.popen("sudo cat /etc/sudoers") as dhcpcd:
-        if dhcpcd.read().find(conf) == -1:
-            os.system("sudo echo \"" + conf + "\" | sudo tee -a /etc/sudoers")
-        else:
-            print("sudoers already has AutoHotspot configured")
-
-
-# System config #
-def set_fstab():
-    global lines, reboot, user_id, group_id
-    # MAKE RAM DRIVE IN FSTAB#
-    fstab_comment = "#temp filesystem only in RAM for use on Airiana tempfiles.\n"
-    fstab_RAM = "tmpfs " + path + "/RAM tmpfs defaults,noatime,nosuid,uid="\
-                + user_id + ",gid=" + group_id + ",mode=0755,size=50m 0 0\n"
-    # MAKE RAM DRIve for linux logs var/logs
-    fstab_var = "tmpfs /var/log tmpfs defaults,noatime,nosuid,mode=0755,size=75m 0 0"
-    fstab_file = open("/etc/fstab", "r+")
-    lines = fstab_file.readlines()
-    # Write RAM tmpfs's to fstab
-    if fstab_var not in lines or fstab_RAM not in lines:
-        for each in lines:
-            if "/RAM" in each:
-                print("Found RAM drive setup")
-                lines.pop(lines.index(each))
-            if "/var" in each:
-                print("Found /var/log partition setup")
-                lines.pop(lines.index(each))
-            if "filesystem only in RAM" in each:
-                print("Found fstab comment")
-                lines.pop(lines.index(each))
-        print("Setting up Ram drive")
-        lines.append(fstab_comment)
-        lines.append(fstab_RAM)
-        lines.append(fstab_var)
-        fstab_file.seek(0, 0)
-        fstab_file.writelines(lines)
-        fstab_file.close()
-        reboot = True
-    else:
-        print("fstab  already installed")
-
-
-def clean_paths():
-    # replace static paths with install path
-    os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' airiana-core.py")
-    os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' public/ip-replace.sh")
-    os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' public/controller.py")
-    os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' forcast2.0.py")
-    os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' humtest.py")
-    os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' updater.py")
-    os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' systemfiles/controller.service")
-    os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' systemfiles/airiana.service")
-    os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' systemfiles/autohotspot.service")
-    os.system("sed -i 's-/home/pi/airiana/-" + path + "/-g' public/ip-util.sh")
-
-
-# Main installations #
+path = os.getcwd()
 user_name = os.getlogin()
 user_id = os.getuid()
 group_id = os.getgid()
 
-if len(sys.argv) < 2:
-    print("Installing the AirianaCores")
-reboot = False
-
-path = os.getcwd()
-
-if "clean" in sys.argv:
-    os.system("sudo systemctl disable controller.service")
-    os.system("sudo systemctl disable airiana.service")
-    os.system("sudo rm /etc/systemd/system/airiana.service /etc/systemd/system/controller.service")
-    sys.exit()
-
-if user_id != 0:
-    install_deps()
-
-# Auto hotspot configuration
-if user_id != 0 and osname[:-1] in ("buster", "bullseye"):
+def run_command(command, check=True):
     try:
-        os.system("sudo apt-get -y --force-yes install hostapd")
-        os.system("sudo apt-get -y --force-yes install dnsmasq")
-        disable_auto_connect_services()
-        copy_hostapd()
-        add_dnsmasq_conf()
-        add_dhcpcd_conf()
-        add_sudoer_conf()
-        if not os.path.lexists("/etc/systemd/system/autohotspot.service"):
-            print("setup autostart for autohotspot.service")
-            os.system("sudo cp ./systemfiles/autohotspot.service /etc/systemd/system/")
-            os.system("sudo systemctl enable autohotspot.service")
-    except:
-        print("Auto hotspot config had an error")
+        result = subprocess.run(command, shell=True, check=check, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return result.stdout.decode().strip(), result.stderr.decode().strip()
+    except subprocess.CalledProcessError as e:
+        print(f"Command failed: {command}\nError: {e.stderr.decode().strip()}")
+        sys.exit(1)
 
+def setUart():
+    print("Checking UART settings...")
+    boot_cmd = "enable_uart=1\n"
+    with open("/boot/firmware/config.txt", "r+") as boot_file:
+        lines = boot_file.readlines()
+        if boot_cmd in lines:
+            print("UART already enabled")
+        else:
+            print("Enabling UART")
+            boot_file.write(boot_cmd)
+            global reboot
+            reboot = True
 
-# NEED TO SET LOCALE
-# os.system("cp ./systemfiles/timezone /etc/")
+def create_virtual_env(path):
+    print("Creating virtual environment...")
+    venv_path = os.path.join(path, "venv")
+    venv.EnvBuilder(with_pip=True).create(venv_path)
+    return venv_path
 
-if user_id == 0 and "--set-uart" in sys.argv:
-    setUart()
-    sys.exit()
-else:
-    os.popen("sudo python3 ./install.py --set-uart")
-# Fix static paths
-clean_paths()
+def install_deps(venv_path):
+    print("Installing dependencies in virtual environment...")
+    pip_executable = os.path.join(venv_path, "bin", "pip")
+    deps = [
+        "minimalmodbus", "progressbar", "requests", "pyModbusTCP", 
+        "setuptools", "pytest", "pyephem", "numpy"
+    ]
+    run_command(f"{pip_executable} install --upgrade pip")
+    run_command(f"{pip_executable} install " + " ".join(deps))
+    apt_executable = os.path.join("/usr", "bin", "apt")
+    apt_deps = ["dhcpcd", "hostapd", "dnsmasq", "ntp", "iptables"]
+    run_command(f"sudo {apt_executable} update")
+    run_command(f"sudo {apt_executable} -y install " + " ".join(apt_deps) )
 
-# update the fstab file with RAM-drives for /var/log and ~/airiana/RAM
-if user_id == 0 and "--set-fstab" in sys.argv:
-    user_id = sys.argv[-2]
-    group_id = sys.argv[-1]
-    set_fstab()
-    sys.exit()
-else:
-    os.popen("sudo python3 ./install.py --set-fstab " + str(user_id) + " " + str(group_id))
+def disable_auto_connect_services():
+    print("Disabling auto-connect services...")
+    services = ["hostapd", "dnsmasq"]
+    for service in services:
+        run_command(f"sudo systemctl unmask {service}")
+        run_command(f"sudo systemctl disable {service}")
 
-# install system services for airiana and controller
-if not os.path.lexists("/etc/systemd/system/airiana.service"):
-    print("setup autostart for airiana.service")
-    os.system("sudo cp ./systemfiles/airiana.service /etc/systemd/system/")
-    os.system("sudo systemctl enable airiana.service")
+def copy_hostapd():
+    print("Copying the hostapd configuration...")
+    if not os.path.lexists("/etc/hostapd/hostapd"):
+        run_command("sudo cp ./systemfiles/hostapd /etc/hostapd/hostapd.conf")
 
-if not os.path.lexists("/etc/systemd/system/controller.service"):
-    print("setup autostart for controller.service")
-    os.system("sudo cp ./systemfiles/controller.service /etc/systemd/system/")
-    os.system("sudo systemctl enable controller.service")
-sys.stdout.flush()
+def add_dnsmasq_conf():
+    print("Adding dnsmasq configuration...")
+    conf = (
+        "#AutoHotspot Config\n"
+        "#stop DNSmasq from using resolv.conf\n"
+        "no-resolv\n"
+        "#Interface to use\n"
+        "interface=wlan0\n"
+        "bind-interfaces\n"
+        "dhcp-range=10.0.0.50,10.0.0.150,12h\n"
+        "# Redirect all DNS queries to a specific IP address (e.g., 10.0.0.1)\n"
+        "address=/#/10.0.0.1\n"
+    )
+    with open("/etc/dnsmasq.conf", "r") as dnsmasq:
+        if conf not in dnsmasq.read():
+            run_command(f'sudo echo "{conf}" | sudo tee -a /etc/dnsmasq.conf')
 
+def add_dhcpcd_conf():
+    print("Adding dhcpcd configuration...")
+    conf = "nohook wpa_supplicant\n"
+    if not os.path.isfile("/etc/dhcp.conf"):
+        run_command('sudo touch /etc/dhcpcd.conf')
+        run_command('sudo chmod 666 /etc/dhcpcd.conf')
+    with open("/etc/dhcpcd.conf", "r+") as dhcpcd:
+        if conf not in dhcpcd.read():
+            run_command(f'sudo echo "{conf}" >> /etc/dhcpcd.conf')
 
-# Redirect console from uart
-def redirectConsole(boot_cmd):
-    os.system("echo " + boot_cmd + "> /boot/cmdline.txt")
+def add_sudoer_conf():
+    print("Adding sudoers configuration...")
+    conf = "pi ALL= NOPASSWD: /home/pi/Airiana/systemfiles/autohotspot.sh\n"
+    with os.popen("sudo cat /etc/sudoers") as sudoers:
+        if conf not in sudoers.read():
+            run_command(f'sudo echo "{conf}" | sudo tee -a /etc/sudoers')
 
+def set_fstab():
+    global user_id, group_id
+    print("Setting up RAM drive in fstab...")
+    fstab_comment = "#temp filesystem only in RAM for use on Airiana tempfiles.\n"
+    fstab_RAM = f"tmpfs {path}/RAM tmpfs defaults,noatime,nosuid,uid={user_id},gid={group_id},mode=0755,size=50m 0 0\n"
+    fstab_var = "tmpfs /var/log tmpfs defaults,noatime,nosuid,mode=0755,size=75m 0 0"
 
-boot_cmd = \
-    "dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait"
-if boot_cmd not in open("/boot/cmdline.txt").read():
-    reboot = True
-    print("Cmdline is invalid")
-    if user_id == 0 and "--redirect-console" in sys.argv:
-        print("Redirecting console")
-        redirectConsole(boot_cmd)
+    with open("/etc/fstab", "r+") as fstab_file:
+        lines = fstab_file.readlines()
+        if fstab_var not in lines or fstab_RAM not in lines:
+            lines = [line for line in lines if "/RAM" not in line and "/var" not in line and "filesystem only in RAM" not in line]
+            lines.extend([fstab_comment, fstab_RAM, fstab_var])
+            fstab_file.seek(0)
+            fstab_file.writelines(lines)
+            global reboot
+            reboot = True
+        else:
+            print("fstab already installed")
+
+def clean_paths():
+    print("Cleaning paths in configuration files...")
+    files_to_clean = [
+        "airiana-core.py", "public/ip-replace.sh", "public/controller.py",
+        "forcast2.0.py", "humtest.py", "updater.py", "systemfiles/controller.service",
+        "systemfiles/airiana.service", "systemfiles/autohotspot.service", "public/ip-util.sh"
+    ]
+    for file in files_to_clean:
+        run_command(f"sed -i 's-/home/pi/airiana/-{path}/-g' {file}")
+
+def redirect_console(boot_cmd):
+    print("Redirecting console output...")
+    run_command(f"echo {boot_cmd} > /boot/cmdline.txt")
+
+def setup_services():
+    print("Setting up services for autostart...")
+    services = ["airiana.service", "controller.service"]
+    for service in services:
+        if not os.path.lexists(f"/etc/systemd/system/{service}"):
+            run_command(f"sudo cp ./systemfiles/{service} /etc/systemd/system/")
+            run_command(f"sudo systemctl enable {service}")
+
+def setup_crontab():
+    print("Setting up crontab entries...")
+    cron = subprocess.run(["crontab", "-u", "pi", "-l"], capture_output=True, text=True).stdout
+    if "no crontab for user pi" in cron:
+        cron = ""
+    crontab = ""
+    updater_updated = False
+    hotspot_updated = False
+
+    for line in cron.splitlines():
+        if "updater.py" in line:
+            line = f"0 */4 * * * /usr/bin/python {path}/updater.py\n"
+            updater_updated = True
+        if "autohotspot.sh" in line:
+            line = f"*/5 * * * * sudo /home/pi/Airiana/systemfiles/autohotspot.sh\n"
+            hotspot_updated = True
+        crontab += line + "\n"
+    if not updater_updated:
+        crontab += f"0 */4 * * * /usr/bin/python {path}/updater.py\n"
+    if not hotspot_updated and osname in ("buster", "bullseye", "bookworm"):
+        crontab += f"*/5 * * * * sudo /home/pi/Airiana/systemfiles/autohotspot.sh\n"
+    run_command(f"echo \"{crontab.strip()}\" | crontab -u pi -")
+
+def main():
+    global path, user_id, group_id, reboot, osname
+    reboot = False
+    path = os.getcwd()
+    print(f'Running in: {path}\n')
+    osname, _ = run_command("./osname.py")
+
+    if "clean" in sys.argv:
+        print("Cleaning up installed services...")
+        run_command("sudo systemctl disable controller.service")
+        run_command("sudo systemctl disable airiana.service")
+        run_command("sudo rm /etc/systemd/system/airiana.service /etc/systemd/system/controller.service")
         sys.exit()
+
+    if len(sys.argv) < 2:
+        print("Installing the AirianaCores")
+
+
+    venv_path = create_virtual_env(path)
+    install_deps(venv_path)
+
+    if user_id != 0 and osname in ("buster", "bullseye", "bookworm"):
+        try:
+            run_command("sudo apt install -y hostapd dnsmasq")
+            disable_auto_connect_services()
+            copy_hostapd()
+            add_dnsmasq_conf()
+            add_dhcpcd_conf()
+            add_sudoer_conf()
+            if not os.path.lexists("/etc/systemd/system/autohotspot.service"):
+                run_command("sudo cp ./systemfiles/autohotspot.service /etc/systemd/system/")
+                run_command("sudo systemctl enable autohotspot.service")
+        except (IndexError) as e:
+            print(e)
+            print("Auto hotspot config had an error")
+
+    clean_paths()
+    setup_services()
+    setup_crontab()
+
+
+
+def execute_sudo_parts():
+    global boot_cmd
+    print("Executing sections requiring sudo...")
+    set_fstab()
+    setUart()
+    with open("/boot/cmdline.txt", "r") as cmdline:
+        if boot_cmd not in cmdline.read():
+            print("Updating cmdline.txt")
+            reboot = True
+            redirect_console(boot_cmd)
+        else:
+            print("cmdline.txt has full command")
+
+    add_dhcpcd_conf()
+
+if __name__ == "__main__":
+    reboot = False
+    if "user" in sys.argv:
+        user_id = sys.argv[sys.argv.index("user") + 1]
+    if "group" in sys.argv:
+        group_id = sys.argv[sys.argv.index("group") + 1]
+    if "sudo-parts" in sys.argv:
+        boot_cmd = "dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait"
+        execute_sudo_parts()
+        if reboot:
+            print("Your system must be rebooted to apply all settings!")
+            print("Reboot will occur in 5 seconds... ctrl-c to abort now")
+            time.sleep(5)
+            run_command("sudo reboot")
+
     else:
-        print("Sudo console redirect")
-        os.popen("sudo python3 ./install.py --redirect-console")
-# setup airiana as host#
-print("Copy hosts file and set hostname")
-os.system("sudo cp ./systemfiles/hosts /etc/")
-os.system("echo airiana |sudo tee /etc/hostname >> /dev/null")
-
-sys.stdout.flush()
-
-# Touch a data log file
-print("Touch data.log")
-os.system("touch data.log")
-
-# move to public folder for symlink setup
-os.chdir("./public/")
-sys.stdout.flush()
-
-# link files to RAM-disk
-print("setup symlinks between RAM and ./public")
-sys.stdout.flush()
-if not os.path.lexists("out.txt"):
-    os.system("ln -s ../RAM/out out.txt")
-if not os.path.lexists("history.png"):
-    os.system("ln -s ../RAM/history.png history.png")
-if not os.path.lexists("air.out"):
-    os.system("ln -s ../RAM/air.out air.out")
-if not os.path.lexists("status.html"):
-    os.system("ln -s ../RAM/status.html status.html")
-
-# setup updater.py for auto update
-print("setup auto update from airiana repo.")
-cron = os.popen("crontab -u pi -l").readlines()
-if "no crontab for user pi" in cron:
-    cron = ""
-crontab = ""
-updater_updated = False
-hotspot_updated = False
-for line in cron:  # this will update an existing airiana conf
-    if line.find("updater.py") > 0:
-        print("updateing cron updater")
-        line = "0 */4 * * * /usr/bin/python " + path + "/updater.py\n"
-        updater_updated = True
-    if line.find("autohotspot.sh") > 0:
-        print("updateing cron autohotspot")
-        line = "*/5 * * * * sudo /home/pi/Airiana/systemfiles/autohotspot.sh\n"
-        hotspot_updated = True
-    crontab += line
-if not updater_updated:  # this is for new installations
-    print("installing crontab for updater")
-    crontab += "0 */4 * * * /usr/bin/python " + path + "/updater.py\n"
-if not hotspot_updated and osname[:-1] in ("buster", "bullseye"):  # this is for new installations
-    print("installing crontab for hotspot")
-    crontab += "*/5 * * * * sudo /home/pi/Airiana/systemfiles/autohotspot.sh\n"
-
-os.system("echo \"" + crontab[:-1] + "\" | crontab -u pi -")
-sys.stdout.flush()
-
-# reboot if needed
-if "update" not in sys.argv or reboot or "reboot" in sys.argv:
-    # Reboot after installation
-    print("Installation completed, reboot in 15 sec")
-    sys.stdout.flush()
-    os.system("sleep 15")
-    os.system("sudo reboot")
-
-if "update" in sys.argv:
-    os.system("sudo systemctl daemon-reload")
-    print("System update successful,restarting services")
-    os.system("sudo systemctl restart airiana.service controller.service")
+        main()
+        print("will execute some parts as root for access...")
+        os.system(f'sudo python3 install.py sudo-parts user {user_id} group {group_id}')
