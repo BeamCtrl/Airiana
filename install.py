@@ -143,7 +143,7 @@ def setup_services():
             run_command(f"sudo cp ./systemfiles/{service} /etc/systemd/system/")
             run_command(f"sudo systemctl enable {service}")
 
-def setup_crontab():
+def setup_crontab(option):
     print("Setting up crontab entries...")
     cron = subprocess.run(["crontab", "-u", "pi", "-l"], capture_output=True, text=True).stdout
     if "no crontab for user pi" in cron:
@@ -160,11 +160,29 @@ def setup_crontab():
             line = f"*/5 * * * * sudo /home/pi/Airiana/systemfiles/autohotspot.sh\n"
             hotspot_updated = True
         crontab += line + "\n"
-    if not updater_updated:
+    if not updater_updated\
+      and option == "crontab":
         crontab += f"0 */4 * * * /usr/bin/python {path}/updater.py\n"
-    if not hotspot_updated and osname in ("buster", "bullseye", "bookworm"):
+    if not hotspot_updated \
+      and osname in ("buster", "bullseye", "bookworm")\
+      and option == "hotspot":
         crontab += f"*/5 * * * * sudo /home/pi/Airiana/systemfiles/autohotspot.sh\n"
     run_command(f"echo \"{crontab.strip()}\" | crontab -u pi -")
+
+def setup_autohotspot():
+    try:
+        run_command("sudo apt install -y hostapd dnsmasq")
+        disable_auto_connect_services()
+        copy_hostapd()
+        add_dnsmasq_conf()
+        add_dhcpcd_conf()
+        add_sudoer_conf()
+        if not os.path.lexists("/etc/systemd/system/autohotspot.service"):
+            run_command("sudo cp ./systemfiles/autohotspot.service /etc/systemd/system/")
+            run_command("sudo systemctl enable autohotspot.service")
+    except (IndexError) as e:
+        print(e)
+        print("Auto hotspot config had an error")
 
 def main():
     global path, user_id, group_id, reboot, osname
@@ -183,29 +201,23 @@ def main():
     if len(sys.argv) < 2:
         print("Installing the AirianaCores")
 
-
+    # setup virtual environment
     venv_path = create_virtual_env(path)
     install_deps(venv_path)
 
-    if user_id != 0 and osname in ("buster", "bullseye", "bookworm"):
-        try:
-            run_command("sudo apt install -y hostapd dnsmasq")
-            disable_auto_connect_services()
-            copy_hostapd()
-            add_dnsmasq_conf()
-            add_dhcpcd_conf()
-            add_sudoer_conf()
-            if not os.path.lexists("/etc/systemd/system/autohotspot.service"):
-                run_command("sudo cp ./systemfiles/autohotspot.service /etc/systemd/system/")
-                run_command("sudo systemctl enable autohotspot.service")
-        except (IndexError) as e:
-            print(e)
-            print("Auto hotspot config had an error")
-
+    # clean up the exec paths to match current installation
     clean_paths()
-    setup_services()
-    setup_crontab()
 
+    # setup auto start services
+    setup_services()
+
+    # add auto updater
+    setup_crontab("updater")
+
+    # setup wifi hotsput, only if bookworm
+    if user_id != 0 and osname in ("bookworm"):
+        setup_autohotspot()
+        setup_crontab("hotspot")
 
 
 def execute_sudo_parts():
@@ -213,6 +225,7 @@ def execute_sudo_parts():
     print("Executing sections requiring sudo...")
     set_fstab()
     setUart()
+    add_dhcpcd_conf()
     with open("/boot/cmdline.txt", "r") as cmdline:
         if boot_cmd not in cmdline.read():
             print("Updating cmdline.txt")
@@ -221,7 +234,6 @@ def execute_sudo_parts():
         else:
             print("cmdline.txt has full command")
 
-    add_dhcpcd_conf()
 
 if __name__ == "__main__":
     reboot = False
