@@ -1,6 +1,12 @@
 #!/usr/bin/python3
 import os
 import sys
+
+if len(sys.argv) == 1:
+	os.system("sudo systemctl stop airiana.service")
+	os.system("sudo pkill --signal 2 airiana-core.py")
+	os.system("sudo systemctl stop controller.service")
+        
 if "airiana-core.py" in sys.argv:
 	os.system("sudo systemctl stop airiana.service")
 	os.system("sudo pkill --signal 2 airiana-core.py")
