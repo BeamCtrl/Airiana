@@ -1,6 +1,8 @@
 # Airiana [![Run all Pytests](https://github.com/BeamCtrl/Airiana/actions/workflows/python-app.yml/badge.svg)](https://github.com/BeamCtrl/Airiana/actions/workflows/python-app.yml)
 SystemAir control,
 
+For Bookworm users: use branch merge/autohotspot for bookworm compatibility; its using virtual envs. 
+
 Get your Systemair unit under control.
 Airiana talks to it via modbus and hooks you up with some extra featrues, most important it's fire and forget. 
 she keeps her self in check.
