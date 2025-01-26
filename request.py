@@ -28,7 +28,6 @@ class Request:
         self.checksum_errors = 0
         self.multi_errors = 0
         self.write_errors = 0
-        self.buff = bytes()
         self.counter = 0
         self.error_time = time.time()
         self.wait_time = 0.01
@@ -45,6 +44,7 @@ class Request:
         self.latest_request_mode = "Single"
         self.latest_request_decimals = 0
         self.latest_request_count = 0
+        self.connection_timeout = 0
 
     def setup(self, unit, mode):
         self.unit = unit
@@ -80,6 +80,9 @@ class Request:
         test = self.comm_test()
         print("Comm test: ", test, ";\n")
 
+    def close(self):
+        self.client.serial.close()
+
     def comm_test(self):
         print("Running Comm test;")
         fd = os.open("RAM/request.log", os.O_WRONLY | os.O_CREAT)
@@ -91,9 +94,11 @@ class Request:
         second = self.response
         print("Testing savecair address 12543:" + str(second) + ";")
         os.write(fd, bytes("Testing savecair address 12543:" + str(second) + "\n", "utf-8"))
-        if (first == 0 and second == 0) \
-                or (first == "no data" and second == "no data") \
-                or (first == '' and second == ''):
+        if ((first == 0 and second == 0)
+                or (first == "no data" and second == "no data")
+                or (first == '' and second == '')
+                or (first == 0  and second == 'no data')
+                or (first == "no data"  and second == 0)):
             os.write(fd, bytes("Request object Failed communications test.\n", "utf-8"))
             os.close(fd)
             return False
@@ -126,9 +131,9 @@ class Request:
             self.modbusregisters(start, count)
         except IOError:
             self.connect_errors += 1
-            if self.connect_errors > 100 or self.multi_errors > 100:
+            if self.connect_errors > 1000 or self.multi_errors > 1000:
                 self.error_review()
-            if self.rate < 0.9:
+            if self.rate < 0.99:
                 self.modbusregisters(start, count)
         self.client.precalculate_read_size = False
 
@@ -142,15 +147,19 @@ class Request:
                          self.multi_errors) / delta
         else:
             rate = 0.0
-        if rate >= 0.9:
+        if rate >= 0.99:
             os.read(self.bus, 1000)
-            time.sleep(1)
+            self.connection_timeout += 1
+            time.sleep(10)
             fd = os.open("RAM/err", os.O_WRONLY)
             os.lseek(fd, os.SEEK_SET, os.SEEK_END)
             os.write(fd, bytes("""read error high rate,
-            possible no communication with unit, error rate over 90%\n""", "utf-8"))
+            possible no communication with unit, error rate over 99%\n""", "utf-8"))
+            os.fsync(fd)
             os.close(fd)
-            exit(-1)
+            self.close()
+            self.setup(self.unit, self.mode)
+            #exit(-1)
         os.system("echo " + str(rate)
                   + " "
                   + str(self.wait_time)
@@ -174,26 +183,21 @@ class Request:
 
             try:
                 self.response = "no data"
-                self.buff += os.read(self.bus, 20) # bus purge
+                os.read(self.bus, 20) # bus purge
                 self.response = self.client.read_register(
                     address, decimals,
                     signed=True)
-            except IOError:
+            except (IOError, ValueError, TypeError):
                 self.connect_errors += 1
-                if self.connect_errors > 100:
+                if self.connect_errors > 1000:
                     self.error_review()
-                self.buff += os.read(self.bus, 20)  # bus purge
+                try:
+                    os.read(self.bus, 20)  # bus purge
+                except TypeError:
+                    pass  # read should not typeError here, but does somehow.
                 if address == 12543 and self.connect_errors >= 10:
                     return 0
                 self.modbusregister(address, decimals)
-            except ValueError:
-                self.buff += os.read(self.bus, 20)  # bus purge
-                self.checksum_errors += 1
-                if address == 12543 and self.checksum_errors >= 10:
-                    return 0
-                self.modbusregister(address, decimals)
-            # self.client.precalculate_read_size = False
-            # print "request om address ", address, "returned", self.response
         else:
             data = "noData"
             try:
@@ -214,13 +218,7 @@ class Request:
             try:
                 if tries > 0:
                     self.client.write_register(reg, value, 0, 6)
-            except IOError:
-
-                self.write_errors += 1
-                if tries > 0:
-                    self.write_register(reg, value, tries=tries - 1)
-
-            except ValueError:
+            except (IOError, ValueError):
                 self.write_errors += 1
                 if tries > 0:
                     self.write_register(reg, value, tries=tries - 1)
@@ -247,7 +245,7 @@ class Request:
 
             except:
                 with os.open("RAM/err", os.O_WRONLY) as fd:
-                    os.write(fd, bytes("TCP write error on addrs:" + str(reg) + "\n", "utf-8"))
+                    os.write(fd,	 bytes("TCP write error on addrs:" + str(reg) + "\n", "utf-8"))
 
 
 if "__main__" == __name__:
