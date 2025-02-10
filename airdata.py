@@ -169,7 +169,18 @@ if "__main__" in __name__:
     """for RH in range(1,100,8):
         print  RH,"%:",round(air.dew_point(RH,each),1)," ", 
         print """
-    print(str(air.press) + "hPa")
-
-    print (air.energy_flow(30, 5.5, -0.2))
-    print (condensation_mass(air.energy_flow(30, 5.5, -0.3)))
+    print(str(air.press.__round__(1)) + "hPa")
+    top = 8.61
+    low = 11.2
+    missing_sensible = air.energy_flow(30, top, low)
+    print("missing energy", missing_sensible, "J")
+    print("equivalent mass:", condensation_mass(air.energy_flow(30, top, low)), "g")
+    d_pw = air.sat_vapor_press(top) * 1000 - air.sat_vapor_press(low) * 1000
+    print("d_part.pressure:", d_pw, "Pa")
+    print("satPtop:", air.sat_vapor_press(top)*1000, "satPlow:", air.sat_vapor_press(low) * 1000)
+    print("d_Mass:", air.vapor_mass(d_pw), "g")
+    mass = air.vapor_mass(air.sat_vapor_press(top) * 1000) * 0.001 - air.vapor_mass(air.sat_vapor_press(low) * 1000) * 0.001
+    print(mass)
+    added_latent = condensation_energy(mass) * 30
+    print("added latent Energy equivalent:", condensation_energy(mass) * 30, "J")
+    print("Difference:", added_latent - missing_sensible, "J")
