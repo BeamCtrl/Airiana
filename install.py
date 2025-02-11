@@ -52,7 +52,7 @@ def install_deps(venv_path):
     run_command(f"{pip_executable} install --upgrade pip")
     run_command(f"{pip_executable} install " + " ".join(deps))
     apt_executable = os.path.join("/usr", "bin", "apt")
-    apt_deps = ["dhcpcd", "hostapd", "dnsmasq", "ntp", "iptables"]
+    apt_deps = ["dhcpcd", "hostapd", "dnsmasq", "iptables"]
     run_command(f"sudo {apt_executable} update")
     run_command(f"sudo {apt_executable} -y install " + " ".join(apt_deps) )
 
@@ -216,12 +216,12 @@ def main():
     setup_services()
 
     # add auto updater
-    if (not headless and input("Do you want to setup, automatic updates? ").strip().lower() == "y"):
+    if (not headless and input("\nDo you want to setup, automatic updates? [y/n] ").strip().lower() == "y"):
         setup_crontab("updater")
 
     # setup wifi hotsput, only if bookworm
     if user_id != 0 and osname in ("bookworm") and not headless:
-        if (input("Do you want to setup, automatic WiFi access point, if network is lost? ").strip().lower() == "y"):
+        if (input("\nDo you want to setup, automatic WiFi access point, if network is lost? [y/n]").strip().lower() == "y"):
             setup_autohotspot()
             setup_crontab("hotspot")
 
