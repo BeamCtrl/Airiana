@@ -91,6 +91,7 @@ psk={password}
                 wpa += "\n}\n\n"
                 os.system(f"echo '{network_conf}' | sudo tee /etc/NetworkManager/system-connections/preconfigured.nmconnection")
                 self.send_home()
+                os.system('echo "\n\nRebooting system due to updated WiFi configuration, please wait..." >> ../RAM/out')
 		time.sleep(5)
                 os.system("sudo reboot &")
 
