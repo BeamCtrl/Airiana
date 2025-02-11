@@ -52,7 +52,7 @@ def install_deps(venv_path):
     run_command(f"{pip_executable} install --upgrade pip")
     run_command(f"{pip_executable} install " + " ".join(deps))
     apt_executable = os.path.join("/usr", "bin", "apt")
-    apt_deps = ["dhcpcd", "hostapd", "dnsmasq", "iptables"]
+    apt_deps = ["dhcpcd", "hostapd", "dnsmasq", "iptables", "libopenblas-dev"]
     run_command(f"sudo {apt_executable} update")
     run_command(f"sudo {apt_executable} -y install " + " ".join(apt_deps) )
 
@@ -80,6 +80,7 @@ def add_dnsmasq_conf():
         "dhcp-range=10.0.0.50,10.0.0.150,12h\n"
         "# Redirect all DNS queries to a specific IP address (e.g., 10.0.0.1)\n"
         "address=/#/10.0.0.1\n"
+	"address=/airiana.local/10.0.0.1\n"
     )
     with open("/etc/dnsmasq.conf", "r") as dnsmasq:
         if conf not in dnsmasq.read():
