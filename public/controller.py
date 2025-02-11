@@ -26,8 +26,7 @@ class MyHandler(socketserver.BaseRequestHandler):
             "HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://"
             + self.ip + "/\" /></head></html> \n\r", "utf-8"))
     def send_home(self):
-        self.request.send(bytes(
-            "HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://airiana.local /></head></html> \n\r", "utf-8"))
+        self.request.send(bytes("HTTP/1.1 302 Found\r\nLocation: http://airiana.local/\r\n\r\n", "utf-8"))
 
     def handle(self):
         self.ip = os.popen("hostname -I").readline().split(" ")[0]
@@ -90,8 +89,9 @@ psk={password}
                 wpa = "country=se\nupdate_config=1\nctrl_interface=/var/run/wpa_supplicant\nnetwork={"
                 wpa += f"\n scan_ssid=1\n ssid=\"{network}\"\n psk=\"{password}\""
                 wpa += "\n}\n\n"
-                os.system(f"sudo echo '{network_conf}' > /etc/NetworkManager/system-connections/preconfigured.nmconnection")
+                os.system(f"echo '{network_conf}' | sudo tee /etc/NetworkManager/system-connections/preconfigured.nmconnection")
                 self.send_home()
+		sleep(5)
                 os.system("sudo reboot &")
 
             if "command" in data[0]:
