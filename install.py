@@ -242,6 +242,7 @@ def execute_sudo_parts():
 
 if __name__ == "__main__":
     reboot = False
+    headless = False
     if "headless" in sys.argv:
         headless = True
     if "user" in sys.argv:
