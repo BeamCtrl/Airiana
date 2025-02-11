@@ -216,13 +216,14 @@ def main():
     setup_services()
 
     # add auto updater
-    setup_crontab("updater")
+    if (not headless and input("Do you want to setup, automatic updates? ").strip().lower() == "y"):
+        setup_crontab("updater")
 
     # setup wifi hotsput, only if bookworm
-    if user_id != 0 and osname in ("bookworm"):
-        setup_autohotspot()
-        setup_crontab("hotspot")
-
+    if user_id != 0 and osname in ("bookworm") and not headless:
+        if (input("Do you want to setup, automatic WiFi access point, if network is lost? ").strip().lower() == "y"):
+            setup_autohotspot()
+            setup_crontab("hotspot")
 
 def execute_sudo_parts():
     global boot_cmd
@@ -241,6 +242,8 @@ def execute_sudo_parts():
 
 if __name__ == "__main__":
     reboot = False
+    if "headless" in sys.argv:
+        headless = True
     if "user" in sys.argv:
         user_id = sys.argv[sys.argv.index("user") + 1]
     if "group" in sys.argv:
