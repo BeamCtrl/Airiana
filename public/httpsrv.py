@@ -17,15 +17,12 @@ os.chdir(dirs)
 
 
 def get_ssids():
-    ssid_list = []
-    ssids = os.popen("sudo iwlist scan |grep SSID").readlines()
-    for each in ssids:
-        each = each.replace("ESSID:", "")
-        each = each.replace(" ", "")
-        each = each.replace("\n", "")
-        each = each.replace("\"", "")
-        ssid_list.append(each)
-    return ssid_list
+    SSID_data = os.popen("sudo iwlist scan 2>/dev/null |grep ESSID|xargs").read().split(" ")
+    SSID_data = list(set(SSID_data))
+    SSID_data = [ssid for ssid in SSID_data if ssid.find("x00") == -1]
+    with open("SSID", "w") as file:
+        file.write(" ".join(SSID_data))
+
 
 
 class ExtendedHandler(SimpleHTTPRequestHandler):
@@ -34,8 +31,8 @@ class ExtendedHandler(SimpleHTTPRequestHandler):
 
     def finish(self):
         req = self.request
-        if self.requestline.find("wifi.html") != -1:
-            os.system("sudo iwlist scan |grep ESSID|xargs> ./SSID")
+        if self.requestline.find("wifi.html") != -1 or self.requestline.find("SSID") != -1:
+            get_ssids()
         ip = self.request.getpeername()[0]
         if self.requestline.find("current_version") != -1:
             os.system("echo " + str(ip) + " " + self.requestline + " " + str(time.ctime()) + " >> ../checks.txt")

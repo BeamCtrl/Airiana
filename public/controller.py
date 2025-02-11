@@ -5,20 +5,8 @@ import socket
 import os
 import traceback
 import time
+import sys
 hostname = os.popen("hostname").read()[:-1]
-
-
-def get_ssids():
-    ssid_list = []
-    ssids = os.popen("sudo iwlist scan |grep SSID").readlines()
-    for each in ssids:
-        each = each.replace("ESSID:", "")
-        each = each.replace(" ", "")
-        each = each.replace("\n", "")
-        each = each.replace("\"", "")
-        ssid_list.append(each)
-    print(f"Found {ssid_list}")
-    return ssid_list
 
 
 class MyHandler(socketserver.BaseRequestHandler):
@@ -33,6 +21,7 @@ class MyHandler(socketserver.BaseRequestHandler):
         self.ip = os.popen("hostname -I").readline().split(" ")[0]
         data = str(self.request.recv(1024), "utf-8").strip().split("\r\n")
         print(data[0])
+        sys.stdout.flush()
         if "GET" in data[0]:
             if "command" in data[0]:
                 req = data[0].split(" ")
@@ -42,14 +31,6 @@ class MyHandler(socketserver.BaseRequestHandler):
                 s.sendto(bytes(command[-1], "utf-8"), ("127.0.0.1", 9876))
                 s.close()
                 self.send_ok()
-
-            if "SSID" in data[0]:
-                ids = get_ssids()
-                resp = ""
-                for ssid in ids:
-                    resp += f"<option value = \"{ssid}\" selected>{ssid}</option>"
-                print(resp)
-                self.request.send(bytes(resp))
 
         if "POST" in data[0]:
             if "setup" in data[0]:
@@ -142,6 +123,7 @@ while True:
     try:
         srv = socketserver.TCPServer(("0.0.0.0", 8000), MyHandler)
         srv.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        print()
         break
     except KeyboardInterrupt:
         exit()
