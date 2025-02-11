@@ -94,7 +94,6 @@ def add_dhcpcd_conf():
         run_command('sudo chmod 666 /etc/dhcpcd.conf')
     with open("/etc/dhcpcd.conf", "r+") as dhcpcd:
         dhcpcd_conf = dhcpcd.read()
-        print(dhcpcd_conf)
         if dhcpcd_conf.find("#persistent\n") == -1:
              if "persistent\n" in dhcpcd_conf:
                  dhcpcd_conf = dhcpcd_conf.replace("persistent", "#persistent")
