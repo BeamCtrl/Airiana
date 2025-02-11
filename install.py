@@ -93,7 +93,13 @@ def add_dhcpcd_conf():
         run_command('sudo touch /etc/dhcpcd.conf')
         run_command('sudo chmod 666 /etc/dhcpcd.conf')
     with open("/etc/dhcpcd.conf", "r+") as dhcpcd:
-        if conf not in dhcpcd.read():
+        dhcpcd_conf = dhcpcd.read()
+        print(dhcpcd_conf)
+        if dhcpcd_conf.find("#persistent\n") == -1:
+             if "persistent\n" in dhcpcd_conf:
+                 dhcpcd_conf = dhcpcd_conf.replace("persistent", "#persistent")
+                 run_command(f'echo "{dhcpcd_conf}" |sudo tee /etc/dhcpcd.conf > /dev/null')
+        if conf not in dhcpcd_conf:
             run_command(f'sudo echo "{conf}" >> /etc/dhcpcd.conf')
 
 def add_sudoer_conf():
