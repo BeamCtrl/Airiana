@@ -52,7 +52,8 @@ def install_deps(venv_path):
     run_command(f"{pip_executable} install --upgrade pip")
     run_command(f"{pip_executable} install " + " ".join(deps))
     apt_executable = os.path.join("/usr", "bin", "apt")
-    apt_deps = ["dhcpcd", "hostapd", "dnsmasq", "iptables", "libopenblas-dev"]
+    apt_deps = ["dhcpcd", "hostapd", "dnsmasq",
+                "iptables", "libopenblas-dev", "python3-numpy"]
     run_command(f"sudo {apt_executable} update")
     run_command(f"sudo {apt_executable} -y install " + " ".join(apt_deps) )
 
