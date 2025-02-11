@@ -3,7 +3,7 @@ Description=Airiana Controller TCP(http) --> UDP server
 After=network-online.target
 Type=idle
 [Service]
-ExecStart=/home/pi/Airiana/venv/bin/python  /home/pi/Airiana/public/controller.py
+ExecStart=/home/pi/airiana/venv/bin/python  /home/pi/airiana/public/controller.py
 Restart=always
 serviceUser=root
 [Install]
