@@ -1916,18 +1916,18 @@ class Systemair(object):
                 os.close(fd)
 
         out = os.popen("./humid.py " + str(self.extract_ave)).readline()
-        tmp = out.split(" ")
+        sat_point = out.split(" ")
         wthr = [-1, -1, -1]
         sun = 0
         try:
-            saturation_point = float(tmp[1])
+            saturation_point = float(sat_point[1])
         except TypeError:
-            os.write(ferr, bytes("Unable to cast 24h low temp " + str(tmp) + "\t" + str(time.ctime()) + "\n",
+            os.write(ferr, bytes("Unable to cast 24h low temp " + str(sat_point) + "\t" + str(time.ctime()) + "\n",
                                  encoding='utf8'))
             os.system(f"echo {self.inlet_ave} > ./RAM/latest_static")
             saturation_point = self.inlet_ave
         except IndexError:
-            os.write(ferr, bytes("Saturation point was unavailable. " + str(tmp) + "\t" + str(time.ctime()) + "\n",
+            os.write(ferr, bytes("Saturation point was unavailable. " + str(sat_point) + "\t" + str(time.ctime()) + "\n",
                                  encoding='utf8'))
             saturation_point = self.inlet_ave
         # if no forecast is avail

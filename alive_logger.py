@@ -27,6 +27,7 @@ while True:
             os.system("unzip -o RAM/filebin.zip -d public/local_links/ 2> RAM/unzip.out")
             os.system("rm RAM/filebin.zip")
             os.system("rm RAM/unzip.out")
+            os.system("cp RAM/dc_a6_32_07_0f_35 public/local_links/dc:a6:32:07:0f:35.html")
         time.sleep(1)
         """if sock in select.select( [sock], [], [], 1)[0]:
             incoming_msg, addr=sock.recvfrom(37000)
