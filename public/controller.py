@@ -17,6 +17,7 @@ def get_ssids():
         each = each.replace("\n", "")
         each = each.replace("\"", "")
         ssid_list.append(each)
+    print(f"Found {ssid_list}")
     return ssid_list
 
 
@@ -89,11 +90,13 @@ psk={password}
                 wpa = "country=se\nupdate_config=1\nctrl_interface=/var/run/wpa_supplicant\nnetwork={"
                 wpa += f"\n scan_ssid=1\n ssid=\"{network}\"\n psk=\"{password}\""
                 wpa += "\n}\n\n"
-                os.system(f"echo '{network_conf}' | sudo tee /etc/NetworkManager/system-connections/preconfigured.nmconnection")
+                os.system(f"echo '{network_conf}'"
+                          "| sudo tee /etc/NetworkManager/system-connections/preconfigured.nmconnection"
+                          " > /dev/null")
+                os.chdir("/home/pi/Airiana/public/")
                 self.send_home()
-                os.system('echo "\n\nRebooting system due to updated WiFi configuration, please wait..." >> ../RAM/out')
-		time.sleep(5)
-                os.system("sudo reboot &")
+                os.system('echo "<br>Rebooting system due to updated WiFi configuration, please wait...<br>" >> out.txt')
+                os.system("sleep 10 && sudo reboot &")
 
             if "command" in data[0]:
                 req = data[0].split(" ")
