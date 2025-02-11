@@ -4,7 +4,7 @@ import socketserver
 import socket
 import os
 import traceback
-
+import time
 hostname = os.popen("hostname").read()[:-1]
 
 
@@ -91,7 +91,7 @@ psk={password}
                 wpa += "\n}\n\n"
                 os.system(f"echo '{network_conf}' | sudo tee /etc/NetworkManager/system-connections/preconfigured.nmconnection")
                 self.send_home()
-		sleep(5)
+		time.sleep(5)
                 os.system("sudo reboot &")
 
             if "command" in data[0]:
