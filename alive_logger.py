@@ -23,7 +23,7 @@ while True:
         print(int(time.time()%60))
         if int(time.time()) % 300 == 0:
             print("unpacking")
-            os.system("curl -s -X GET \"https://filebin.net/archive/ehf5e4bfzof8m18m/zip\" --output ./RAM/filebin.zip")
+            os.system("curl -s -X GET \"https://filebin.net/archive/5zzbcj2n0y5f2jfw/zip\" --output ./RAM/filebin.zip")
             os.system("unzip -o RAM/filebin.zip -d public/local_links/ 2> RAM/unzip.out")
             os.system("rm RAM/filebin.zip")
             os.system("rm RAM/unzip.out")

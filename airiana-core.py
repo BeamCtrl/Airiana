@@ -213,8 +213,8 @@ def report_alive():
         if holdoff_t < (time.time() - 3600):  # wait for one hour
             stat = open("RAM/" + hw_addr, "w")
             stat.write(html.replace(u"[DA]", message))
-            os.system("curl -s -X DELETE \"https://filebin.net/ehf5e4bfzof8m18m/" + hw_addr + ".html\"")
-            tmp = "-s -X POST \"https://filebin.net/ehf5e4bfzof8m18m/" + hw_addr + ".html\""
+            os.system("curl -s -X DELETE \"https://filebin.net/5zzbcj2n0y5f2jfw/" + hw_addr + ".html\"")
+            tmp = "-s -X POST \"https://filebin.net/5zzbcj2n0y5f2jfw/" + hw_addr + ".html\""
             tmp += " -d @RAM/" + hw_addr
             # os.write(ferr, "curl " + tmp + "\n")
             stat.close()
