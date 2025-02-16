@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 ############################
-vers = "11.01"
+vers = "12.0"
 import airdata  # noqa
 import numpy  # noqa
 import select  # noqa
@@ -2450,3 +2450,4 @@ if __name__ == "__main__":
     except:  # noqa
         traceback.print_exc(ferr)
     syslog.syslog("Airiana-core not running, at end of line... this is bad")
+
