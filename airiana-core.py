@@ -1984,16 +1984,16 @@ class Systemair(object):
         tmp = ""
         try:
             json_vars = {
-                "extract": self.extract_ave, "coolingMode": str(self.cool_mode).lower(),
-                "supply": self.supply_ave, "sf": self.sf, "ef": self.ef,
-                "exhaust": self.exhaust_ave, "autoON": str(self.monitoring).lower(),
+                "extract": f"{self.extract_ave}", "coolingMode": str(self.cool_mode).lower(),
+                "supply": f"{self.supply_ave}", "sf": self.sf, "ef": self.ef,
+                "exhaust": f"{self.exhaust_ave}", "autoON": str(self.monitoring).lower(),
                 "shower": str(self.shower).lower(), "rotorSpeed": self.exchanger_speed,
-                "sfRPM": self.sf_rpm, "energyXfer": self.loss, "efficiency": self.eff,
+                "sfRPM": self.sf_rpm, "energyXfer": f"{self.loss}", "efficiency": f"{self.eff}",
                 "efRPM": self.ef_rpm, "name": self.system_name,
                 "filterPercentRemaining": self.filter_remaining,
                 "pressure": self.airdata_inst.press, "filterInstalledDays": self.filter,
                 "rotorActive": str(self.rotor_active).lower(), "elecHeater": self.heater,
-                "inlet": self.inlet_ave,
+                "inlet": f"{self.inlet_ave}",
                 "electricPower": self.electric_power, "electricPowerTotal": round(self.electric_power_sum, 2),
                 "referenceHumidity": round(self.local_humidity, 1)}
             if len(self.hum_list) and self.RH_valid:

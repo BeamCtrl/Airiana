@@ -195,7 +195,7 @@ def main():
     global path, user_id, group_id, reboot, osname
     reboot = False
     path = os.getcwd()
-    print(f'Running in: {path}\n')
+    print(f'Running in: {path}  {time.ctime()}\n')
     osname, _ = run_command("./osname.py")
 
     if "clean" in sys.argv:
@@ -210,6 +210,7 @@ def main():
 
     # setup virtual environment
     try:
+	print("Setting up virtual environment...")
         venv_path = create_virtual_env(path)
         install_deps(venv_path)
     except OSError:
