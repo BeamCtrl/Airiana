@@ -2,6 +2,7 @@ import os.path
 
 import MockRequest
 import sys
+
 sys.path.append("..")
 sys.path.append(".")
 import airiana_core
@@ -22,5 +23,3 @@ def test_forcast():
     assert dev.integral_forcast != 0
     assert dev.airdata_inst.press != 1013.25
     assert dev.tomorrows_low != 8.00
-
-

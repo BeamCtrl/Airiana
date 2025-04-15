@@ -3,6 +3,7 @@ import time
 
 import MockRequest
 import sys
+
 sys.path.append("..")
 sys.path.append(".")
 import airiana_core
@@ -10,7 +11,7 @@ import airiana_core
 
 def test_fanspeed_sets():
     """Set fanspeed to 0, 1, 2, 3 valid sets, invalid 4<  or <0
-     Do this for both sets as savecair and not savecair"""
+    Do this for both sets as savecair and not savecair"""
     req = MockRequest.MockRequest()
     dev = airiana_core.Systemair(req)
     dev.savecair = False
@@ -35,7 +36,7 @@ def test_fanspeed_sets():
 
         dev.set_fanspeed(5)
         assert dev.get_fanspeed() == 0
-        dev.savecair = True # do another run with savecair set
+        dev.savecair = True  # do another run with savecair set
 
 
 def test_forced_fans():
@@ -43,11 +44,11 @@ def test_forced_fans():
     req = MockRequest.MockRequest()
     dev = airiana_core.Systemair(req)
 
-    assert (dev.monitoring is True)
+    assert dev.monitoring is True
     airiana_core.forced_ventilation(dev)
     time.sleep(1)
     assert dev.timer < time.time() + 1
-    assert (dev.monitoring is False)
+    assert dev.monitoring is False
 
     ok = False
     for thread in threading.enumerate():
@@ -65,9 +66,15 @@ def test_forced_fans():
     time.sleep(0.5)
     assert dev.monitoring is True
     for thread in threading.enumerate():
-        if (thread.name == "Timer" or thread.name == "MonitorTimer") and thread.is_alive():
+        if (
+            thread.name == "Timer" or thread.name == "MonitorTimer"
+        ) and thread.is_alive():
             ok = False
-            print("Found a thread that should not be alive.", thread, threading.enumerate())
+            print(
+                "Found a thread that should not be alive.",
+                thread,
+                threading.enumerate(),
+            )
     assert ok is True
 
 

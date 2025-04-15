@@ -21,6 +21,7 @@ minimalmodbus.STOPBITS = 1
 
 #############################################
 
+
 class Request:
     def __init__(self):
         self.client = None
@@ -56,20 +57,31 @@ class Request:
                 config = open("ipconfig", "r").readline()
                 print("Reading ip configuration file for IAM access", config[:-1])
                 config = eval(config)
-                self.client = pyModbusTCP.client.ModbusClient(host=config["ip"], port=config["port"], auto_open=True)
+                self.client = pyModbusTCP.client.ModbusClient(
+                    host=config["ip"], port=config["port"], auto_open=True
+                )
             except:
                 print(
-                    "Fallback localhost:505 server there may be a problem with formating the ipconfig file or it may not exist")  # noPEP8
-                self.client = pyModbusTCP.client.ModbusClient(host=IP, port=PORT, auto_open=True, auto_close=True)
+                    "Fallback localhost:505 server there may be a problem with formating the ipconfig file or it may not exist"
+                )  # noPEP8
+                self.client = pyModbusTCP.client.ModbusClient(
+                    host=IP, port=PORT, auto_open=True, auto_close=True
+                )
         else:
             print("Using RTU backend;")
             ID = 1  # UNIT ID
-            self.bus = os.open(self.unit, os.O_RDONLY | os.O_NONBLOCK)  # read bus file to drain buffers
+            self.bus = os.open(
+                self.unit, os.O_RDONLY | os.O_NONBLOCK
+            )  # read bus file to drain buffers
             try:
-                buf = os.read(self.bus, 1000)  # read 1k chars to empty buffer before starting the instrument
+                buf = os.read(
+                    self.bus, 1000
+                )  # read 1k chars to empty buffer before starting the instrument
             except OSError:
                 pass  # the buffer is empty
-            client = minimalmodbus.Instrument(self.unit, ID)  # setup the minimal modbus client
+            client = minimalmodbus.Instrument(
+                self.unit, ID
+            )  # setup the minimal modbus client
             client.debug = False
             client.precalculate_read_size = True
             client.timeout = 0.05
@@ -88,17 +100,23 @@ class Request:
         fd = os.open("RAM/request.log", os.O_WRONLY | os.O_CREAT)
         self.modbusregister(101, 0)  # Read non savecair flow address
         first = self.response
-        os.write(fd, bytes("Testing Non-savecair address 101:" + str(first) + "\n", "utf-8"))
+        os.write(
+            fd, bytes("Testing Non-savecair address 101:" + str(first) + "\n", "utf-8")
+        )
         print("Testing Non-savecair address 101:" + str(first) + ";")
         self.modbusregister(12543, 0)  # Read savecair address space
         second = self.response
         print("Testing savecair address 12543:" + str(second) + ";")
-        os.write(fd, bytes("Testing savecair address 12543:" + str(second) + "\n", "utf-8"))
-        if ((first == 0 and second == 0)
-                or (first == "no data" and second == "no data")
-                or (first == '' and second == '')
-                or (first == 0  and second == 'no data')
-                or (first == "no data"  and second == 0)):
+        os.write(
+            fd, bytes("Testing savecair address 12543:" + str(second) + "\n", "utf-8")
+        )
+        if (
+            (first == 0 and second == 0)
+            or (first == "no data" and second == "no data")
+            or (first == "" and second == "")
+            or (first == 0 and second == "no data")
+            or (first == "no data" and second == 0)
+        ):
             os.write(fd, bytes("Request object Failed communications test.\n", "utf-8"))
             os.close(fd)
             return False
@@ -141,10 +159,15 @@ class Request:
         delta = self.iter - self.error_time
         self.error_time = self.iter
         if delta != 0:
-            rate = float(self.connect_errors +
-                         self.checksum_errors +
-                         self.write_errors +
-                         self.multi_errors) / delta
+            rate = (
+                float(
+                    self.connect_errors
+                    + self.checksum_errors
+                    + self.write_errors
+                    + self.multi_errors
+                )
+                / delta
+            )
         else:
             rate = 0.0
         if rate >= 0.99:
@@ -153,17 +176,20 @@ class Request:
             time.sleep(10)
             fd = os.open("RAM/err", os.O_WRONLY)
             os.lseek(fd, os.SEEK_SET, os.SEEK_END)
-            os.write(fd, bytes("""read error high rate,
-            possible no communication with unit, error rate over 99%\n""", "utf-8"))
+            os.write(
+                fd,
+                bytes(
+                    """read error high rate,
+            possible no communication with unit, error rate over 99%\n""",
+                    "utf-8",
+                ),
+            )
             os.fsync(fd)
             os.close(fd)
             self.close()
             self.setup(self.unit, self.mode)
-            #exit(-1)
-        os.system("echo " + str(rate)
-                  + " "
-                  + str(self.wait_time)
-                  + " > RAM/error_rate")
+            # exit(-1)
+        os.system("echo " + str(rate) + " " + str(self.wait_time) + " > RAM/error_rate")
         self.connect_errors = 0
         self.checksum_errors = 0
         self.write_errors = 0
@@ -183,10 +209,10 @@ class Request:
 
             try:
                 self.response = "no data"
-                os.read(self.bus, 20) # bus purge
+                os.read(self.bus, 20)  # bus purge
                 self.response = self.client.read_register(
-                    address, decimals,
-                    signed=True)
+                    address, decimals, signed=True
+                )
             except (IOError, ValueError, TypeError):
                 self.connect_errors += 1
                 if self.connect_errors > 1000:
@@ -204,7 +230,7 @@ class Request:
                 data = self.client.read_holding_registers(address, 1)
                 self.response = data[0]
                 if decimals != 0:
-                    self.response /= (decimals * 10)
+                    self.response /= decimals * 10
             except TypeError:
                 print("TCP read error on address:", address, data)
 
@@ -229,7 +255,13 @@ class Request:
 
             if tries == 0:
                 fd = os.open("RAM/err", os.O_WRONLY)
-                os.write(fd, bytes("Write error, no tries left on register:" + str(reg) + "\n", "utf-8"))
+                os.write(
+                    fd,
+                    bytes(
+                        "Write error, no tries left on register:" + str(reg) + "\n",
+                        "utf-8",
+                    ),
+                )
                 os.close(fd)
         else:
             try:
@@ -240,12 +272,25 @@ class Request:
                     self.write_register(reg, value, tries=tries - 1)
                 if tries == 0:
                     fd = os.open("RAM/err", os.O_WRONLY)
-                    os.write(fd, bytes("Write error, no tries left on register:" + str(reg) + " " + str(valid) + "\n", "utf-8"))
+                    os.write(
+                        fd,
+                        bytes(
+                            "Write error, no tries left on register:"
+                            + str(reg)
+                            + " "
+                            + str(valid)
+                            + "\n",
+                            "utf-8",
+                        ),
+                    )
                     os.close(fd)
 
             except:
                 with os.open("RAM/err", os.O_WRONLY) as fd:
-                    os.write(fd,	 bytes("TCP write error on addrs:" + str(reg) + "\n", "utf-8"))
+                    os.write(
+                        fd,
+                        bytes("TCP write error on addrs:" + str(reg) + "\n", "utf-8"),
+                    )
 
 
 if "__main__" == __name__:

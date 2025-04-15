@@ -21,7 +21,8 @@ for each in sys.argv:
         print("Using: " + each)
         unit = each
 try:
-    if not unit: pass
+    if not unit:
+        pass
 except:
     print("using default: serial0")
     unit = "/dev/serial0"
@@ -69,11 +70,11 @@ if "list" in sys.argv:
     for each in range(1000, 21000):
         res = client.read_register(each, 0, signed=True)
         if res:
-            print(each+1, ":", res)
+            print(each + 1, ":", res)
             sys.stdout.flush()
     # else: print each
     # if int(res) == 25:
-    #	raw_input()
+    # 	raw_input()
 
 first = {}
 second = {}
@@ -82,7 +83,15 @@ if "diff" in sys.argv:
         start = time.time()
         for address in range(1000, 21000):
             if address % 1000 == 0:
-                print("Pass:", each, " Gatherd:", address, "rate: ", 1000 / (time.time() - start), "reqs/sec")
+                print(
+                    "Pass:",
+                    each,
+                    " Gatherd:",
+                    address,
+                    "rate: ",
+                    1000 / (time.time() - start),
+                    "reqs/sec",
+                )
                 start = time.time()
             if each == 1:
                 try:
@@ -92,18 +101,28 @@ if "diff" in sys.argv:
             else:
                 try:
                     second[address] = client.read_register(address, 0, signed=True)
-                    if second[address] != first[address]:  print("Address:", address, "-", first[address], ":",
-                                                                 second[address])
+                    if second[address] != first[address]:
+                        print(
+                            "Address:",
+                            address,
+                            "-",
+                            first[address],
+                            ":",
+                            second[address],
+                        )
                 except:
                     pass
 
 while True:
     try:
-        if target == None: target = input("addrs:")
+        if target == None:
+            target = input("addrs:")
         if "w" in target:
             inp = input("data:")
             res = client.write_register(int(target[1:]), int(inp))
-            res = int(client.read_register(int(target[1:]), 0, functioncode=4, signed=True))
+            res = int(
+                client.read_register(int(target[1:]), 0, functioncode=4, signed=True)
+            )
             print("target:", target[1:], res)
         else:
             target = int(target)

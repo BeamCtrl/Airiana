@@ -15,13 +15,21 @@ user_name = os.getlogin()
 user_id = os.getuid()
 group_id = os.getgid()
 
+
 def run_command(command, check=True):
     try:
-        result = subprocess.run(command, shell=True, check=check, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        result = subprocess.run(
+            command,
+            shell=True,
+            check=check,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         return result.stdout.decode().strip(), result.stderr.decode().strip()
     except subprocess.CalledProcessError as e:
         print(f"Command failed: {command}\nError: {e.stderr.decode().strip()}")
         sys.exit(1)
+
 
 def setUart():
     print("Checking UART settings...")
@@ -36,26 +44,41 @@ def setUart():
             global reboot
             reboot = True
 
+
 def create_virtual_env(path):
     print("Creating virtual environment...")
     venv_path = os.path.join(path, "venv")
     venv.EnvBuilder(with_pip=True).create(venv_path)
     return venv_path
 
+
 def install_deps(venv_path):
     print("Installing dependencies in virtual environment...")
     pip_executable = os.path.join(venv_path, "bin", "pip")
     deps = [
-        "minimalmodbus", "progressbar", "requests", "pyModbusTCP", 
-        "setuptools", "pytest", "pyephem", "numpy"
+        "minimalmodbus",
+        "progressbar",
+        "requests",
+        "pyModbusTCP",
+        "setuptools",
+        "pytest",
+        "pyephem",
+        "numpy",
     ]
     run_command(f"{pip_executable} install --upgrade pip")
     run_command(f"{pip_executable} install " + " ".join(deps))
     apt_executable = os.path.join("/usr", "bin", "apt")
-    apt_deps = ["dhcpcd", "hostapd", "dnsmasq",
-                "iptables", "libopenblas-dev", "python3-numpy"]
+    apt_deps = [
+        "dhcpcd",
+        "hostapd",
+        "dnsmasq",
+        "iptables",
+        "libopenblas-dev",
+        "python3-numpy",
+    ]
     run_command(f"sudo {apt_executable} update")
-    run_command(f"sudo {apt_executable} -y install " + " ".join(apt_deps) )
+    run_command(f"sudo {apt_executable} -y install " + " ".join(apt_deps))
+
 
 def disable_auto_connect_services():
     print("Disabling auto-connect services...")
@@ -64,10 +87,12 @@ def disable_auto_connect_services():
         run_command(f"sudo systemctl unmask {service}")
         run_command(f"sudo systemctl disable {service}")
 
+
 def copy_hostapd():
     print("Copying the hostapd configuration...")
     if not os.path.lexists("/etc/hostapd/hostapd"):
         run_command("sudo cp ./systemfiles/hostapd /etc/hostapd/hostapd.conf")
+
 
 def add_dnsmasq_conf():
     print("Adding dnsmasq configuration...")
@@ -81,26 +106,30 @@ def add_dnsmasq_conf():
         "dhcp-range=10.0.0.50,10.0.0.150,12h\n"
         "# Redirect all DNS queries to a specific IP address (e.g., 10.0.0.1)\n"
         "address=/#/10.0.0.1\n"
-	"address=/airiana.local/10.0.0.1\n"
+        "address=/airiana.local/10.0.0.1\n"
     )
     with open("/etc/dnsmasq.conf", "r") as dnsmasq:
         if conf not in dnsmasq.read():
             run_command(f'sudo echo "{conf}" | sudo tee -a /etc/dnsmasq.conf')
 
+
 def add_dhcpcd_conf():
     print("Adding dhcpcd configuration...")
     conf = "nohook wpa_supplicant\n"
     if not os.path.isfile("/etc/dhcp.conf"):
-        run_command('sudo touch /etc/dhcpcd.conf')
-        run_command('sudo chmod 666 /etc/dhcpcd.conf')
+        run_command("sudo touch /etc/dhcpcd.conf")
+        run_command("sudo chmod 666 /etc/dhcpcd.conf")
     with open("/etc/dhcpcd.conf", "r+") as dhcpcd:
         dhcpcd_conf = dhcpcd.read()
         if dhcpcd_conf.find("#persistent\n") == -1:
-             if "persistent\n" in dhcpcd_conf:
-                 dhcpcd_conf = dhcpcd_conf.replace("persistent", "#persistent")
-                 run_command(f'echo "{dhcpcd_conf}" |sudo tee /etc/dhcpcd.conf > /dev/null')
+            if "persistent\n" in dhcpcd_conf:
+                dhcpcd_conf = dhcpcd_conf.replace("persistent", "#persistent")
+                run_command(
+                    f'echo "{dhcpcd_conf}" |sudo tee /etc/dhcpcd.conf > /dev/null'
+                )
         if conf not in dhcpcd_conf:
             run_command(f'sudo echo "{conf}" >> /etc/dhcpcd.conf')
+
 
 def add_sudoer_conf():
     print("Adding sudoers configuration...")
@@ -108,6 +137,7 @@ def add_sudoer_conf():
     with os.popen("sudo cat /etc/sudoers") as sudoers:
         if conf not in sudoers.read():
             run_command(f'sudo echo "{conf}" | sudo tee -a /etc/sudoers')
+
 
 def set_fstab():
     global user_id, group_id
@@ -119,7 +149,13 @@ def set_fstab():
     with open("/etc/fstab", "r+") as fstab_file:
         lines = fstab_file.readlines()
         if fstab_var not in lines or fstab_RAM not in lines:
-            lines = [line for line in lines if "/RAM" not in line and "/var" not in line and "filesystem only in RAM" not in line]
+            lines = [
+                line
+                for line in lines
+                if "/RAM" not in line
+                and "/var" not in line
+                and "filesystem only in RAM" not in line
+            ]
             lines.extend([fstab_comment, fstab_RAM, fstab_var])
             fstab_file.seek(0)
             fstab_file.writelines(lines)
@@ -128,19 +164,29 @@ def set_fstab():
         else:
             print("fstab already installed")
 
+
 def clean_paths():
     print("Cleaning paths in configuration files...")
     files_to_clean = [
-        "airiana-core.py", "public/ip-replace.sh", "public/controller.py",
-        "forcast2.0.py", "humtest.py", "updater.py", "systemfiles/controller.service",
-        "systemfiles/airiana.service", "systemfiles/autohotspot.service", "public/ip-util.sh"
+        "airiana-core.py",
+        "public/ip-replace.sh",
+        "public/controller.py",
+        "forcast2.0.py",
+        "humtest.py",
+        "updater.py",
+        "systemfiles/controller.service",
+        "systemfiles/airiana.service",
+        "systemfiles/autohotspot.service",
+        "public/ip-util.sh",
     ]
     for file in files_to_clean:
         run_command(f"sed -i 's-/home/pi/airiana/-{path}/-g' {file}")
 
+
 def redirect_console(boot_cmd):
     print("Redirecting console output...")
     run_command(f"echo {boot_cmd} > /boot/cmdline.txt")
+
 
 def setup_services():
     print("Setting up services for autostart...")
@@ -150,9 +196,12 @@ def setup_services():
             run_command(f"sudo cp ./systemfiles/{service} /etc/systemd/system/")
             run_command(f"sudo systemctl enable {service}")
 
+
 def setup_crontab(option):
     print("Setting up crontab entries...")
-    cron = subprocess.run(["crontab", "-u", "pi", "-l"], capture_output=True, text=True).stdout
+    cron = subprocess.run(
+        ["crontab", "-u", "pi", "-l"], capture_output=True, text=True
+    ).stdout
     if "no crontab for user pi" in cron:
         cron = ""
     crontab = ""
@@ -167,14 +216,16 @@ def setup_crontab(option):
             line = f"*/5 * * * * sudo /home/pi/Airiana/systemfiles/autohotspot.sh\n"
             hotspot_updated = True
         crontab += line + "\n"
-    if not updater_updated\
-      and option == "crontab":
+    if not updater_updated and option == "crontab":
         crontab += f"0 */4 * * * /usr/bin/python {path}/updater.py\n"
-    if not hotspot_updated \
-      and osname in ("buster", "bullseye", "bookworm")\
-      and option == "hotspot":
+    if (
+        not hotspot_updated
+        and osname in ("buster", "bullseye", "bookworm")
+        and option == "hotspot"
+    ):
         crontab += f"*/5 * * * * sudo /home/pi/Airiana/systemfiles/autohotspot.sh\n"
-    run_command(f"echo \"{crontab.strip()}\" | crontab -u pi -")
+    run_command(f'echo "{crontab.strip()}" | crontab -u pi -')
+
 
 def setup_autohotspot():
     try:
@@ -185,24 +236,29 @@ def setup_autohotspot():
         add_dhcpcd_conf()
         add_sudoer_conf()
         if not os.path.lexists("/etc/systemd/system/autohotspot.service"):
-            run_command("sudo cp ./systemfiles/autohotspot.service /etc/systemd/system/")
+            run_command(
+                "sudo cp ./systemfiles/autohotspot.service /etc/systemd/system/"
+            )
             run_command("sudo systemctl enable autohotspot.service")
-    except (IndexError) as e:
+    except IndexError as e:
         print(e)
         print("Auto hotspot config had an error")
+
 
 def main():
     global path, user_id, group_id, reboot, osname
     reboot = False
     path = os.getcwd()
-    print(f'Running in: {path}  {time.ctime()}\n')
+    print(f"Running in: {path}  {time.ctime()}\n")
     osname, _ = run_command("./osname.py")
 
     if "clean" in sys.argv:
         print("Cleaning up installed services...")
         run_command("sudo systemctl disable controller.service")
         run_command("sudo systemctl disable airiana.service")
-        run_command("sudo rm /etc/systemd/system/airiana.service /etc/systemd/system/controller.service")
+        run_command(
+            "sudo rm /etc/systemd/system/airiana.service /etc/systemd/system/controller.service"
+        )
         sys.exit()
 
     if len(sys.argv) < 2:
@@ -214,7 +270,9 @@ def main():
         venv_path = create_virtual_env(path)
         install_deps(venv_path)
     except OSError:
-        print("Virtual environment is already running, stop or manually remove if you want to reinstall.")
+        print(
+            "Virtual environment is already running, stop or manually remove if you want to reinstall."
+        )
         print("cmd:'./stop airiana-core.py' or  'rm -r venv'")
         exit(-1)
     # clean up the exec paths to match current installation
@@ -224,14 +282,26 @@ def main():
     setup_services()
 
     # add auto updater
-    if (not headless and input("\nDo you want to setup, automatic updates? [y/n] ").strip().lower() == "y"):
+    if (
+        not headless
+        and input("\nDo you want to setup, automatic updates? [y/n] ").strip().lower()
+        == "y"
+    ):
         setup_crontab("updater")
 
     # setup wifi hotsput, only if bookworm
     if user_id != 0 and osname in ("bookworm") and not headless:
-        if (input("\nDo you want to setup, automatic WiFi access point, if network is lost? [y/n]").strip().lower() == "y"):
+        if (
+            input(
+                "\nDo you want to setup, automatic WiFi access point, if network is lost? [y/n]"
+            )
+            .strip()
+            .lower()
+            == "y"
+        ):
             setup_autohotspot()
             setup_crontab("hotspot")
+
 
 def execute_sudo_parts():
     global boot_cmd
@@ -269,4 +339,4 @@ if __name__ == "__main__":
     else:
         main()
         print("will execute some parts as root for access...")
-        os.system(f'sudo python3 install.py sudo-parts user {user_id} group {group_id}')
+        os.system(f"sudo python3 install.py sudo-parts user {user_id} group {group_id}")

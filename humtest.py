@@ -59,7 +59,13 @@ try:
     x = []
     y = []
     l = len(data)
-    widgets = [progressbar.Bar('>'), ' ', progressbar.ETA(), ' ', progressbar.ReverseBar('<')]
+    widgets = [
+        progressbar.Bar(">"),
+        " ",
+        progressbar.ETA(),
+        " ",
+        progressbar.ReverseBar("<"),
+    ]
     pbar = progressbar.ProgressBar(widgets=widgets)
     for each in pbar(data):
         i += 1
@@ -68,7 +74,12 @@ try:
             sys.stdout.flush()
             tmp = each.split(":")
             for entry in tmp:
-                if entry == np.nan or entry == "nan" or float(tmp[4]) > 100 or float(tmp[4]) < 0:
+                if (
+                    entry == np.nan
+                    or entry == "nan"
+                    or float(tmp[4]) > 100
+                    or float(tmp[4]) < 0
+                ):
                     raise ZeroDivisionError
             if float(tmp[0]) > 0 and float(tmp[0]) > tm.time() - (day):  # temp:
                 sen_hum.append(float(tmp[3]))
@@ -88,7 +99,8 @@ try:
                 x.append(calc_hum[-1])
                 y.append(supply_humid[-1])
                 diff.append(round(calc_hum[-1] - supply_humid[-1], 3))
-                if diff[-1] < -35: pass  # print tmp[0]
+                if diff[-1] < -35:
+                    pass  # print tmp[0]
         except IndexError:
             inside_hum.append(0)
         except ValueError:
@@ -103,8 +115,15 @@ print("\nStart: " + tm.ctime(float(-time[0] + tm.time())))
 print("max", max(diff), "%  min", min(diff), "%")
 ave = stat.mean(diff)
 ave, stddev = stat.stddev(diff)
-tmp = "Differential stddev: " + "+-" + str(round(stddev, 2)) + "% Differential mean:" + str(round(ave, 2)) + "%\n"
-tmp += "Last: " + str(calc_hum[-1] - supply_humid[-1]) + '%'
+tmp = (
+    "Differential stddev: "
+    + "+-"
+    + str(round(stddev, 2))
+    + "% Differential mean:"
+    + str(round(ave, 2))
+    + "%\n"
+)
+tmp += "Last: " + str(calc_hum[-1] - supply_humid[-1]) + "%"
 print(tmp)
 print("\nRelative Humidity (%)")
 print("Measured:")
@@ -116,7 +135,13 @@ mae = stat.meanAbsError(x, y)
 print("Calculated:")
 print("Mean:", round(ave, 2), "Stddev:", stddev)
 print("\nCorrelation coeficient\t", round(stat.correlation(x, y), 2))
-print("RootMeanSquaredError\t", round(rmsError, 2), "\t", round(rmsError / mstddev, 2), "stdDev")
+print(
+    "RootMeanSquaredError\t",
+    round(rmsError, 2),
+    "\t",
+    round(rmsError / mstddev, 2),
+    "stdDev",
+)
 print("MeanAbsoluteError\t", round(mae, 2), "\t", round(mae / mstddev, 2), "stdDev")
 
 print("\nPartial pressures (Pa)")
@@ -130,6 +155,8 @@ print("Calculated:")
 print("Mean:", round(ave, 2), "Stddev:", stddev)
 print("\nCorrelation coeficient\t", round(stat.correlation(mdP, cdP), 2))
 # print "MeanErrorSquared", stat.meanErrorSq(mdP,cdP)
-print("RootMeanSquaredError\t", round(rmsError, 2), round(rmsError / mstddev, 2), "stdDev")
-print("MeanAbsoluteError\t",round(mae, 2), round(mae / mstddev, 2), "stdDev")
+print(
+    "RootMeanSquaredError\t", round(rmsError, 2), round(rmsError / mstddev, 2), "stdDev"
+)
+print("MeanAbsoluteError\t", round(mae, 2), round(mae / mstddev, 2), "stdDev")
 print("End: " + tm.ctime(float(-time[-1] + tm.time())) + "\n")

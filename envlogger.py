@@ -4,10 +4,11 @@ import matplotlib, traceback
 import airdata
 import sys
 import numpy as np
+
 air_obj = airdata.Energy()
 
 
-class Sensor():
+class Sensor:
     def __init__(self):
         self.sensor_temp = 0
         self.sensor_humid = 0
@@ -17,12 +18,14 @@ device = Sensor()
 matplotlib.use("Agg")
 
 import pylab
+
 pylab.ioff()
 
 if len(sys.argv) > 1:
     log = sys.argv[1]
 else:
     log = "151"
+
 
 def update_sensors():
     global device
@@ -74,14 +77,20 @@ fig = pylab.figure(1, figsize=(11, 8), dpi=250)
 while True:
     update_sensors()
     if device.sensor_temp != 0 and device.sensor_humid != 0:
-        fd.write(str(tm.time()) + ":" + str(device.sensor_temp) + ":" + str(device.sensor_humid) + "\n")
+        fd.write(
+            str(tm.time())
+            + ":"
+            + str(device.sensor_temp)
+            + ":"
+            + str(device.sensor_humid)
+            + "\n"
+        )
         fd.flush()
     pylab.clf()
 
     s1 = pylab.subplot(111)
     s1.set_title("Sensor: " + str(log))
-    fig.subplots_adjust(bottom=0.2, top=0.95,
-                        hspace=0.7, wspace=0.7)
+    fig.subplots_adjust(bottom=0.2, top=0.95, hspace=0.7, wspace=0.7)
     ax = pylab.gca()
     low, high = -20, 100
     ax.yaxis.set_ticks(np.arange(int(low), int(high + 1), 5))
@@ -90,7 +99,7 @@ while True:
     pylab.gca().set_xlim(min(time), max(time))
     hum_line = pylab.plot(time, humid, "-")[0]
     temp_line = pylab.plot(time, temp, "-")[0]
-    dewpoint_line = pylab.plot(time[0:len(dewpoint)], dewpoint, "-")[0]
+    dewpoint_line = pylab.plot(time[0 : len(dewpoint)], dewpoint, "-")[0]
     pylab.grid(True)
     pylab.draw()
 
@@ -99,7 +108,7 @@ while True:
     pos = 0
     for each in pylab.gca().get_xticks():
         try:
-            print (float(each))
+            print(float(each))
             labels[pos] = tm.strftime("%H:%M - %d/%m - %Y", tm.localtime(float(each)))
             pos += 1
         except:

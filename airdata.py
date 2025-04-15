@@ -48,7 +48,7 @@ class Energy(object):
         self.R = 287.058  # GAS CONSTANT for dry air for pressures in Pa
         self.density = lambda t: float(self.press * 100) / (self.R * (self.T + t))
         self.specific_heat = 1.005  # J/g*K
-        self.humid = .50
+        self.humid = 0.50
         self.mass_const = 0.62198
         self.a = 6.1121
 
@@ -88,8 +88,14 @@ class Energy(object):
             high = float(top)
         volume = float(litres) / 1000  # m3
         try:
-            mass = volume * self.press * 100 / self.R * (math.log(self.T + high) - math.log(self.T + low)) / (
-                    high - low)
+            mass = (
+                volume
+                * self.press
+                * 100
+                / self.R
+                * (math.log(self.T + high) - math.log(self.T + low))
+                / (high - low)
+            )
         except ZeroDivisionError:
             mass = 0
         energy = mass * self.specific_heat * (high - low) * 1000  # kg * J/gK * K = J
@@ -98,7 +104,9 @@ class Energy(object):
     # RETURN MAXIMUM VAPOR CONTENT BY MASS
     def vapor_max(self, T):
         self.pw = 6.1121 * math.exp((18.678 - T / 234.5) * (T / (T + 257.14)))
-        self.abs = (self.pw * 2.16679) / (self.T + T) * 100  # BUG WHY FACTOR 100//solved conversion from hPa
+        self.abs = (
+            (self.pw * 2.16679) / (self.T + T) * 100
+        )  # BUG WHY FACTOR 100//solved conversion from hPa
         # print self.abs,"g/m3 vapor_max"," temp:",T," sat. pressure:",self.pw
         return self.abs
 
@@ -124,7 +132,9 @@ class Energy(object):
     def energy_to_pwdiff(self, energy, temp):
         mass_equiv = condensation_mass(energy)  # grams condensate per kilogram air
         # d_pw = self.press*100*(float(mass_equiv*0.001)/self.mass_const)
-        d_pw = (mass_equiv / 1000 * self.press * 100) / (self.mass_const + mass_equiv)  # /(self.get_mass(temp)*1000)
+        d_pw = (mass_equiv / 1000 * self.press * 100) / (
+            self.mass_const + mass_equiv
+        )  # /(self.get_mass(temp)*1000)
         return d_pw
 
     def xchange_humid(self, T):
@@ -133,7 +143,8 @@ class Energy(object):
 
     def dew_point(self, rh, temp):
         """CALCULATE DEWPOINT FROM temperature and relative humidity"""
-        if rh == 100: return temp
+        if rh == 100:
+            return temp
 
         def gamma(relative, temperature):
             ps = math.log((float(relative) / 100) * self.sat_vapor_press(temperature))
@@ -159,9 +170,17 @@ if "__main__" in __name__:
     else:
         each = 23
     for RH in range(1, 101, 1):
-        print(each, "C", end=' ')
-        print(RH, "% Dew:", round(air.dew_point(RH, each), 1), "C ", round(1000 * air.sat_vapor_press(each), 0), "Pa",
-              round(1000 * air.sat_vapor_press(air.dew_point(RH, each)), 0), end=' ')
+        print(each, "C", end=" ")
+        print(
+            RH,
+            "% Dew:",
+            round(air.dew_point(RH, each), 1),
+            "C ",
+            round(1000 * air.sat_vapor_press(each), 0),
+            "Pa",
+            round(1000 * air.sat_vapor_press(air.dew_point(RH, each)), 0),
+            end=" ",
+        )
         air.vapor_max(round(air.dew_point(RH, each), 1))
         print(round(air.pw * 100, 0))
     print("")
@@ -177,9 +196,17 @@ if "__main__" in __name__:
     print("equivalent mass:", condensation_mass(air.energy_flow(30, top, low)), "g")
     d_pw = air.sat_vapor_press(top) * 1000 - air.sat_vapor_press(low) * 1000
     print("d_part.pressure:", d_pw, "Pa")
-    print("satPtop:", air.sat_vapor_press(top)*1000, "satPlow:", air.sat_vapor_press(low) * 1000)
+    print(
+        "satPtop:",
+        air.sat_vapor_press(top) * 1000,
+        "satPlow:",
+        air.sat_vapor_press(low) * 1000,
+    )
     print("d_Mass:", air.vapor_mass(d_pw), "g")
-    mass = air.vapor_mass(air.sat_vapor_press(top) * 1000) * 0.001 - air.vapor_mass(air.sat_vapor_press(low) * 1000) * 0.001
+    mass = (
+        air.vapor_mass(air.sat_vapor_press(top) * 1000) * 0.001
+        - air.vapor_mass(air.sat_vapor_press(low) * 1000) * 0.001
+    )
     print(mass)
     added_latent = condensation_energy(mass) * 30
     print("added latent Energy equivalent:", condensation_energy(mass) * 30, "J")

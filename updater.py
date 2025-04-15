@@ -10,13 +10,13 @@ for system in enumerate(deb_versions):
     os_name = os.popen("./osname.py").readline()[:-1]
     if os_name in system and deb_versions.index(os_name) <= len(deb_versions) - 3:
         print("current", system[1])
-        print("future", deb_versions[system[0]+1])
-        #print("Updating to", deb_versions[system[0]+1])
-        #print("./systemfiles/upgrade.sh " + system[1] + " " + deb_versions[system[0] + 1])
-        #os.system("./systemfiles/upgrade.sh " + system[1] + " " + deb_versions[system[0]+1]  + " >> update.log")
-        #os.system("python3 install.py clean headless")
-        #os.system("python3 install.py update headless")
-        #os.system("sudo reboot")
+        print("future", deb_versions[system[0] + 1])
+        # print("Updating to", deb_versions[system[0]+1])
+        # print("./systemfiles/upgrade.sh " + system[1] + " " + deb_versions[system[0] + 1])
+        # os.system("./systemfiles/upgrade.sh " + system[1] + " " + deb_versions[system[0]+1]  + " >> update.log")
+        # os.system("python3 install.py clean headless")
+        # os.system("python3 install.py update headless")
+        # os.system("sudo reboot")
         break
 
 
@@ -35,5 +35,5 @@ if vers not in ver[0] and "Valid" in ver[1]:
     print("Updating Airiana system software to", ver[0])
     if "debug" not in sys.argv or len(sys.argv) > 1:
         os.system("./update")
-        #os.system("python3 install.py clean headless")
-        #os.system("python3 install.py update headless")
+        # os.system("python3 install.py clean headless")
+        # os.system("python3 install.py update headless")

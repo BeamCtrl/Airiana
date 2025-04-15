@@ -4,6 +4,7 @@
 # pytest
 #
 import sys, os
+
 sys.path.append("..")
 sys.path.append(".")
 
@@ -26,6 +27,7 @@ def tty(pytestconfig):
 
 if not os.path.isdir("RAM/"):
     os.system("mkdir -p RAM/")
+
 
 def test_exchanger(mode, tty):
     """Test the exchanger logic standalone with mocked comms"""

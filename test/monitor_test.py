@@ -1,9 +1,11 @@
 import MockRequest
 import sys
 import os
+
 sys.path.append("..")
 sys.path.append(".")
 import airiana_core
+
 os.dup2(sys.stdout.fileno(), airiana_core.ferr)  # Redirect log to screen
 
 

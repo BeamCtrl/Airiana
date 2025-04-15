@@ -6,7 +6,7 @@ ip = sys.argv[-1]
 
 # Test for valid ip and if not supplied use external.
 if ip.count(".") != 3:
-    ip = eval(os.popen("curl \'https://api.ipify.org?format=json\'").read())
+    ip = eval(os.popen("curl 'https://api.ipify.org?format=json'").read())
     ip = ip["ip"]
     if "printIp" in sys.argv:
         print(ip)
@@ -20,7 +20,13 @@ try:
         print(loc)
     # test for location file and create if not availible
     if not os.path.lexists("./latlong.json"):
-        pos = "{\"lat\":" + loc["geoplugin_latitude"] + ",\"long\":" + loc["geoplugin_longitude"] + "}"
+        pos = (
+            '{"lat":'
+            + loc["geoplugin_latitude"]
+            + ',"long":'
+            + loc["geoplugin_longitude"]
+            + "}"
+        )
         # print pos
         with open("latlong.json", "w") as f:
             f.write(pos)
@@ -34,7 +40,7 @@ except NameError:
             print(loc)
         # test for location file and create if not availible
         if not os.path.lexists("./latlong.json"):
-            pos = "{\"lat\":\"" + str(loc["lat"]) + "\",\"long\":\"" + str(loc["lon"]) + "\"}"
+            pos = '{"lat":"' + str(loc["lat"]) + '","long":"' + str(loc["lon"]) + '"}'
             # print pos
             with open("latlong.json", "w") as f:
                 f.write(pos)

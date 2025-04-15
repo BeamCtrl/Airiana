@@ -1,9 +1,11 @@
 import MockRequest
 import sys
 import os
+
 sys.path.append("..")
 sys.path.append(".")
 import airiana_core
+
 os.dup2(sys.stdout.fileno(), airiana_core.ferr)  # Redirect log to screen
 
 
@@ -30,4 +32,3 @@ def test_target_set():
     dev.inlet_ave = -1
     dev.get_local()
     assert dev.prev_static_temp <= -1
-

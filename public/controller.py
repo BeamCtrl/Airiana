@@ -6,16 +6,27 @@ import os
 import traceback
 import time
 import sys
+
 hostname = os.popen("hostname").read()[:-1]
 
 
 class MyHandler(socketserver.BaseRequestHandler):
     def send_ok(self):
-        self.request.send(bytes(
-            "HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://"
-            + self.ip + "/\" /></head></html> \n\r", "utf-8"))
+        self.request.send(
+            bytes(
+                'HTTP/1.1 200 OK\n\n<html><head><meta http-equiv="refresh" content="0; url=http://'
+                + self.ip
+                + '/" /></head></html> \n\r',
+                "utf-8",
+            )
+        )
+
     def send_home(self):
-        self.request.send(bytes("HTTP/1.1 302 Found\r\nLocation: http://airiana.local/\r\n\r\n", "utf-8"))
+        self.request.send(
+            bytes(
+                "HTTP/1.1 302 Found\r\nLocation: http://airiana.local/\r\n\r\n", "utf-8"
+            )
+        )
 
     def handle(self):
         self.ip = os.popen("hostname -I").readline().split(" ")[0]
@@ -48,8 +59,7 @@ class MyHandler(socketserver.BaseRequestHandler):
                 if password != "" and network != "":
                     os.system(f"echo {network}:{password} >> ./wifi.dat")
                 print("Wificonfig:", network, password)
-                network_conf = \
-                f"""
+                network_conf = f"""
 [connection]
 id=preconfigured
 uuid=6bd00b15-baac-4fb7-ab8a-1cf655aaa60a
@@ -69,14 +79,18 @@ key-mgmt=wpa-psk
 psk={password}
                 """
                 wpa = "country=se\nupdate_config=1\nctrl_interface=/var/run/wpa_supplicant\nnetwork={"
-                wpa += f"\n scan_ssid=1\n ssid=\"{network}\"\n psk=\"{password}\""
+                wpa += f'\n scan_ssid=1\n ssid="{network}"\n psk="{password}"'
                 wpa += "\n}\n\n"
-                os.system(f"echo '{network_conf}'"
-                          "| sudo tee /etc/NetworkManager/system-connections/preconfigured.nmconnection"
-                          " > /dev/null")
+                os.system(
+                    f"echo '{network_conf}'"
+                    "| sudo tee /etc/NetworkManager/system-connections/preconfigured.nmconnection"
+                    " > /dev/null"
+                )
                 os.chdir("/home/pi/Airiana/public/")
                 self.send_home()
-                os.system('echo "<br>Rebooting system due to updated WiFi configuration, please wait...<br>" >> out.txt')
+                os.system(
+                    'echo "<br>Rebooting system due to updated WiFi configuration, please wait...<br>" >> out.txt'
+                )
                 os.system("sleep 10 && sudo reboot &")
 
             if "command" in data[0]:
@@ -104,15 +118,22 @@ psk={password}
                     if os.path.lexists("/dev/ttyAMA0"):
                         os.system("./restart &")
                     else:
-                        os.system("sudo systemctl restart airiana.service controller.service &")
+                        os.system(
+                            "sudo systemctl restart airiana.service controller.service &"
+                        )
                 if "restart" in data[0]:
                     self.send_ok()
                     os.system("./restart airiana-core.py controller &")
 
                 if "coffee" in data[0]:
-                    self.request.send(bytes(
-                        "HTTP/1.1 200 OK\n\n<html><head><meta http-equiv=\"refresh\" content=\"0; url=http://" + str(
-                            self.ip) + "/coffee.txt\" /></head></html> \n\r", "utf-8"))
+                    self.request.send(
+                        bytes(
+                            'HTTP/1.1 200 OK\n\n<html><head><meta http-equiv="refresh" content="0; url=http://'
+                            + str(self.ip)
+                            + '/coffee.txt" /></head></html> \n\r',
+                            "utf-8",
+                        )
+                    )
                     return 0
                 os.chdir("/home/pi/Airiana/public/")
 

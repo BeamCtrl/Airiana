@@ -1,5 +1,6 @@
 class MockRequest:
     """Mock the request class for unit testing"""
+
     def __init__(self):
         self.response = ""
         self.data = {}
@@ -25,7 +26,9 @@ class MockRequest:
             return self.response
 
     def modbusregisters(self, start_address, count, signed=False):
-        self.response = [self.modbusregister( start_address + i, 0) for i in range(count)]
+        self.response = [
+            self.modbusregister(start_address + i, 0) for i in range(count)
+        ]
         return [] * count
 
     def setup(self, device, mode):
