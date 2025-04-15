@@ -210,7 +210,7 @@ def main():
 
     # setup virtual environment
     try:
-	print("Setting up virtual environment...")
+        print("Setting up virtual environment...")
         venv_path = create_virtual_env(path)
         install_deps(venv_path)
     except OSError:
