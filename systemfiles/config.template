@@ -1,0 +1,66 @@
+systemair:
+  savecair:
+    # savecair minimum flow rate extraction fan (%)
+    efMinFlow: 16
+    # savecair minimum flow rate supply fan (%)
+    sfMinFlow: 16
+    efLowFlow: 20
+    sfLowFlow: 20
+    efNormFlow: 50
+    sfNormFlow: 50
+    efHighFlow: 90
+    sfHighFlow: 90
+    efHighFlow: 100
+    sfHighFlow: 100
+
+  legacy:
+    VR400:
+      # Legacy system VR400 extraction flow rate (l/s)
+      efBaseFlow: 40
+      # Legacy system VR400 supply flow rate (l/s)
+      sfBaseFow: 40
+      efMedFlow: 60
+      sfMedFlow: 60
+      efHighFlow: 107 
+      sfHighFlow: 107 
+    VTR300:
+      efBaseFlow: 40 
+      sfBaseFow: 40
+      efMedFlow: 60
+      sfMedFlow: 60
+      efHighFlow: 107 
+      sfHighFlow: 107 
+    VSR300:
+      efBaseFlow: 40 
+      sfBaseFow: 40
+      efMedFlow: 60
+      sfMedFlow: 60
+      efHighFlow: 107 
+      sfHighFlow: 107 
+    VTR700:
+      efBaseFlow: 50 
+      sfBaseFow: 50
+      efMedFlow: 100
+      sfMedFlow: 100
+      efHighFlow: 200 
+      sfHighFlow: 200 
+
+  control:
+    # Target temperature during summer operation, will increase by 1 when low temperatures are expected. (C)
+    targetTemperature: 23
+    # When forcast is below this limit there will be no cooling. (C)
+    coolModeLowLimit: 10
+    # Target for cooling mode. Will not cool below this value. (C)
+    coolModeLowTarget: 20.9
+    # If temperature is above this limit no pressure reduction will occur. (C)
+    pressureDiffHighLimitTemperature: 15
+    # The limit for reducing pressure will always assume humidity level greater than this. (RH%)
+    pressureDiffLowLimitHumidity: 20
+    # If calculated partial pressure H2O is above this value, increase ventilation flow. (Pa)
+    humidityFlowHighPartialPressureDiff: 500
+    # If calculated partial pressure H2O is below this value reduce flow. (Pa)
+    humitidyFlowReducePartialPressureDiff: 400
+    # INT: The temperature forcast temp integral for cooling engage. 
+    forcastIntegralCoolingLimit: 16
+    # INT: The daily low temp that will inhibit cooling.
+    forcastDailyLowCoolingInhibit: 7
