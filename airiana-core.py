@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 ############################
-vers = "12.0"
+vers = "13.0"
 import airdata  # noqa
 import numpy  # noqa
 import select  # noqa
@@ -12,9 +12,13 @@ import time  # noqa
 import sys  # noqa
 import signal  # noqa
 import math  # noqa
+import pathlib  # noqa
 import pickle  # noqa
+import pprint  # noqa
 import socket  # noqa
 import syslog  # noqa
+import yaml    # noqa
+from pprint import pprint  # noqa
 from request import Request  # noqa
 
 numpy.seterr("ignore")
@@ -24,6 +28,8 @@ Running = True
 savecair = False
 mode = "RTU"
 holdoff_t = time.time() - 3000  # now - 50 minutes
+config_file = "config.yaml"
+config = ''
 if "TCP" in sys.argv:
     mode = "TCP"
 
@@ -32,9 +38,18 @@ class ControlledExit(Exception):
     """
     Exit exception
     """
-
     pass
 
+def write_log(message):
+    os.write(
+             ferr,
+             bytes(
+                   message + '\t'
+                   + str(time.ctime())
+                   + "\n",
+                   encoding="utf8",
+                   ),
+            )
 
 # Register cleanup
 def exit_callback(self, return_code):
@@ -110,16 +125,16 @@ if "daemon" in sys.argv:
 if os.path.lexists("/dev/ttyUSB0"):
     print("Communication started on device ttyUSB0;")
     unit = "/dev/ttyUSB0"
-    os.write(ferr, bytes("\n\nUsing /dev/ttyUSB0" + "\n", encoding="utf8"))
+    write_log("\n\nUsing /dev/ttyUSB0")
 
 elif os.path.lexists("/dev/serial0"):
     print("Communication started on device Serial0;")
     unit = "/dev/serial0"
-    os.write(ferr, bytes("\n\nUsing /dev/serial0" + "\n", encoding="utf8"))
+    write_log("\n\nUsing /dev/Serial0")
 else:
     print("Communication started on device ttyAMA0;")
     unit = "/dev/ttyAMA0"
-    os.write(ferr, bytes("\n\nUsing /dev/ttyAMA0" + "\n", encoding="utf8"))
+    write_log("\n\nUsing /dev/ttyAMA0")
 
 # Command socket setup
 hostname = os.popen("hostname").read()[:-1]
@@ -251,20 +266,17 @@ def report_alive():
                 '-s -X POST "https://filebin.net/5zzbcj2n0y5f2jfw/' + hw_addr + '.html"'
             )
             tmp += " -d @RAM/" + hw_addr
-            # os.write(ferr, "curl " + tmp + "\n")
             stat.close()
             res = os.popen("curl " + tmp).read()
             if res.find("Insufficient storage") != -1:
-                os.write(ferr, b"Holdoff time in effect, will re-ping in one hour.\n")
+                log_write("Holdoff time in effect, will re-ping in one hour.\n")
             holdoff_t = time.time()
 
         # sock =  socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
         # sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
         # #sock.close()
     except NameError:
-        os.write(
-            ferr, bytes("unable to ping, network error\t" + time.ctime() + "\n", "utf8")
-        )
+        log_write("unable to ping, network error")
         traceback.print_exc(ferr)
 
 
@@ -427,6 +439,8 @@ def check_req(request, test, name):
 
 class Systemair(object):
     def __init__(self, request_object):
+        self.config = {}
+        self.load_config()
         self.used_energy = None
         self.eff = None
         self.coef_prev_inlet = None
@@ -485,7 +499,7 @@ class Systemair(object):
         self.diff_ave = [0]
         self.total_energy = 0.0
         self.average_limit = 1800  # min122
-        self.cooling_limit = 16
+        self.cooling_limit = self.config["systemair"]["control"]["forcastIntegralCoolingLimit"]
         self.sf = 20
         self.ef = 20
         self.sf_base = 20
@@ -501,7 +515,7 @@ class Systemair(object):
         self.electric_power = 1
         self.flowOffset = [0, 0]
         self.filter_raw = 0
-        self.house_heat_limit = 8
+        self.house_heat_limit =  self.config["systemair"]["control"]["forcastDailyLowCoolingInhibit"]
         self.humidity_target = 0
         self.exhaust = []
         self.exhaust_ave = 0
@@ -608,6 +622,57 @@ class Systemair(object):
         self.sensor_exhaust = -60
         self.admin_password = ""
         self.electric_power_sum = 0.0
+
+    def load_config(self):
+        try:
+            file_path = pathlib.Path(config_file)
+            if not file_path.exists():
+                os.system(f"cp ./systemfiles/config.template {config_file}")
+            with open(config_file, 'r') as file:
+                self.config_template = yaml.safe_load(open("systemfiles/config.template", 'r'))
+                self.config = yaml.safe_load(file)
+                if self.config == None or len(self.config.keys()) == 0:
+                     raise TypeError("The configuration file was empty.")
+                missing = self.find_missing_keys(self.config_template, self.config, path="")
+                print("Missing keys in config: ", missing)
+            write_log("Starting with config:\n"
+                     + self.config.__str__() + "\n"
+                     + "Missing keys in config: "
+                     + str(missing))
+        except IOError as e:
+            print(e)
+            os.write(
+                        ferr,
+                        bytes(
+                            "Unable to open configurationfile: "
+                            + " \t"
+                            + str(time.ctime())
+                            + "\n",
+                            encoding="utf8",
+                        ),
+                    )
+            exit(-11)
+        except TypeError as e:
+             print("There was an error with the configuration file.", self.config, e.__str__())
+             os.write(ferr, bytes("There was an error in the configuration file. " + e.__str__(), encoding="utf-8"))
+             os.system("cp systemfiles/config.template config.yaml")
+             self.load_config()
+
+    def find_missing_keys(self, template, config, path=''):
+        missing = []
+        for key in template:
+            full_path = f"{path}.{key}" if path else key
+            if key not in config:
+                missing.append(full_path)
+            elif isinstance(template[key], dict):
+                if not isinstance(config.get(key), dict):
+                    missing.append(full_path + " (should be a dict)")
+                    config[key] = template[key]
+                    print (f"ADDING {template[key]}", key)
+                else:
+                    #config[key] = template[key]
+                    missing += self.find_missing_keys(template[key], config[key], full_path)
+        return missing
 
     def set_monitoring(self, val):
         self.inhibit = 0
@@ -2382,7 +2447,6 @@ class Systemair(object):
                 )
 
     def check_cooling(self):
-        self.house_heat_limit = 7  # daily low limit on cooling
         try:
             if (
                 self.forecast[0] > self.cooling_limit
