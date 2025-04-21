@@ -60,7 +60,9 @@ systemair:
     humidityFlowHighPartialPressureDiff: 500
     # If calculated partial pressure H2O is below this value reduce flow. (Pa)
     humitidyFlowReducePartialPressureDiff: 400
-    # INT: The temperature forcast temp integral for cooling engage. 
+    # The temperature forcast temp integral for cooling engage. (C) 
     forcastIntegralCoolingLimit: 16
-    # INT: The daily low temp that will inhibit cooling.
+    # The daily low temp that will inhibit cooling. (C)
     forcastDailyLowCoolingInhibit: 7
+    # RH short term increase that will trigger shower mode. (RH%)
+    showerTriggerLimit: 8

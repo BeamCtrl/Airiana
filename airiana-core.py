@@ -17,7 +17,7 @@ import pickle  # noqa
 import pprint  # noqa
 import socket  # noqa
 import syslog  # noqa
-import yaml    # noqa
+import yaml  # noqa
 from pprint import pprint  # noqa
 from request import Request  # noqa
 
@@ -29,7 +29,7 @@ savecair = False
 mode = "RTU"
 holdoff_t = time.time() - 3000  # now - 50 minutes
 config_file = "config.yaml"
-config = ''
+config = ""
 if "TCP" in sys.argv:
     mode = "TCP"
 
@@ -38,18 +38,19 @@ class ControlledExit(Exception):
     """
     Exit exception
     """
+
     pass
+
 
 def write_log(message):
     os.write(
-             ferr,
-             bytes(
-                   message + '\t'
-                   + str(time.ctime())
-                   + "\n",
-                   encoding="utf8",
-                   ),
-            )
+        ferr,
+        bytes(
+            message + "\t" + str(time.ctime()) + "\n",
+            encoding="utf8",
+        ),
+    )
+
 
 # Register cleanup
 def exit_callback(self, return_code):
@@ -499,7 +500,9 @@ class Systemair(object):
         self.diff_ave = [0]
         self.total_energy = 0.0
         self.average_limit = 1800  # min122
-        self.cooling_limit = self.config["systemair"]["control"]["forcastIntegralCoolingLimit"]
+        self.cooling_limit = self.config["systemair"]["control"][
+            "forcastIntegralCoolingLimit"
+        ]
         self.sf = 20
         self.ef = 20
         self.sf_base = 20
@@ -515,7 +518,9 @@ class Systemair(object):
         self.electric_power = 1
         self.flowOffset = [0, 0]
         self.filter_raw = 0
-        self.house_heat_limit =  self.config["systemair"]["control"]["forcastDailyLowCoolingInhibit"]
+        self.house_heat_limit = self.config["systemair"]["control"][
+            "forcastDailyLowCoolingInhibit"
+        ]
         self.humidity_target = 0
         self.exhaust = []
         self.exhaust_ave = 0
@@ -628,17 +633,24 @@ class Systemair(object):
             file_path = pathlib.Path(config_file)
             if not file_path.exists():
                 os.system(f"cp ./systemfiles/config.template {config_file}")
-            with open(config_file, 'r') as file:
-                self.config_template = yaml.safe_load(open("systemfiles/config.template", 'r'))
+            with open(config_file, "r") as file:
+                self.config_template = yaml.safe_load(
+                    open("systemfiles/config.template", "r")
+                )
                 self.config = yaml.safe_load(file)
                 if self.config == None or len(self.config.keys()) == 0:
-                     raise TypeError("The configuration file was empty.")
-                missing = self.find_missing_keys(self.config_template, self.config, path="")
+                    raise TypeError("The configuration file was empty.")
+                missing = self.find_missing_keys(
+                    self.config_template, self.config, path=""
+                )
                 print("Missing keys in config: ", missing)
-            write_log("Starting with config:\n"
-                     + self.config.__str__() + "\n"
-                     + "Missing keys in config: "
-                     + str(missing))
+            write_log(
+                "Starting with config:\n"
+                + self.config.__str__()
+                + "\n"
+                + "Missing keys in config: "
+                + str(missing)
+            )
         except IOError as e:
             print(e)
             write_log("Unable to open configurationfile.")
@@ -647,12 +659,22 @@ class Systemair(object):
             write_log("There is an error in the YAML config file:\n" + e.__str__())
             exit(-12)
         except TypeError as e:
-            print("There was an error with the configuration file.", self.config, e.__str__())
-            os.write(ferr, bytes("There was an error in the configuration file. " + e.__str__(), encoding="utf-8"))
+            print(
+                "There was an error with the configuration file.",
+                self.config,
+                e.__str__(),
+            )
+            os.write(
+                ferr,
+                bytes(
+                    "There was an error in the configuration file. " + e.__str__(),
+                    encoding="utf-8",
+                ),
+            )
             os.system("cp systemfiles/config.template config.yaml")
             self.load_config()
 
-    def find_missing_keys(self, template, config, path=''):
+    def find_missing_keys(self, template, config, path=""):
         missing = []
         for key in template:
             full_path = f"{path}.{key}" if path else key
@@ -662,10 +684,12 @@ class Systemair(object):
                 if not isinstance(config.get(key), dict):
                     missing.append(full_path + " (should be a dict)")
                     config[key] = template[key]
-                    print (f"ADDING {template[key]}", key)
+                    print(f"ADDING {template[key]}", key)
                 else:
-                    #config[key] = template[key]
-                    missing += self.find_missing_keys(template[key], config[key], full_path)
+                    # config[key] = template[key]
+                    missing += self.find_missing_keys(
+                        template[key], config[key], full_path
+                    )
         return missing
 
     def set_monitoring(self, val):
@@ -698,16 +722,37 @@ class Systemair(object):
 
         if self.savecair:
             self.get_password()
-            self.req.write_register(1400, 16)
-            self.req.write_register(1401, 16)
-            self.req.write_register(1402, 20)
-            self.req.write_register(1403, 20)
-            self.req.write_register(1404, 50)
-            self.req.write_register(1405, 50)
-            self.req.write_register(1406, 90)
-            self.req.write_register(1407, 90)
-            self.req.write_register(1408, 100)
-            self.req.write_register(1409, 100)
+            self.req.write_register(
+                1400, self.config["systemair"]["savecair"]["efMinFlow"]
+            )
+            self.req.write_register(
+                1401, self.config["systemair"]["savecair"]["sfMinFlow"]
+            )
+            self.req.write_register(
+                1402, self.config["systemair"]["savecair"]["efLowFlow"]
+            )
+            self.req.write_register(
+                1403, self.config["systemair"]["savecair"]["sfLowFlow"]
+            )
+            self.req.write_register(
+                1404, self.config["systemair"]["savecair"]["efNormFlow"]
+            )
+            self.req.write_register(
+                1405, self.config["systemair"]["savecair"]["sfNormFlow"]
+            )
+            self.req.write_register(
+                1406, self.config["systemair"]["savecair"]["efHighFlow"]
+            )
+            self.req.write_register(
+                1407, self.config["systemair"]["savecair"]["sfNormFlow"]
+            )
+            self.req.write_register(
+                1408, self.config["systemair"]["savecair"]["efMaxFlow"]
+            )
+            self.req.write_register(
+                1409, self.config["systemair"]["savecair"]["sfMaxFlow"]
+            )
+
         else:
             self.get_heater()
             # make sure the electric heater is oFF
@@ -719,57 +764,34 @@ class Systemair(object):
                 self.has_RH_sensor.append(self.system_name)
 
             # setup airflow levels
-            if self.system_name in (
-                "VR400",
-                "VTR300",
-            ):
-                self.ef_base = 40  # base low flow,  low pressure reference air flow.
-                self.sf_base = 40
-                self.req.modbusregister(137, 0)
-                if int(self.req.response) == 1:
-                    self.req.write_register(137, 0)
+            self.sf_base = self.config["systemair"]["legacy"][self.system_name][
+                "sfBaseFlow"
+            ]
+            self.req.modbusregister(137, 0)
+            if int(self.req.response) == 1:
+                self.req.write_register(137, 0)
                 self.req.modbusregister(107, 0)
-                if int(self.req.response) == 1:
-                    self.req.write_register(107, 0)
-                # SET BASE FLOW RATES
-                self.req.write_register(101, self.sf_base)
-                self.req.write_register(102, self.ef_base)
-                self.req.write_register(103, 60)
-                self.req.write_register(104, 60)
-                self.req.write_register(105, 107)
-                self.req.write_register(106, 107)
-            if self.system_name in "VSR300":
-                self.ef_base = 40  # base low flow,  low pressure reference air flow.
-                self.sf_base = 40
-                self.req.modbusregister(137, 0)
-                if int(self.req.response) == 1:
-                    self.req.write_register(137, 0)
-                self.req.modbusregister(107, 0)
-                if int(self.req.response) == 1:
-                    self.req.write_register(107, 0)
-                # SET BASE FLOW RATES
-                self.req.write_register(101, self.sf_base)
-                self.req.write_register(102, self.ef_base)
-                self.req.write_register(103, 60)
-                self.req.write_register(104, 60)
-                self.req.write_register(105, 107)
-                self.req.write_register(106, 107)
-            if "VTR700" in self.system_name:
-                self.ef_base = 50  # base low flow,  low pressure reference air flow.
-                self.sf_base = 50
-                self.req.modbusregister(137, 0)
-                if int(self.req.response) == 1:
-                    self.req.write_register(137, 0)
-                self.req.modbusregister(107, 0)
-                if int(self.req.response) == 1:
-                    self.req.write_register(107, 0)
-                # SET BASE FLOW RATES
-                self.req.write_register(101, self.sf_base)
-                self.req.write_register(102, self.ef_base)
-                self.req.write_register(103, 100)
-                self.req.write_register(104, 100)
-                self.req.write_register(105, 200)
-                self.req.write_register(106, 200)
+            if int(self.req.response) == 1:
+                self.req.write_register(107, 0)
+            # SET BASE FLOW RATES
+            self.req.write_register(
+                101, self.config["systemair"]["legacy"][self.system_name]["sfBaseFlow"]
+            )
+            self.req.write_register(
+                102, self.config["systemair"]["legacy"][self.system_name]["efBaseFlow"]
+            )
+            self.req.write_register(
+                103, self.config["systemair"]["legacy"][self.system_name]["sfMedFlow"]
+            )
+            self.req.write_register(
+                104, self.config["systemair"]["legacy"][self.system_name]["efMedFlow"]
+            )
+            self.req.write_register(
+                105, self.config["systemair"]["legacy"][self.system_name]["sfHighFlow"]
+            )
+            self.req.write_register(
+                106, self.config["systemair"]["legacy"][self.system_name]["efHighFlow"]
+            )
 
     # get heater status
     def get_heater(self):
@@ -1548,8 +1570,11 @@ class Systemair(object):
             )
         if self.RH_valid == 1 and not self.shower:  # Shower humidity sensor control
             try:
+                shower_RH_limit = self.config["systemair"]["control"][
+                    "showerTriggerLimit"
+                ]
                 if (
-                    self.hum_list[0] - self.hum_list[-1] > 8
+                    self.hum_list[0] - self.hum_list[-1] > shower_RH_limit
                     and numpy.average(self.extract_dt_list) * 60 > 0.0
                 ):
                     self.shower = True
@@ -1650,7 +1675,8 @@ class Systemair(object):
                 self.shower_initial = 0
                 turnoff()
         # Shower mode with timeout
-        if self.shower and self.shower_initial - time.time() < -45 * 60:
+        shower_timeout = self.config["systemair"]["control"]["showerTimeout"]
+        if self.shower and self.shower_initial - time.time() < -shower_timeout * 60:
             self.shower = False
             os.write(
                 ferr,
@@ -2232,12 +2258,12 @@ class Systemair(object):
                 )
 
     def target_temperature(self):
-        if self.inlet_ave < 13:
-            self.target = 24
+        if self.inlet_ave < self.config["systemair"]["control"]["targetWinterLimit"]:
+            self.target = self.config["systemair"]["control"]["targetTemperature"] + 1
         else:
-            self.target = 23
+            self.target = self.config["systemair"]["control"]["targetTemperature"]
         if self.cool_mode:
-            self.target = 20.7
+            self.target = self.config["systemair"]["control"]["coolModeLowTarget"]
 
     def dynamic_pressure_control(self):
         if not self.shower:
@@ -2277,6 +2303,12 @@ class Systemair(object):
                         self.msg += "Pressure diff to +10%\n"
 
     def dynamic_fan_control(self):
+        dP_high = self.config["systemair"]["control"][
+            "humidityFlowHighPartialPressureDiff"
+        ]
+        dP_reduce = self.config["systemair"]["control"][
+            "humidityFlowReducePartialPressureDiff"
+        ]
         if not self.inhibit and not self.shower and not self.cool_mode:
             # dynamic with RH-sensor
             if self.RH_valid:
@@ -2285,11 +2317,11 @@ class Systemair(object):
                         self.extract_ave > self.target + 0.6
                         and self.extract_ave - self.supply_ave > 0.1
                     )
-                    or self.humidity_diff > 500
+                    or self.humidity_diff > dp_high
                 ):
                     self.set_fanspeed(2)
                     self.msg += "Dynamic fanspeed 2\n"
-                    if self.humidity_diff > 500:
+                    if self.humidity_diff > dp_high:
                         self.flowOffset = [self.flowOffset[0] + 5, time.time()]
                         os.write(
                             ferr,
@@ -2312,15 +2344,15 @@ class Systemair(object):
                     (
                         self.extract_ave < self.target + 0.5
                         and self.extract_ave - self.supply_ave > 0.1
-                        and self.humidity_diff < 400
+                        and self.humidity_diff < dP_reduce
                         or (
-                            self.humidity_diff < 350
+                            self.humidity_diff < dP_reduce - 50
                             and not self.extract_ave > self.target + 0.5
                         )
                     )
                 ):
                     self.set_fanspeed(1)
-                    if self.humidity_diff < 350:
+                    if self.humidity_diff < dP_reduce - 50:
                         self.msg += "Dynamic fanspeed 1, Air quality Good\n"
                         os.write(
                             ferr,
@@ -2447,7 +2479,8 @@ class Systemair(object):
                 and self.tomorrows_low[0] > self.house_heat_limit
                 and self.integral_forcast > 0
                 and self.cool_mode is False
-                and self.extract_ave > 20.7
+                and self.extract_ave
+                > self.config["systemair"]["control"]["coolModeLowTarget"]
                 or self.inlet_ave > self.target + 2
                 and not self.cool_mode
             ):
@@ -2455,8 +2488,13 @@ class Systemair(object):
                 if self.pressure_diff != 0:
                     self.set_differential(0)
                 if self.savecair:
-                    self.req.write_register(1407, 100)
-                    self.req.write_register(1406, 100)
+                    self.req.write_register(
+                        1407, self.config["systemair"]["savecair"]["sfMaxFlow"]
+                    )
+                    self.req.write_register(
+                        1406, self.config["systemair"]["savecair"]["efMaxFlow"]
+                    )
+
                 if self.exchanger_mode != 0:
                     self.cycle_exchanger(0)
                 self.set_differential(0)
@@ -2487,107 +2525,92 @@ class Systemair(object):
             and not self.shower
             and not self.ac_active
         ):
-            if (self.extract_ave < 20.7) and self.fanspeed != 1:
+            if (
+                self.extract_ave
+                < self.config["systemair"]["control"]["coolModeLowTarget"]
+                and self.fanspeed != 1
+            ):
                 self.set_fanspeed(1)
                 self.msg += "Cooling complete\n"
-                os.write(
-                    ferr,
-                    bytes(
-                        "Cooling complete 20.7C reached \t" + str(time.ctime()) + "\n",
-                        encoding="utf8",
-                    ),
-                )
+                write_log("Cooling complete 20.7C reached.")
 
-            if self.fanspeed == 3 and (self.supply_ave < 12 and self.extract_ave < 22):
-                self.set_fanspeed(2)
-                self.msg += "Cooling reduced\n"
-                os.write(
-                    ferr,
-                    bytes(
-                        "Cooling reduced to medium, supply below 12C \t"
-                        + str(time.ctime())
-                        + "\n",
-                        encoding="utf8",
-                    ),
-                )
-
-            if self.fanspeed == 2 and self.supply_ave > 13:
-                self.set_fanspeed(3)
-                self.msg += "Cooling returned to High.\n"
-                os.write(
-                    ferr,
-                    bytes(
-                        "Cooling returned to high from medium, supply above 13C \t"
-                        + str(time.ctime())
-                        + "\n",
-                        encoding="utf8",
-                    ),
-                )
-
-            if (
-                self.fanspeed == 1
-                and self.extract_ave > 21
-                and self.extract_ave + 0.1 > self.inlet_ave
-            ):
-                self.set_fanspeed(3)
-                self.msg += "Cooling returned to High, indoor is hotter than outside.\n"
-                os.write(
-                    ferr,
-                    bytes(
-                        "Cooling returned to high, indoor is hotter than outside. "
-                        + str(time.ctime())
-                        + " "
-                        + str(self.fanspeed)
-                        + " "
-                        + str(self.extract_ave)
-                        + " "
-                        + str(self.inlet_ave)
-                        + "\n",
-                        encoding="utf8",
-                    ),
-                )
-
-            if (
-                self.inlet_ave + 0.1 > self.extract_ave
-                and self.fanspeed != 1
-                and self.extract_ave > 21
-            ):
-                self.set_fanspeed(1)
-                self.msg += "No cooling possible due to temperature conditions\n"
-                os.write(
-                    ferr,
-                    bytes(
-                        "Cooling will wait, will try to recycle cold air by low fanspeed \t"
-                        + str(time.ctime())
-                        + "\n",
-                        "utf-8",
-                    ),
-                )
-
-            try:
-                if (
-                    self.integral_forcast < 0
-                    and time.localtime().tm_hour > 12
-                    and self.inlet_ave < 24.9
+                if self.fanspeed == 3 and (
+                    self.supply_ave
+                    < self.config["systemair"]["control"]["coolModeLowLimit"]
+                    and self.extract_ave < 22
                 ):
-                    self.cool_mode = False
+                    self.set_fanspeed(2)
+                    self.msg += "Cooling reduced\n"
                     os.write(
                         ferr,
                         bytes(
-                            "Cooling mode turned off " + str(time.ctime()) + "\n",
+                            "Cooling reduced to medium, supply below 12C \t"
+                            + str(time.ctime())
+                            + "\n",
                             encoding="utf8",
                         ),
                     )
-                    if self.savecair and self.ef == 100:
-                        self.req.write_register(1407, 90)
-                        self.req.write_register(1406, 90)
-            except ValueError:
-                os.write(
-                    ferr,
-                    bytes(
-                        "Forecast error " + str(time.ctime()) + "\n", encoding="utf8"
-                    ),
-                )
+
+                if (
+                    self.fanspeed == 2
+                    and self.supply_ave
+                    > self.config["systemair"]["control"]["coolModeLowLimit"] + 1
+                ):
+                    self.set_fanspeed(3)
+                    self.msg += "Cooling returned to High.\n"
+                    os.write(
+                        ferr,
+                        bytes(
+                            "Cooling returned to high from medium, supply above required level. \t"
+                            + str(time.ctime())
+                            + "\n",
+                            encoding="utf8",
+                        ),
+                    )
+
+                if (
+                    self.fanspeed == 1
+                    and self.extract_ave
+                    > self.config["systemair"]["control"]["coolModeLowTarget"] + 0.2
+                    and self.extract_ave + 0.1 > self.inlet_ave
+                ):
+                    self.set_fanspeed(3)
+                    self.msg += (
+                        "Cooling returned to High, indoor is hotter than outside.\n"
+                    )
+                    write_log(
+                        f"Cooling returned to high, indoor is hotter than outside. {self.extract_ave}, {self.inlet_ave}, {self.fanspeed}"
+                    )
+
+                if (
+                    self.inlet_ave + 0.1 > self.extract_ave
+                    and self.fanspeed != 1
+                    and self.extract_ave > 21
+                ):
+                    self.set_fanspeed(1)
+                    self.msg += "No cooling possible due to temperature conditions\n"
+                    write_log(
+                        "Cooling will wait, will try to recycle cold air by low fanspeed."
+                    )
+
+                try:
+                    if (
+                        self.integral_forcast < 0
+                        and time.localtime().tm_hour > 12
+                        and self.inlet_ave
+                        < self.config["systemair"]["control"]["targetTemperature"] + 2
+                    ):
+                        self.cool_mode = False
+                        write_log("Cooling mode turned off.")
+                        if self.savecair and self.ef == 100:
+                            self.req.write_register(
+                                1407, self.config["systemair"]["savecair"]["sfHighFlow"]
+                            )
+                            self.req.write_register(
+                                1406, self.config["systemair"]["savecair"]["efHighFlow"]
+                            )
+                except ValueError:
+                    write_log("Forecast error.")
 
     # Get the active forecast
     def get_forecast(self):
