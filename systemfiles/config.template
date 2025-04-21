@@ -10,8 +10,8 @@ systemair:
     sfNormFlow: 50
     efHighFlow: 90
     sfHighFlow: 90
-    efHighFlow: 100
-    sfHighFlow: 100
+    efMaxFlow: 100
+    sfMaxFlow: 100
 
   legacy:
     VR400:
