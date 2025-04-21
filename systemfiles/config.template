@@ -48,9 +48,11 @@ systemair:
   control:
     # Target temperature during summer operation, will increase by 1 when low temperatures are expected. (C)
     targetTemperature: 23
+    # Limit temperature where the higher target level is userd; target temperature +1C. (C)
+    targetWinterLimit: 13
     # When forcast is below this limit there will be no cooling. (C)
-    coolModeLowLimit: 10
-    # Target for cooling mode. Will not cool below this value. (C)
+    coolModeLowLimit: 12
+    # Target for cooling mode. Will reduce cooling below this value. (C)
     coolModeLowTarget: 20.9
     # If temperature is above this limit no pressure reduction will occur. (C)
     pressureDiffHighLimitTemperature: 15
@@ -59,10 +61,12 @@ systemair:
     # If calculated partial pressure H2O is above this value, increase ventilation flow. (Pa)
     humidityFlowHighPartialPressureDiff: 500
     # If calculated partial pressure H2O is below this value reduce flow. (Pa)
-    humitidyFlowReducePartialPressureDiff: 400
-    # The temperature forcast temp integral for cooling engage. (C) 
+    humidityFlowReducePartialPressureDiff: 400
+    # The temperature forcast temp integral for cooling engage. temperatures need to be above this limit for a few days ahead to trigger cooling. (C)
     forcastIntegralCoolingLimit: 16
     # The daily low temp that will inhibit cooling. (C)
     forcastDailyLowCoolingInhibit: 7
     # RH short term increase that will trigger shower mode. (RH%)
     showerTriggerLimit: 8
+    # Timeout for the shower mode, will return to normal fan cntrl after this time out. (minutes)
+    showerTimeout: 45
