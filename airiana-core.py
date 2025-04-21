@@ -641,22 +641,16 @@ class Systemair(object):
                      + str(missing))
         except IOError as e:
             print(e)
-            os.write(
-                        ferr,
-                        bytes(
-                            "Unable to open configurationfile: "
-                            + " \t"
-                            + str(time.ctime())
-                            + "\n",
-                            encoding="utf8",
-                        ),
-                    )
+            write_log("Unable to open configurationfile.")
             exit(-11)
+        except yaml.YAMLError as e:
+            write_log("There is an error in the YAML config file:\n" + e.__str__())
+            exit(-12)
         except TypeError as e:
-             print("There was an error with the configuration file.", self.config, e.__str__())
-             os.write(ferr, bytes("There was an error in the configuration file. " + e.__str__(), encoding="utf-8"))
-             os.system("cp systemfiles/config.template config.yaml")
-             self.load_config()
+            print("There was an error with the configuration file.", self.config, e.__str__())
+            os.write(ferr, bytes("There was an error in the configuration file. " + e.__str__(), encoding="utf-8"))
+            os.system("cp systemfiles/config.template config.yaml")
+            self.load_config()
 
     def find_missing_keys(self, template, config, path=''):
         missing = []
