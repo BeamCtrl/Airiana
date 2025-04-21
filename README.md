@@ -45,7 +45,8 @@ she keeps her self in check.
 
   -When the forcasting reciever is first run it will create a latlong.json file based on IP geolocation. If you want a more precise location forcast update the latlong.json file with your position.   
 
-
+  -If you want to customize set points or tweak flow rates, after first startup there will be a file named config.yaml in the airiana root dir.
+ 
 #### To enable HomeAssitant integration:
 ##### example Home assistant lovelace cards
 ![image](https://user-images.githubusercontent.com/11050899/211630988-3207c572-618c-438c-b76a-43330e013321.png)
