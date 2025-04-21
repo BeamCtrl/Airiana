@@ -18,28 +18,28 @@ systemair:
       # Legacy system VR400 extraction flow rate (l/s)
       efBaseFlow: 40
       # Legacy system VR400 supply flow rate (l/s)
-      sfBaseFow: 40
+      sfBaseFlow: 40
       efMedFlow: 60
       sfMedFlow: 60
       efHighFlow: 107 
       sfHighFlow: 107 
     VTR300:
       efBaseFlow: 40 
-      sfBaseFow: 40
+      sfBaseFlow: 40
       efMedFlow: 60
       sfMedFlow: 60
       efHighFlow: 107 
       sfHighFlow: 107 
     VSR300:
       efBaseFlow: 40 
-      sfBaseFow: 40
+      sfBaseFlow: 40
       efMedFlow: 60
       sfMedFlow: 60
       efHighFlow: 107 
       sfHighFlow: 107 
     VTR700:
       efBaseFlow: 50 
-      sfBaseFow: 50
+      sfBaseFlow: 50
       efMedFlow: 100
       sfMedFlow: 100
       efHighFlow: 200 

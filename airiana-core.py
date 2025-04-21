@@ -2499,14 +2499,8 @@ class Systemair(object):
                     self.cycle_exchanger(0)
                 self.set_differential(0)
                 self.cool_mode = True
-                os.write(
-                    ferr,
-                    bytes(
-                        "Cooling activated \t" + str(time.ctime()) + "\n",
-                        encoding="utf8",
-                    ),
-                )
-
+                write_log("Cooling activated.")
+                self.set_fanspeed(3)
         except:
             os.write(
                 ferr,
@@ -2525,14 +2519,14 @@ class Systemair(object):
             and not self.shower
             and not self.ac_active
         ):
-            if (
-                self.extract_ave
-                < self.config["systemair"]["control"]["coolModeLowTarget"]
-                and self.fanspeed != 1
-            ):
-                self.set_fanspeed(1)
-                self.msg += "Cooling complete\n"
-                write_log("Cooling complete 20.7C reached.")
+                if (
+                     self.extract_ave
+                     < self.config["systemair"]["control"]["coolModeLowTarget"]
+                     and self.fanspeed != 1
+                 ):
+                     self.set_fanspeed(1)
+                     self.msg += "Cooling complete\n"
+                     write_log("Cooling complete 20.7C reached.")
 
                 if self.fanspeed == 3 and (
                     self.supply_ave

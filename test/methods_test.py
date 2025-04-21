@@ -13,7 +13,7 @@ def test_methods():
     monitoring = True
     for i in range(2):
         dev.get_password()
-        dev.system_name = "TestSystem"
+        dev.system_name = "VR400"
         dev.system_setup()
         dev.get_heater()
         dev.set_heater(True)
