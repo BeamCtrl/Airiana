@@ -2317,11 +2317,11 @@ class Systemair(object):
                         self.extract_ave > self.target + 0.6
                         and self.extract_ave - self.supply_ave > 0.1
                     )
-                    or self.humidity_diff > dp_high
+                    or self.humidity_diff > dP_high
                 ):
                     self.set_fanspeed(2)
                     self.msg += "Dynamic fanspeed 2\n"
-                    if self.humidity_diff > dp_high:
+                    if self.humidity_diff > dP_high:
                         self.flowOffset = [self.flowOffset[0] + 5, time.time()]
                         os.write(
                             ferr,
