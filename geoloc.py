@@ -1,7 +1,21 @@
 #!/usr/bin/python3
 
 import os, sys
+import socket
 
+def is_connected(host="8.8.8.8", port=53, timeout=3):
+    try:
+        socket.setdefaulttimeout(timeout)
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+        return True
+    except socket.error:
+        return False
+        
+if is_connected():
+    print("Internet is available, continue with geoloc.")
+else:
+    print("Exit, no internet connection.")
+    exit(-1)
 ip = sys.argv[-1]
 
 # Test for valid ip and if not supplied use external.
