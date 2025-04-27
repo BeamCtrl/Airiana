@@ -13,13 +13,36 @@ hostname = os.popen("hostname").read()[:-1]
 class MyHandler(socketserver.BaseRequestHandler):
     def send_ok(self):
         self.request.send(
-            bytes(
-                'HTTP/1.1 200 OK\n\n<html><head><meta http-equiv="refresh" content="0; url=http://'
+                bytes(
+                "HTTP/1.1 200 OK\n\n"
+                f"Access-Control-Allow-Origin: http://{self.ip}\r\n"
+                "Access-Control-Allow-Methods: PUT, OPTIONS\r\n"
+                "Access-Control-Allow-Headers: Content-Type\r\n"
+                "Content-Type: text/plain\r\n"
+                '<html><head><meta http-equiv="refresh" content="0; url=http://'
                 + self.ip
                 + '/" /></head></html> \n\r',
-                "utf-8",
+                "utf-8"
             )
         )
+    def send_continue(self):
+        print("reply continue")
+        response = bytes(
+            "HTTP/1.1 100 CONTINUE\r\n"
+            "\r\n", "utf-8"
+            )
+        self.request.send(response)
+
+    def send_options(self):
+        print("reply ok")
+        response = bytes(
+            "HTTP/1.1 200 OK\r\n"
+            "Access-Control-Allow-Origin: http://192.168.1.61\r\n"
+            "Access-Control-Allow-Methods: PUT, OPTIONS\r\n"
+            "Access-Control-Allow-Headers: Content-Type\r\n"
+            "\r\n", "utf-8"
+            )
+        self.request.send(response)
 
     def send_home(self):
         self.request.send(
@@ -30,7 +53,7 @@ class MyHandler(socketserver.BaseRequestHandler):
 
     def handle(self):
         self.ip = os.popen("hostname -I").readline().split(" ")[0]
-        data = str(self.request.recv(1024), "utf-8").strip().split("\r\n")
+        data = str(self.request.recv(20480), "utf-8").strip().split("\r\n")
         print(data[0])
         sys.stdout.flush()
         if "GET" in data[0]:
@@ -43,6 +66,17 @@ class MyHandler(socketserver.BaseRequestHandler):
                 s.close()
                 self.send_ok()
 
+        if "OPTIONS" in data[0]:
+            self.send_options()
+
+        if "PUT" in data[0]:
+            print("Asked to put...")
+            if "config.yaml" in data[0]:
+                self.send_continue()
+                with open("config.yaml", "w") as file:
+                    file.write(data[-1])
+                print(data[-1])
+                self.send_options()
         if "POST" in data[0]:
             if "setup" in data[0]:
                 print(data)
