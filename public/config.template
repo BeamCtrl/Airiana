@@ -1,0 +1,74 @@
+systemair:
+  savecair:
+    # savecair minimum flow rate extraction fan (%)
+    efMinFlow: 16
+    # savecair minimum flow rate supply fan (%)
+    sfMinFlow: 16
+    efLowFlow: 20
+    sfLowFlow: 20
+    efNormFlow: 50
+    sfNormFlow: 50
+    efHighFlow: 90
+    sfHighFlow: 90
+    efMaxFlow: 100
+    sfMaxFlow: 100
+
+  legacy:
+    # Legacy system VR400 extraction flow rates (l/s)
+    VR400:
+      efBaseFlow: 40
+      sfBaseFlow: 40
+      efMedFlow: 60
+      sfMedFlow: 60
+      efHighFlow: 107
+      sfHighFlow: 107
+    # Legacy system VTR300 extraction flow rates (l/s)
+    VTR300:
+      efBaseFlow: 40
+      sfBaseFlow: 40
+      efMedFlow: 60
+      sfMedFlow: 60
+      efHighFlow: 107
+      sfHighFlow: 107
+    # Legacy system VSR300 extraction flow rates (l/s)
+    VSR300:
+      efBaseFlow: 40
+      sfBaseFlow: 40
+      efMedFlow: 60
+      sfMedFlow: 60
+      efHighFlow: 107
+      sfHighFlow: 107
+    # Legacy system VTR700 extraction flow rates (l/s)
+    VTR700:
+      efBaseFlow: 50
+      sfBaseFlow: 50
+      efMedFlow: 100
+      sfMedFlow: 100
+      efHighFlow: 200
+      sfHighFlow: 200
+
+  control:
+    # Target temperature during summer operation, will increase by 1 when low temperatures are expected. (C)
+    targetTemperature: 23
+    # Limit temperature where the higher target level is userd; target temperature +1C. (C)
+    targetWinterLimit: 13
+    # When forcast is below this limit there will be no cooling. (C)
+    coolModeLowLimit: 12
+    # Target for cooling mode. Will reduce cooling below this value. (C)
+    coolModeLowTarget: 20.9
+    # If temperature is above this limit no pressure reduction will occur. (C)
+    pressureDiffHighLimitTemperature: 15
+    # The limit for reducing pressure will always assume humidity level greater than this. (RH%)
+    pressureDiffLowLimitHumidity: 20
+    # If calculated partial pressure H2O is above this value, increase ventilation flow. (Pa)
+    humidityFlowHighPartialPressureDiff: 500
+    # If calculated partial pressure H2O is below this value reduce flow. (Pa)
+    humidityFlowReducePartialPressureDiff: 400
+    # The temperature forcast temp integral for cooling engage. temperatures need to be above this limit for a few days ahead to trigger cooling. (C)
+    forcastIntegralCoolingLimit: 16
+    # The daily low temp that will inhibit cooling. (C)
+    forcastDailyLowCoolingInhibit: 7
+    # RH short term increase that will trigger shower mode. (RH%)
+    showerTriggerLimit: 8
+    # Timeout for the shower mode, will return to normal fan cntrl after this time out. (minutes)
+    showerTimeout: 45
