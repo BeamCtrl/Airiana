@@ -628,20 +628,19 @@ class Systemair(object):
         self.sensor_exhaust = -60
         self.admin_password = ""
         self.electric_power_sum = 0.0
+        self.check_config()
 
     # Check if config has been updated.
     def check_config(self):
         file_path = pathlib.Path(config_file)
-        if file_path.exists():
-             if os.path.getmtime(config_file) != self.loaded_config_mtime:
-                 self.load_config()
+        if not file_path.exists():
+            os.system(f"cp ./systemfiles/config.template {config_file}")
+        if os.path.getmtime(config_file) != self.loaded_config_mtime:
+            self.load_config()
 
     # Load config from file.
     def load_config(self):
         try:
-            file_path = pathlib.Path(config_file)
-            if not file_path.exists():
-                os.system(f"cp ./systemfiles/config.template {config_file}")
             self.loaded_config_mtime = os.path.getmtime(config_file)
             with open(config_file, "r") as file:
                 self.config_template = yaml.safe_load(
