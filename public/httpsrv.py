@@ -54,6 +54,13 @@ class ExtendedHandler(SimpleHTTPRequestHandler):
             )
         SimpleHTTPRequestHandler.finish(self)
 
+    def do_OPTIONS(self):
+        print("sending options")
+        self.send_response(200)
+        self.send_header("Access-Control-Allow-Origin", "http://192.168.1.61")
+        self.send_header("Access-Control-Allow-Methods", "PUT, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
 
 class uServer(ThreadingHTTPServer):
     def __init__(self, *args, **kwargs):
