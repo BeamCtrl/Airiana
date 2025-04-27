@@ -441,7 +441,8 @@ def check_req(request, test, name):
 class Systemair(object):
     def __init__(self, request_object):
         self.config = {}
-        self.load_config()
+        self.loaded_config_mtime = 0
+        self.check_config()
         self.used_energy = None
         self.eff = None
         self.coef_prev_inlet = None
@@ -628,7 +629,14 @@ class Systemair(object):
         self.admin_password = ""
         self.electric_power_sum = 0.0
 
+    # Check if config has been updated.
+    def check_config(self):
+        if os.path.getmtime(config_file) != self.loaded_config_mtime:
+             self.load_config()
+
+    # Load config from file.
     def load_config(self):
+        self.loaded_config_mtime = os.path.getmtime(config_file)
         try:
             file_path = pathlib.Path(config_file)
             if not file_path.exists():
@@ -3232,6 +3240,7 @@ if __name__ == "__main__":
                 if "debug" in sys.argv:
                     os.system('echo "7" >./RAM/exec_tree')
                 device.update_fan_rpm()
+                device.check_config()
 
             # debug specific sensors and temp probe status
             if device.iter % 11 == 0:
