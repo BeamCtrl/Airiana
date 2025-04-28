@@ -442,7 +442,6 @@ class Systemair(object):
     def __init__(self, request_object):
         self.config = {}
         self.loaded_config_mtime = 0
-        self.check_config()
         self.used_energy = None
         self.eff = None
         self.coef_prev_inlet = None
@@ -501,9 +500,6 @@ class Systemair(object):
         self.diff_ave = [0]
         self.total_energy = 0.0
         self.average_limit = 1800  # min122
-        self.cooling_limit = self.config["systemair"]["control"][
-            "forcastIntegralCoolingLimit"
-        ]
         self.sf = 20
         self.ef = 20
         self.sf_base = 20
@@ -519,9 +515,6 @@ class Systemair(object):
         self.electric_power = 1
         self.flowOffset = [0, 0]
         self.filter_raw = 0
-        self.house_heat_limit = self.config["systemair"]["control"][
-            "forcastDailyLowCoolingInhibit"
-        ]
         self.humidity_target = 0
         self.exhaust = []
         self.exhaust_ave = 0
@@ -629,6 +622,12 @@ class Systemair(object):
         self.admin_password = ""
         self.electric_power_sum = 0.0
         self.check_config()
+        self.cooling_limit = self.config["systemair"]["control"][
+            "forcastIntegralCoolingLimit"
+        ]
+        self.house_heat_limit = self.config["systemair"]["control"][
+            "forcastDailyLowCoolingInhibit"
+        ]
 
     # Check if config has been updated.
     def check_config(self):
@@ -637,6 +636,7 @@ class Systemair(object):
             os.system(f"cp ./systemfiles/config.template {config_file}")
         if os.path.getmtime(config_file) != self.loaded_config_mtime:
             self.load_config()
+            self.system_setup()
 
     # Load config from file.
     def load_config(self):
