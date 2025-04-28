@@ -166,6 +166,17 @@ A runnning log file is availble in ./RAM/err.
 
 Communication error rate if any is availble in ./RAM/error_rate.
 
+### Wifi access point:
+If configured to use ap mode during installation the unit will if it detects no internet access turn it self into an WiFi accesspoint, access the "Airiana_Wifi" SSID with password "Airiana22".  
+
+### Config editor:
+
+There is an option if needed to tune some of the operating parameters. By editing the file config.yaml in the application root dir you can tweak some of the parameters if needed. This file is persistent over updates. There is also an integration in the web interface so these variables can be altered directly in the browser, saved data will be loaded by the application on update so there is no need for restarts to test new settings.
+
+![image](https://github.com/user-attachments/assets/7922cb94-75cd-44c9-a5af-d798843cd3af)
+![image](https://github.com/user-attachments/assets/d351e9ac-ab67-4211-92cc-300f9705fb15)
+
+
 #### Unit testing:
 Using pytest; 
 from airiana dir ```pytest -s```  /// ```pytest-3 -s```\
