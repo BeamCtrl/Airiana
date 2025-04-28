@@ -2688,11 +2688,9 @@ class Systemair(object):
             if "debug" in sys.argv:
                 if self.req.response == target_flow:
                     self.msg += "supply flow change completed \n"
-            high_flow = 107
+            high_flow = self.config["systemair"]["legacy"][self.system_name]["efHighFlow"]
             if percent < 0:
-                high_flow += 107 * float(percent) / 100
-            if high_flow > 107:
-                high_flow = 107
+                high_flow += high_flow * float(percent) / 100
             # print "high should be extract:", int(high_flow)
             self.req.write_register(106, int(high_flow))  # reset high extract
             # raw_input(" diff set done")
