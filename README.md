@@ -122,7 +122,7 @@ The system will when activated map the sensor offset of the extracted air at dif
 
 #### Preemptive cooling:
 
-The system will if the location file is properly updated monitor the current atmospheric conditions thru the MET.no weather service. If it detects that the comming days will have temperatures netting above 17deg average it will go into cooling mode. In this mode only shower detection is active. It will run the fans at maximum speed with a target temperature of 20.7C to cool the building going into a hot day. When during the day the outside temperature surpasses the inside temperature it will lower fanspeed to low to conserve the indoor cold air. It will return to high speed when the outside conditions allows.
+The system will if the location file is properly updated monitor the current atmospheric conditions thru the MET.no weather service. If it detects that the comming days will have temperatures netting above 17deg average it will go into cooling mode. In this mode only shower detection is active. It will run the fans at maximum speed with a target temperature of 20.9C to cool the building going into a hot day. When during the day the outside temperature surpasses the inside temperature it will lower fanspeed to low to conserve the indoor cold air. It will return to high speed when the outside conditions allows.
 
 
 #### Exchanger control:
