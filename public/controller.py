@@ -13,7 +13,7 @@ hostname = os.popen("hostname").read()[:-1]
 class MyHandler(socketserver.BaseRequestHandler):
     def send_ok(self):
         self.request.send(
-                bytes(
+            bytes(
                 "HTTP/1.1 200 OK\n\n"
                 f"Access-Control-Allow-Origin: http://{self.ip}\r\n"
                 "Access-Control-Allow-Methods: PUT, OPTIONS\r\n"
@@ -22,15 +22,13 @@ class MyHandler(socketserver.BaseRequestHandler):
                 '<html><head><meta http-equiv="refresh" content="0; url=http://'
                 + self.ip
                 + '/" /></head></html> \n\r',
-                "utf-8"
+                "utf-8",
             )
         )
+
     def send_continue(self):
         print("reply continue")
-        response = bytes(
-            "HTTP/1.1 100 CONTINUE\r\n"
-            "\r\n", "utf-8"
-            )
+        response = bytes("HTTP/1.1 100 CONTINUE\r\n" "\r\n", "utf-8")
         self.request.send(response)
 
     def send_options(self):
@@ -40,8 +38,9 @@ class MyHandler(socketserver.BaseRequestHandler):
             "Access-Control-Allow-Origin: http://192.168.1.61\r\n"
             "Access-Control-Allow-Methods: PUT, OPTIONS\r\n"
             "Access-Control-Allow-Headers: Content-Type\r\n"
-            "\r\n", "utf-8"
-            )
+            "\r\n",
+            "utf-8",
+        )
         self.request.send(response)
 
     def send_home(self):

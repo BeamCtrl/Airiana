@@ -1,51 +1,92 @@
 systemair:
   savecair:
-    # savecair minimum flow rate extraction fan (%)
+    #Minimum flow rate extraction fan (%)
     efMinFlow: 16
-    # savecair minimum flow rate supply fan (%)
+    #Minimum flow rate supply fan (%)
     sfMinFlow: 16
+    #Low flow rate extraction fan (%)
     efLowFlow: 20
+    #Low flow rate supply fan (%)
     sfLowFlow: 20
+    #Normal flow rate extraction fan (%)
     efNormFlow: 50
+    #Normal flow rate supply fan (%)
     sfNormFlow: 50
+    #High flow rate extraction fan (%)
     efHighFlow: 90
+    #High flow rate supply fan (%)
     sfHighFlow: 90
+    #Max flow rate extraction fan (%)
     efMaxFlow: 100
+    #Max flow rate supply fan (%)
     sfMaxFlow: 100
 
   legacy:
-    # Legacy system VR400 extraction flow rates (l/s)
     VR400:
+      #Base flow rate extract (l/s)
       efBaseFlow: 40
+      #Base flow rate supply (l/s)
       sfBaseFlow: 40
+      #Medium flow rate extract (l/s)
       efMedFlow: 60
+      #Medium flow rate supply (l/s)
       sfMedFlow: 60
-      efHighFlow: 107 
-      sfHighFlow: 107 
-    # Legacy system VTR300 extraction flow rates (l/s)
+      #High flow rate extract (l/s)
+      efHighFlow: 107
+      #High flow rate supply (l/s)
+      sfHighFlow: 107
     VTR300:
-      efBaseFlow: 40 
+      #Base flow rate extract (l/s)
+      efBaseFlow: 40
+      #Base flow rate supply (l/s)
       sfBaseFlow: 40
+      #Medium flow rate extract (l/s)
       efMedFlow: 60
+      #Medium flow rate supply (l/s)
       sfMedFlow: 60
-      efHighFlow: 107 
-      sfHighFlow: 107 
-    # Legacy system VSR300 extraction flow rates (l/s)
+      #High flow rate extract (l/s)
+      efHighFlow: 107
+      #High flow rate supply (l/s)
+      sfHighFlow: 107
     VSR300:
-      efBaseFlow: 40 
+      #Base flow rate extract (l/s)
+      efBaseFlow: 40
+      #Base flow rate supply (l/s)
       sfBaseFlow: 40
+      #Medium flow rate extract (l/s)
       efMedFlow: 60
+      #Medium flow rate supply (l/s)
       sfMedFlow: 60
-      efHighFlow: 107 
-      sfHighFlow: 107 
-    # Legacy system VTR700 extraction flow rates (l/s)
-    VTR700:
-      efBaseFlow: 50 
+      #High flow rate extract (l/s)
+      efHighFlow: 107
+      #High flow rate supply (l/s)
+      sfHighFlow: 107
+    VCR300:
+      #Base flow rate extract (l/s)
+      efBaseFlow: 40
+      #Base flow rate supply (l/s)
+      sfBaseFlow: 40
+      #Medium flow rate extract (l/s)
+      efMedFlow: 60
+      #Medium flow rate supply (l/s)
+      sfMedFlow: 60
+      #High flow rate extract (l/s)
+      efHighFlow: 107
+      #High flow rate supply (l/s)
+      sfHighFlow: 107
+    VR700:
+      #Base flow rate extract (l/s)
+      efBaseFlow: 50
+      #Base flow rate supply (l/s)
       sfBaseFlow: 50
+      #Medium flow rate extract (l/s)
       efMedFlow: 100
+      #Medium flow rate supply (l/s)
       sfMedFlow: 100
-      efHighFlow: 200 
-      sfHighFlow: 200 
+      #High flow rate extract (l/s)
+      efHighFlow: 200
+      #High flow rate supply (l/s)
+      sfHighFlow: 200
 
   control:
     # Target temperature during summer operation, will increase by 1 when low temperatures are expected. (C)

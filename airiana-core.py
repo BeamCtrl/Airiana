@@ -763,6 +763,8 @@ class Systemair(object):
             )
 
         else:
+            if self.system_name not in self.config["systemair"]["legacy"]:
+                self.system_name = "VR400"
             self.get_heater()
             # make sure the electric heater is oFF
             if self.heater != 0:
@@ -2528,92 +2530,90 @@ class Systemair(object):
             and not self.shower
             and not self.ac_active
         ):
+            if (
+                self.extract_ave
+                < self.config["systemair"]["control"]["coolModeLowTarget"]
+                and self.fanspeed != 1
+            ):
+                self.set_fanspeed(1)
+                self.msg += "Cooling complete\n"
+                write_log("Cooling complete 20.7C reached.")
+
+            if self.fanspeed == 3 and (
+                self.supply_ave
+                < self.config["systemair"]["control"]["coolModeLowLimit"]
+                and self.extract_ave < 22
+            ):
+                self.set_fanspeed(2)
+                self.msg += "Cooling reduced\n"
+                os.write(
+                    ferr,
+                    bytes(
+                        "Cooling reduced to medium, supply below 12C \t"
+                        + str(time.ctime())
+                        + "\n",
+                        encoding="utf8",
+                    ),
+                )
+
+            if (
+                self.fanspeed == 2
+                and self.supply_ave
+                > self.config["systemair"]["control"]["coolModeLowLimit"] + 1
+            ):
+                self.set_fanspeed(3)
+                self.msg += "Cooling returned to High.\n"
+                os.write(
+                    ferr,
+                    bytes(
+                        "Cooling returned to high from medium, supply above required level. \t"
+                        + str(time.ctime())
+                        + "\n",
+                        encoding="utf8",
+                    ),
+                )
+
+            if (
+                self.fanspeed == 1
+                and self.extract_ave
+                > self.config["systemair"]["control"]["coolModeLowTarget"] + 0.2
+                and self.extract_ave + 0.1 > self.inlet_ave
+            ):
+                self.set_fanspeed(3)
+                self.msg += "Cooling returned to High, indoor is hotter than outside.\n"
+                write_log(
+                    f"Cooling returned to high, indoor is hotter than outside. {self.extract_ave}, {self.inlet_ave}, {self.fanspeed}"
+                )
+
+            if (
+                self.inlet_ave + 0.1 > self.extract_ave
+                and self.fanspeed != 1
+                and self.extract_ave > 21
+            ):
+                self.set_fanspeed(1)
+                self.msg += "No cooling possible due to temperature conditions\n"
+                write_log(
+                    "Cooling will wait, will try to recycle cold air by low fanspeed."
+                )
+
+            try:
                 if (
-                     self.extract_ave
-                     < self.config["systemair"]["control"]["coolModeLowTarget"]
-                     and self.fanspeed != 1
-                 ):
-                     self.set_fanspeed(1)
-                     self.msg += "Cooling complete\n"
-                     write_log("Cooling complete 20.7C reached.")
-
-                if self.fanspeed == 3 and (
-                    self.supply_ave
-                    < self.config["systemair"]["control"]["coolModeLowLimit"]
-                    and self.extract_ave < 22
+                    self.integral_forcast < 0
+                    and time.localtime().tm_hour > 12
+                    and self.inlet_ave
+                    < self.config["systemair"]["control"]["targetTemperature"] + 2
                 ):
-                    self.set_fanspeed(2)
-                    self.msg += "Cooling reduced\n"
-                    os.write(
-                        ferr,
-                        bytes(
-                            "Cooling reduced to medium, supply below 12C \t"
-                            + str(time.ctime())
-                            + "\n",
-                            encoding="utf8",
-                        ),
-                    )
-
-                if (
-                    self.fanspeed == 2
-                    and self.supply_ave
-                    > self.config["systemair"]["control"]["coolModeLowLimit"] + 1
-                ):
-                    self.set_fanspeed(3)
-                    self.msg += "Cooling returned to High.\n"
-                    os.write(
-                        ferr,
-                        bytes(
-                            "Cooling returned to high from medium, supply above required level. \t"
-                            + str(time.ctime())
-                            + "\n",
-                            encoding="utf8",
-                        ),
-                    )
-
-                if (
-                    self.fanspeed == 1
-                    and self.extract_ave
-                    > self.config["systemair"]["control"]["coolModeLowTarget"] + 0.2
-                    and self.extract_ave + 0.1 > self.inlet_ave
-                ):
-                    self.set_fanspeed(3)
-                    self.msg += (
-                        "Cooling returned to High, indoor is hotter than outside.\n"
-                    )
-                    write_log(
-                        f"Cooling returned to high, indoor is hotter than outside. {self.extract_ave}, {self.inlet_ave}, {self.fanspeed}"
-                    )
-
-                if (
-                    self.inlet_ave + 0.1 > self.extract_ave
-                    and self.fanspeed != 1
-                    and self.extract_ave > 21
-                ):
-                    self.set_fanspeed(1)
-                    self.msg += "No cooling possible due to temperature conditions\n"
-                    write_log(
-                        "Cooling will wait, will try to recycle cold air by low fanspeed."
-                    )
-
-                try:
-                    if (
-                        self.integral_forcast < 0
-                        and time.localtime().tm_hour > 12
-                        and self.inlet_ave
-                        < self.config["systemair"]["control"]["targetTemperature"] + 2
-                    ):
-                        self.cool_mode = False
-                        write_log("Cooling mode turned off.")
-                        if self.savecair and self.ef == 100:
-                            self.req.write_register(
-                                1407, self.config["systemair"]["savecair"]["sfHighFlow"]
-                            )
-                            self.req.write_register(
-                                1406, self.config["systemair"]["savecair"]["efHighFlow"]
-                            )
-                except ValueError:
-                    write_log("Forecast error.")
+                    self.cool_mode = False
+                    write_log("Cooling mode turned off.")
+                    if self.savecair and self.ef == 100:
+                        self.req.write_register(
+                            1407, self.config["systemair"]["savecair"]["sfHighFlow"]
+                        )
+                        self.req.write_register(
+                            1406, self.config["systemair"]["savecair"]["efHighFlow"]
+                        )
+            except ValueError:
+                write_log("Forecast error.")
 
     # Get the active forecast
     def get_forecast(self):

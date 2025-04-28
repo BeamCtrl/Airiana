@@ -3,6 +3,7 @@
 import os, sys
 import socket
 
+
 def is_connected(host="8.8.8.8", port=53, timeout=3):
     try:
         socket.setdefaulttimeout(timeout)
@@ -10,7 +11,8 @@ def is_connected(host="8.8.8.8", port=53, timeout=3):
         return True
     except socket.error:
         return False
-        
+
+
 if is_connected():
     print("Internet is available, continue with geoloc.")
 else:

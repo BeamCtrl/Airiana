@@ -10,9 +10,9 @@ import airiana_core
 
 def test_forcast():
     req = MockRequest.MockRequest()
-    req.write_register(500, 4)
+    req.write_register(500, 14)
     dev = airiana_core.Systemair(req)
-    assert dev.system_name == "VTC300"
+    assert dev.system_name == "VSR300"
     dev.get_forecast()
     dev.get_local()
     assert os.path.isfile("RAM/forecast.json")
