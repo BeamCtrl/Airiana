@@ -35,7 +35,7 @@ class MyHandler(socketserver.BaseRequestHandler):
         print("reply ok")
         response = bytes(
             "HTTP/1.1 200 OK\r\n"
-            "Access-Control-Allow-Origin: http://192.168.1.61\r\n"
+            f"Access-Control-Allow-Origin: http://{self.ip}\r\n"
             "Access-Control-Allow-Methods: PUT, OPTIONS\r\n"
             "Access-Control-Allow-Headers: Content-Type\r\n"
             "\r\n",
