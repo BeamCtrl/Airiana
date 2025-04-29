@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YAML Config Editor</title>
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f7f7f7;
+    }
+    .form-section {
+      background: white;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .form-section h2 {
+      margin-top: 0;
+    }
+    .form-group {
+      margin-bottom: 10px;
+    }
+    label {
+      display: inline-block;
+      width: 300px;
+      font-weight: bold;
+    }
+    input[type="number"] {
+      width: 100px;
+    }
+    #saveBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+    #statusMsg {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Systemair Config Editor</h1>
+
+<div id="formContainer"></div>
+
+<button id="saveBtn">Save Config</button>
+<div id="statusMsg"></div>
+
+<script>
+let yamlData = {};
+let metadataMap = {};
+
+function extractUnitsAndComments(text) {
+  const lines = text.split('\n');
+  let currentPath = [];
+  let lastComment = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    const indent = line.search(/\S/);
+    const level = Math.floor(indent / 2);
+
+    // Update current path for sections
+    const sectionMatch = trimmed.match(/^([a-zA-Z0-9_]+):\s*$/);
+    if (sectionMatch) {
+      currentPath = currentPath.slice(0, level);
+      currentPath.push(sectionMatch[1]);
+      continue;
+    }
+
+    // Capture comment and unit
+    const commentMatch = trimmed.match(/^#\s*(.*?)\s*(\(([^)]+)\))?\s*$/);
+    if (commentMatch) {
+      lastComment = {
+        full: commentMatch[1],
+        unit: commentMatch[3] || null
+      };
+      continue;
+    }
+
+    // Match key-value lines
+    const kvMatch = trimmed.match(/^([a-zA-Z0-9_]+):/);
+    if (kvMatch) {
+      const key = kvMatch[1];
+      const path = [...currentPath, key].join(".");
+
+      if (lastComment) {
+        metadataMap[path] = {
+          comment: lastComment.full,
+          unit: lastComment.unit || ""
+        };
+        lastComment = null;
+      }
+    }
+  }
+}
+
+function createForm(obj, container, path = "") {
+  for (const key in obj) {
+    const value = obj[key];
+    const currentPath = path ? `${path}.${key}` : key;
+
+    if (typeof value === "object" && value !== null) {
+      const section = document.createElement("div");
+      section.className = "form-section";
+      const title = document.createElement("h2");
+      title.textContent = metadataMap[currentPath]?.comment || key;  // Use comment if available
+      section.appendChild(title);
+      createForm(value, section, currentPath);
+      container.appendChild(section);
+    } else if (typeof value === "number") {
+      const group = document.createElement("div");
+      group.className = "form-group";
+
+      const label = document.createElement("label");
+      label.textContent = metadataMap[currentPath]?.comment || key;  // Use comment if available
+
+      const input = document.createElement("input");
+      input.type = "number";
+      input.value = value;
+      input.dataset.path = currentPath;
+      input.step = 0.1
+
+      group.appendChild(label);
+      group.appendChild(input);
+
+      const unit = metadataMap[currentPath]?.unit;
+      if (unit) {
+        const unitLabel = document.createElement("span");
+        unitLabel.className = "unit-label";
+        unitLabel.textContent = ` (${unit})`;  // Display the unit
+        group.appendChild(unitLabel);
+      }
+
+      container.appendChild(group);
+    }
+  }
+}
+
+function setNestedValue(obj, path, value) {
+  const keys = path.split(".");
+  let current = obj;
+  for (let i = 0; i < keys.length - 1; i++) {
+    if (!current[keys[i]]) current[keys[i]] = {};
+    current = current[keys[i]];
+  }
+  current[keys[keys.length - 1]] = value;
+}
+
+// Generate YAML without comments for saving
+function generateYamlWithoutComments(obj) {
+  let yamlText = '';
+
+  function recursivelyBuildYaml(data, level = 0, parentKey = '') {
+    const indent = '  '.repeat(level);
+
+    for (const key in data) {
+      const fullPath = parentKey ? `${parentKey}.${key}` : key;
+
+      if (typeof data[key] === 'object' && data[key] !== null) {
+        yamlText += `${indent}${key}:\n`;
+        recursivelyBuildYaml(data[key], level + 1, fullPath);
+      } else {
+        yamlText += `${indent}${key}: ${data[key]}\n`;
+      }
+    }
+  }
+
+  recursivelyBuildYaml(obj);
+  return yamlText;
+}
+
+async function loadConfig() {
+  try {
+    const apiHost = window.location.hostname;
+    const apiPort = 80; // Use port 80 to load the YAML
+    const configUrl = `${window.location.protocol}//${apiHost}:${apiPort}/config.template`;
+
+    const response = await fetch(configUrl);
+    if (!response.ok) throw new Error("Failed to fetch yaml template");
+    const text = await response.text();
+    yamlData = jsyaml.load(text);
+
+    extractUnitsAndComments(text);  // Extract comments and units
+
+    const formContainer = document.getElementById("formContainer");
+    formContainer.innerHTML = "";
+    createForm(yamlData, formContainer);
+  } catch (err) {
+    console.error(err);
+    document.getElementById("statusMsg").textContent = "❌ Failed to load config.template";
+    document.getElementById("statusMsg").style.color = "red";
+  }
+}
+
+document.getElementById("saveBtn").addEventListener("click", () => {
+  const inputs = document.querySelectorAll("input[type='number']");
+
+  const updatedData = JSON.parse(JSON.stringify(yamlData)); // Deep clone
+
+  inputs.forEach(input => {
+    const path = input.dataset.path;
+    const val = parseFloat(input.value);
+    setNestedValue(updatedData, path, val);
+  });
+
+  const yamlText = generateYamlWithoutComments(updatedData);  // Generate YAML without comments
+
+  const apiHost = window.location.hostname;
+  const apiPort = 8000; // This is the backend (control) server where PUT requests will go
+  const configUrl = `${window.location.protocol}//${apiHost}:${apiPort}/config.yaml`;
+
+ // Log the full YAML data before saving
+  fetch(configUrl, {
+    method: "PUT",
+    headers: { "Content-Type": "text/yaml" },
+    body: yamlText
+  })
+  .then(res => {
+    if (res.ok) {
+      document.getElementById("statusMsg").textContent = "✅ Config saved successfully!";
+      document.getElementById("statusMsg").style.color = "green";
+    } else {
+      throw new Error("Save failed");
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    document.getElementById("statusMsg").textContent = "❌ Failed to save config.yaml";
+    document.getElementById("statusMsg").style.color = "red";
+  });
+});
+
+loadConfig();
+</script>
+
+</body>
+</html>
