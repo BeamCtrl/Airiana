@@ -73,6 +73,7 @@ class MyHandler(socketserver.BaseRequestHandler):
             if "config.yaml" in data[0]:
                 self.send_continue()
                 with open("config.yaml", "w") as file:
+                    print("Writing to config.yaml")
                     file.write(data[-1])
                 print(data[-1])
                 self.send_options()
