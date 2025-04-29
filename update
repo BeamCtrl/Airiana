@@ -11,7 +11,9 @@ cp ha-token ../
 
 #Get new version and reset keeping uncommitted changes
 git fetch origin
-git reset --mixed @{u}
+git stash push -m "Updating airana, keep local changes"
+git pull
+git stash pop
 
 #Restore config files
 cp ../data.log ./
