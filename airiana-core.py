@@ -634,7 +634,7 @@ class Systemair(object):
         file_path = pathlib.Path(config_file)
         if not file_path.exists():
             write_log("Did not find a config file, copying")
-            os.system(f"cp ./systemfiles/config.template ./public/{config_file}")
+            os.system(f"cp ./systemfiles/config.template {config_file}")
         if os.path.getmtime(config_file) != self.loaded_config_mtime:
             write_log("Config file updated, reloading configuration.")
             self.load_config()
