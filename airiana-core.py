@@ -28,7 +28,7 @@ Running = True
 savecair = False
 mode = "RTU"
 holdoff_t = time.time() - 3000  # now - 50 minutes
-config_file = "config.yaml"
+config_file = "public/config.yaml"
 config = ""
 if "TCP" in sys.argv:
     mode = "TCP"
@@ -633,8 +633,10 @@ class Systemair(object):
     def check_config(self):
         file_path = pathlib.Path(config_file)
         if not file_path.exists():
-            os.system(f"cp ./systemfiles/config.template {config_file}")
+            write_log("Did not find a config file, copying")
+            os.system(f"cp ./systemfiles/config.template ./public/{config_file}")
         if os.path.getmtime(config_file) != self.loaded_config_mtime:
+            write_log("Config file updated, reloading configuration.")
             self.load_config()
             self.system_setup()
 
@@ -644,7 +646,7 @@ class Systemair(object):
             self.loaded_config_mtime = os.path.getmtime(config_file)
             with open(config_file, "r") as file:
                 self.config_template = yaml.safe_load(
-                    open("systemfiles/config.template", "r")
+                    open("public/config.template", "r")
                 )
                 self.config = yaml.safe_load(file)
                 if self.config == None or len(self.config.keys()) == 0:
@@ -654,11 +656,12 @@ class Systemair(object):
                 )
                 print("Missing keys in config: ", missing)
             write_log(
-                "Starting with config:\n"
+                "Loading config:\n"
                 + self.config.__str__()
                 + "\n"
                 + "Missing keys in config: "
                 + str(missing)
+                + "\n"
             )
         except IOError as e:
             print(e)
@@ -680,8 +683,8 @@ class Systemair(object):
                     encoding="utf-8",
                 ),
             )
-            os.system("cp systemfiles/config.template config.yaml")
-            self.load_config()
+            with open("./public/config.template", 'r') as template:
+                self.config = yaml.safe_load(template)
 
     def find_missing_keys(self, template, config, path=""):
         missing = []
