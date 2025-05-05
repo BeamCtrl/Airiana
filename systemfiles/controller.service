@@ -5,6 +5,6 @@ Type=idle
 [Service]
 ExecStart=/home/pi/airiana/venv/bin/python  /home/pi/airiana/public/controller.py
 Restart=always
-serviceUser=root
+serviceUser=pi
 [Install]
 WantedBy=multi-user.target
