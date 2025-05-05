@@ -12,10 +12,7 @@ def is_connected(host="8.8.8.8", port=53, timeout=3):
     except socket.error:
         return False
 
-
-if is_connected():
-    print("Internet is available, continue with geoloc.")
-else:
+if not is_connected():
     print("Exit, no internet connection.")
     exit(-1)
 ip = sys.argv[-1]
