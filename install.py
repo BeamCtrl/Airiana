@@ -64,6 +64,7 @@ def install_deps(venv_path):
         "pytest",
         "pyephem",
         "numpy",
+        "pyyaml",
     ]
     run_command(f"{pip_executable} install --upgrade pip")
     run_command(f"{pip_executable} install " + " ".join(deps))
