@@ -766,7 +766,7 @@ class Systemair(object):
             )
 
         else:
-            if self.system_name not in self.config["systemair"]["legacy"]:
+            if self.system_name not in self.config["systemair"]["legacy"].keys():
                 self.system_name = "VR400"
             self.get_heater()
             # make sure the electric heater is oFF
@@ -3208,6 +3208,7 @@ if __name__ == "__main__":
                     device.system_name == "VTR300"
                     or device.system_name == "VSR300"
                     or device.system_name == "savecair"
+                    or device.exhaust_ave < -40.0
                 ):
                     device.calc_exhaust()
                 device.check_ac_mode()
