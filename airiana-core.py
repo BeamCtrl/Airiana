@@ -590,7 +590,6 @@ class Systemair(object):
         self.moist_in = 0
         self.moist_out = 0
         self.monitoring = True
-        self.div = 0
         self.set_system_name()
         self.RH_valid = 0
         self.hum_list = []
@@ -3070,10 +3069,10 @@ def system_start():
         device.inlet_coef = 0.07
     print("Read initial temperatures;")
     device.update_temps()
+    device.update_xchanger()
+    # Check if the exhaust sensor is working
     if device.exhaust_ave < -40.0:
         device.use_calc_exhaust = true
-    device.update_xchanger()
-    device.div = device.inlet_ave
     if "humidity" in sys.argv:
         device.get_RH()
         # device.humidity = device.moisture_calcs(10.0)
