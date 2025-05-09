@@ -1298,11 +1298,10 @@ class Systemair(object):
         if len(self.inlet):
             self.inlet_ave = numpy.average(self.inlet)
             self.supply_ave = numpy.average(self.supply)
-            if not self.use_calc_exhaust:
-                self.extract_ave = numpy.average(self.extract)
+            self.extract_ave = numpy.average(self.extract)
             elif self.system_name == "VR400" and not self.use_calc_exhaust:
                 self.exhaust_ave = numpy.average(self.exhaust)
-                if self.exhaust_ave < 40.0:
+                if self.exhaust_ave < -40.0:
                     self.use_calc_exhaust = True
         else:
             self.inlet_ave = self.inlet[0]
