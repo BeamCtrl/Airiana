@@ -1029,8 +1029,7 @@ class Systemair(object):
             self.req.response[1] += self.tcomp
 
             self.extract.insert(0, float(self.req.response[1]) / 10)
-            if not self.use_calc_exhaust:
-                self.exhaust.insert(0, float(self.req.response[2]) / 10)
+            self.exhaust.insert(0, float(self.req.response[2]) / 10)
             self.supply.insert(0, float(self.req.response[3]) / 10)
             self.inlet.insert(0, float(self.req.response[4]) / 10)
 
@@ -1301,8 +1300,10 @@ class Systemair(object):
             self.supply_ave = numpy.average(self.supply)
             if not self.use_calc_exhaust:
                 self.extract_ave = numpy.average(self.extract)
-            elif self.system_name == "VR400":
+            elif self.system_name == "VR400" and not self.use_calc_exhaust:
                 self.exhaust_ave = numpy.average(self.exhaust)
+                if self.exhaust_ave < 40.0:
+                    self.use_calc_exhaust = True
         else:
             self.inlet_ave = self.inlet[0]
             self.supply_ave = self.supply[0]
@@ -3073,8 +3074,6 @@ def system_start():
     device.update_temps()
     device.update_xchanger()
     # Check if the exhaust sensor is working
-    if device.exhaust_ave < -40.0:
-        device.use_calc_exhaust = True
     if "humidity" in sys.argv:
         device.get_RH()
         # device.humidity = device.moisture_calcs(10.0)
