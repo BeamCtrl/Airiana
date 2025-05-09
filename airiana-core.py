@@ -443,6 +443,7 @@ class Systemair(object):
         self.config = {}
         self.loaded_config_mtime = 0
         self.used_energy = None
+        self.use_calc_exhaust = False
         self.eff = None
         self.coef_prev_inlet = None
         self.shower_initial = None
@@ -3069,6 +3070,8 @@ def system_start():
         device.inlet_coef = 0.07
     print("Read initial temperatures;")
     device.update_temps()
+    if device.exhaust_ave < -40.0:
+        device.use_calc_exhaust = true
     device.update_xchanger()
     device.div = device.inlet_ave
     if "humidity" in sys.argv:
@@ -3208,7 +3211,7 @@ if __name__ == "__main__":
                     device.system_name == "VTR300"
                     or device.system_name == "VSR300"
                     or device.system_name == "savecair"
-                    or device.exhaust_ave < -40.0
+                    or device.use_calc_exhaust
                 ):
                     device.calc_exhaust()
                 device.check_ac_mode()
