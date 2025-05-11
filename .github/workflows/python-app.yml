@@ -5,7 +5,7 @@ name: Run all Pytests
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master" , "test-installer-in-pipeline" ]
   pull_request:
     branches: [ "master" ]
 
@@ -26,8 +26,9 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip3 install flake8 pytest pyephem ephem
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        #pip3 install flake8 pytest pyephem ephem
+        #if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        python install.py headless pipeline
     #- name: Lint with flake8
     #  run: |
     #    # stop the build if there are Python syntax errors or undefined names
