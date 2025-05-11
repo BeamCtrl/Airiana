@@ -291,6 +291,7 @@ def main():
     # add auto updater
     if (
         not headless
+        and not pipeline
         and input("\nDo you want to setup, automatic updates? [y/n] ").strip().lower()
         == "y"
     ):
