@@ -60,19 +60,8 @@ def create_virtual_env(path):
 def install_deps(venv_path):
     print("Installing dependencies in virtual environment...")
     pip_executable = os.path.join(venv_path, "bin", "pip")
-    deps = [
-        "minimalmodbus",
-        "progressbar",
-        "requests",
-        "pyModbusTCP",
-        "setuptools",
-        "pytest",
-        "pyephem",
-        "numpy",
-        "pyyaml",
-    ]
     run_command(f"{pip_executable} install --upgrade pip")
-    run_command(f"{pip_executable} install " + " ".join(deps))
+    run_command(f"{pip_executable} install " + "-r requirements.txt")
     apt_executable = os.path.join("/usr", "bin", "apt")
     apt_deps = [
         "dhcpcd",
