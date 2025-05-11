@@ -11,9 +11,14 @@ import venv
 import time
 
 path = os.getcwd()
-user_name = os.getlogin()
-user_id = os.getuid()
-group_id = os.getgid()
+if "pipeline" in sys.argv:
+    user_name = "runner"
+    user_id = "1000"
+    group_id = "1000"
+else:
+    user_name = os.getlogin()
+    user_id = os.getuid()
+    group_id = os.getgid()
 
 
 def run_command(command, check=True):
