@@ -280,7 +280,8 @@ def main():
     clean_paths()
 
     # setup auto start services
-    setup_services()
+    if not pipeline:
+        setup_services()
 
     # add auto updater
     if (
@@ -291,7 +292,7 @@ def main():
         setup_crontab("updater")
 
     # setup wifi hotsput, only if bookworm
-    if user_id != 0 and osname in ("bookworm") and not headless:
+    if user_id != 0 and osname in ("bookworm") and not headless and not pipeline:
         if (
             input(
                 "\nDo you want to setup, automatic WiFi access point, if network is lost? [y/n]"
@@ -322,13 +323,16 @@ def execute_sudo_parts():
 if __name__ == "__main__":
     reboot = False
     headless = False
+    pipeline = False
+    if "pipeline" in sys.argv:
+        pipeline = True
     if "headless" in sys.argv:
         headless = True
     if "user" in sys.argv:
         user_id = sys.argv[sys.argv.index("user") + 1]
     if "group" in sys.argv:
         group_id = sys.argv[sys.argv.index("group") + 1]
-    if "sudo-parts" in sys.argv:
+    if "sudo-parts" in sys.argv and not pipeline:
         boot_cmd = "dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait"
         execute_sudo_parts()
         if reboot:
