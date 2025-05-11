@@ -270,14 +270,14 @@ def report_alive():
             stat.close()
             res = os.popen("curl " + tmp).read()
             if res.find("Insufficient storage") != -1:
-                log_write("Holdoff time in effect, will re-ping in one hour.\n")
+                write_log("Holdoff time in effect, will re-ping in one hour.\n")
             holdoff_t = time.time()
 
         # sock =  socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
         # sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
         # #sock.close()
     except NameError:
-        log_write("unable to ping, network error")
+        write_log("unable to ping, network error")
         traceback.print_exc(ferr)
 
 
