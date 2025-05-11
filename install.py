@@ -9,7 +9,7 @@ import sys
 import subprocess
 import venv
 import time
-
+print (sys.argv)
 path = os.getcwd()
 if "pipeline" in sys.argv:
     user_name = "runner"
