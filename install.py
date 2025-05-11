@@ -349,4 +349,8 @@ if __name__ == "__main__":
     else:
         main()
         print("will execute some parts as root for access...")
-        os.system(f"sudo python3 install.py sudo-parts user {user_id} group {group_id}")
+        if pipeline:
+            cmd = f"sudo python3 install.py sudo-parts user {user_id} group {group_id} pipeline"
+        else:
+            cmd = f"sudo python3 install.py sudo-parts user {user_id} group {group_id}"
+        os.system(cmd)
