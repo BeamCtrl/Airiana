@@ -8,7 +8,7 @@ __pycache__/
 # Current position
 latlong.json
 # Custom Configuration file
-config.yaml
+public/config.yaml
 # external sensors file
 sensors
 # pyc, compiled python objects

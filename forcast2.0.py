@@ -6,7 +6,7 @@ import json
 import datetime
 import traceback
 import math
-
+import subprocess
 import pathlib
 
 path = pathlib.Path(__file__).parent.resolve()
@@ -14,6 +14,10 @@ os.chdir(path)
 
 
 def get_sun(lat, long):
+    try:
+        import ephem
+    except ModuleNotFoundError:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "pyephem"])
     import ephem
 
     o = ephem.Observer()

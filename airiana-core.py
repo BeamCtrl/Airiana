@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 ############################
-vers = "13.0"
+vers = "13.02"
 import airdata  # noqa
 import numpy  # noqa
 import select  # noqa
@@ -22,6 +22,7 @@ from pprint import pprint  # noqa
 from request import Request  # noqa
 
 numpy.seterr("ignore")
+numpy.set_printoptions(legacy='1.25')
 #############################
 
 Running = True
@@ -781,6 +782,7 @@ class Systemair(object):
             self.sf_base = self.config["systemair"]["legacy"][self.system_name][
                 "sfBaseFlow"
             ]
+            # TODO: make a better comment for what this does.
             self.req.modbusregister(137, 0)
             if int(self.req.response) == 1:
                 self.req.write_register(137, 0)
@@ -1742,7 +1744,8 @@ class Systemair(object):
                     + str(self.heater)
                     + "\n"
                 )
-                tmp += "Unit admin password: " + self.admin_password + "\n"
+                if self.savecair:
+                    tmp += "Unit admin password: " + self.admin_password + "\n"
                 tmp += str(sys.argv) + "\n"
             except:
                 pass
@@ -2773,7 +2776,7 @@ class Systemair(object):
                 self.ef = base + self.flowOffset[0]
                 self.sf = self.sf_base + self.flowOffset[0]
         if self.has_RH_sensor and not self.savecair:
-            base = self.ef_base + self.pressure_diff
+            base = self.config["systemair"]["legacy"][self.system_name]["efBaseFlow"] + self.pressure_diff
             if (
                 self.fanspeed == 1
                 and self.ef != base + self.flowOffset[0]

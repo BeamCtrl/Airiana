@@ -1,16 +1,16 @@
 ## Airiana Python requirements ##
 
-matplotlib~=3.5.1
+matplotlib
 pyephem
-minimalmodbus~=2.0.1
+minimalmodbus
 setuptools
-requests~=2.31.0
+requests
 progressbar~=2.5
 
-numpy~=1.21.6
+numpy
 pyserial~=3.5
 pyModbusTCP~=0.1.10
-pytest~=7.4.2
+pytest
 pyyaml
 scipy
 
