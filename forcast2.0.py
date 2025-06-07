@@ -17,6 +17,10 @@ def get_sun(lat, long):
     try:
         import ephem
     except ModuleNotFoundError:
+        try:
+           import pip
+        except ModuleNotFoundError:
+            subprocess.check_call([sys.executable, "sudo apt install python3-pip"])
         subprocess.check_call([sys.executable, "-m", "pip", "install", "pyephem"])
     import ephem
 

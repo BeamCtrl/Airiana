@@ -34,7 +34,11 @@ def run_command(command, check=True):
 def setUart():
     print("Checking UART settings...")
     boot_cmd = "enable_uart=1\n"
-    with open("/boot/firmware/config.txt", "r+") as boot_file:
+    if (os.path.isfile("/boot/firmware/config.txt")):
+         file = "/boot/firmware/config.txt"
+    else:
+         file = "/boot/config.txt"
+    with open(file, "r+") as boot_file:
         lines = boot_file.readlines()
         if boot_cmd in lines:
             print("UART already enabled")
@@ -67,12 +71,9 @@ def install_deps(venv_path):
         "pyyaml",
     ]
     run_command(f"{pip_executable} install --upgrade pip")
-    run_command(f"{pip_executable} install " + " ".join(deps))
+    run_command(f"{pip_executable} install " + " -r requirements.txt")
     apt_executable = os.path.join("/usr", "bin", "apt")
     apt_deps = [
-        "dhcpcd",
-        "hostapd",
-        "dnsmasq",
         "iptables",
         "libopenblas-dev",
         "python3-numpy",
