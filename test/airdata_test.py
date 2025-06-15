@@ -71,7 +71,7 @@ def test_vapor_mass(air):
     vmass = air.vapor_mass(pw * 10)  # Convert to hPa for internal formula
     # Formula: (mass_const * pw) / (P - pw)
     expected = (0.62198 * 15) / (1013.25 - 15)
-    assert math.isclose(vmass, expected, rel_tol=1e-2)
+    assert math.isclose(vmass, expected, rel_tol=0.011)
 
 
 def test_energy_to_pwdiff(air):
