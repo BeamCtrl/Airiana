@@ -38,3 +38,6 @@ if __name__ == "__main__":
         content = arg[3]
         mail.setup(to, fr, content)
         mail.send()
+
+
+#rooot
