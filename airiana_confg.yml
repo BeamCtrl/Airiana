@@ -172,5 +172,5 @@ mqtt:
       state_class: "measurement"
       unit_of_measurement: "W"
       unique_id: "airiana.energyXfer"
-      device_class: energy
+      device_class: power
       value_template: "{{ value_json.energyXfer | round(0) }}"
