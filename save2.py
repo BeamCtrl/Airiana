@@ -114,6 +114,12 @@ if "diff" in sys.argv:
                     pass
 
 while True:
+    print("""
+      Usage: Input the addess you want to read.
+             Prepend address with a (w) to write to that address. if (w) is used
+             the following prompt will be the data to write to the address space.
+             ex. read: addrs:101 or addrs:125343 // write: addrs:w100 -> data: 1
+          """)
     try:
         if target == None:
             target = input("addrs:")
