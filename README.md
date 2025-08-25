@@ -24,8 +24,8 @@ she keeps her self in check.
 
   does alot more calculation and spits out more data than you'll ever need.
 ## Web gui ##
-![W](https://user-images.githubusercontent.com/11050899/211631229-48ad9245-83ef-4103-ae8e-5d8847826c3a.png)
- 
+<img width="1623" height="812" alt="image" src="https://github.com/user-attachments/assets/88bc29f1-8368-45cf-bca0-21bf3006adde" />
+
  
 ##### HW recomendation: Rpi + RS485 TxRx module, VR400/VR700/VTR300/VSR300 or savecair unit from systemair.
 
