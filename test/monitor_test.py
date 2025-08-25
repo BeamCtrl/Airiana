@@ -11,7 +11,8 @@ os.dup2(sys.stdout.fileno(), airiana_core.ferr)  # Redirect log to screen
 
 def test_target_set():
     req = MockRequest.MockRequest()
-    dev = airiana_core.Systemair(req)
+    config_file = "public/config.template"
+    dev = airiana_core.Systemair(req, config_file)
     dev.savecair = False
 
     # If inlet average is below 13, target temp should increase
@@ -26,12 +27,14 @@ def test_target_set():
     dev.cool_mode = True
     prev = dev.target
     dev.target_temperature()
+    print("Configed", dev.config["systemair"]["control"]["targetTemperature"])
     assert dev.target < prev
 
 
 def test_exchanger():
     req = MockRequest.MockRequest()
-    dev = airiana_core.Systemair(req)
+    config_file = "public/config.template"
+    dev = airiana_core.Systemair(req, config_file)
     dev.savecair = True
     # Test for exchanger change to 0 when inlet is above 10C
     # and the extraction temp is higher than target.
@@ -99,7 +102,8 @@ def test_exchanger():
 
 def test_cooling():
     req = MockRequest.MockRequest()
-    dev = airiana_core.Systemair(req)
+    config_file = "public/config.template"
+    dev = airiana_core.Systemair(req, config_file)
     dev.savecair = True
     dev.cycle_exchanger(5)
     dev.extract_ave = 25
@@ -157,7 +161,8 @@ def test_cooling():
 
 def test_fan_control():
     req = MockRequest.MockRequest()
-    dev = airiana_core.Systemair(req)
+    config_file = "public/config.template"
+    dev = airiana_core.Systemair(req, config_file)
     dev.savecair = False
     # Dynamic fanspeed control
     dev.dynamic_fan_control()
@@ -165,7 +170,8 @@ def test_fan_control():
 
 def test_pressure_control():
     req = MockRequest.MockRequest()
-    dev = airiana_core.Systemair(req)
+    config_file = "public/config.template"
+    dev = airiana_core.Systemair(req, config_file)
     dev.savecair = False
 
     # Dynamic pressure control

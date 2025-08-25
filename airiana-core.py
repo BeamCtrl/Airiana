@@ -440,7 +440,7 @@ def check_req(request, test, name):
 
 
 class Systemair(object):
-    def __init__(self, request_object):
+    def __init__(self, request_object, config_file):
         self.config = {}
         self.loaded_config_mtime = 0
         self.used_energy = None
@@ -622,6 +622,7 @@ class Systemair(object):
         self.sensor_exhaust = -60
         self.admin_password = ""
         self.electric_power_sum = 0.0
+        self.config_file = config_file
         self.check_config()
         self.cooling_limit = self.config["systemair"]["control"][
             "forcastIntegralCoolingLimit"
@@ -632,11 +633,11 @@ class Systemair(object):
 
     # Check if config has been updated.
     def check_config(self):
-        file_path = pathlib.Path(config_file)
+        file_path = pathlib.Path(self.config_file)
         if not file_path.exists():
             write_log("Did not find a config file, copying")
-            os.system(f"cp ./systemfiles/config.template {config_file}")
-        if os.path.getmtime(config_file) != self.loaded_config_mtime:
+            os.system(f"cp ./systemfiles/config.template {self.config_file}")
+        if os.path.getmtime(self.config_file) != self.loaded_config_mtime:
             write_log("Config file updated, reloading configuration.")
             self.load_config()
             self.system_setup()
@@ -644,8 +645,8 @@ class Systemair(object):
     # Load config from file.
     def load_config(self):
         try:
-            self.loaded_config_mtime = os.path.getmtime(config_file)
-            with open(config_file, "r") as file:
+            self.loaded_config_mtime = os.path.getmtime(self.config_file)
+            with open(self.config_file, "r") as file:
                 self.config_template = yaml.safe_load(
                     open("public/config.template", "r")
                 )
@@ -3179,7 +3180,7 @@ if __name__ == "__main__":
     # Init request class for communication
     req = Request()
     req.setup(unit, mode)
-    device = Systemair(req)
+    device = Systemair(req, config_file)
     os.write(ferr, bytes("System started\t" + str(time.ctime()) + "\n", "utf8"))
     req.modbusregister(12543, 0)  # test for self.savecair extended address range
     if device.system_name == "VR400" and req.response != "no data":

@@ -40,7 +40,8 @@ def test_exchanger(mode, tty):
         req.modbusregister(12543, 0)
         if req.response != "no data":
             HIL_is_savecair = True
-    dev = airiana_core.Systemair(req)
+    config_file = "public/config.template"
+    dev = airiana_core.Systemair(req, config_file)
     # Test that dev init is correct
     assert dev.inlet_ave == 0
     assert dev.exhaust_ave == 0

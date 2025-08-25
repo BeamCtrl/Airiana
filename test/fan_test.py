@@ -13,7 +13,8 @@ def test_fanspeed_sets():
     """Set fanspeed to 0, 1, 2, 3 valid sets, invalid 4<  or <0
     Do this for both sets as savecair and not savecair"""
     req = MockRequest.MockRequest()
-    dev = airiana_core.Systemair(req)
+    config_file = "public/config.template"
+    dev = airiana_core.Systemair(req, config_file)
     dev.savecair = False
     for i in range(2):
         dev.set_fanspeed(1)
@@ -42,7 +43,8 @@ def test_fanspeed_sets():
 def test_forced_fans():
     """Test the forced ventilation 2hrs timer"""
     req = MockRequest.MockRequest()
-    dev = airiana_core.Systemair(req)
+    config_file = "public/config.template"
+    dev = airiana_core.Systemair(req, config_file)
 
     assert dev.monitoring is True
     airiana_core.forced_ventilation(dev)
@@ -81,7 +83,8 @@ def test_forced_fans():
 def test_fireplace_mode():
     """Test the forced ventilation 2hrs timer"""
     req = MockRequest.MockRequest()
-    dev = airiana_core.Systemair(req)
+    config_file = "public/config.template"
+    dev = airiana_core.Systemair(req, config_file)
     dev.inlet_ave = 20.0
     dev.indoor_dewpoint = 5.0
     dev.extract_ave = 21.0

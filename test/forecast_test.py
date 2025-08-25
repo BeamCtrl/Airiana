@@ -11,7 +11,8 @@ import airiana_core
 def test_forcast():
     req = MockRequest.MockRequest()
     req.write_register(500, 14)
-    dev = airiana_core.Systemair(req)
+    config_file = "public/config.template"
+    dev = airiana_core.Systemair(req, config_file)
     assert dev.system_name == "VSR300"
     dev.get_forecast()
     dev.get_local()

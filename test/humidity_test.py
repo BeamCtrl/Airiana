@@ -21,7 +21,8 @@ def print_locals(dev):
 
 def test_target_set():
     req = MockRequest.MockRequest()
-    dev = airiana_core.Systemair(req)
+    config_file = "public/config.template"
+    dev = airiana_core.Systemair(req, config_file)
     dev.prev_static_temp = 7.5
     dev.extract_ave = 23
     dev.humidity = 35

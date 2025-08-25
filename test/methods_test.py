@@ -8,7 +8,8 @@ import airiana_core
 
 def test_methods():
     req = MockRequest.MockRequest()
-    dev = airiana_core.Systemair(req)
+    config_file = "public/config.template"
+    dev = airiana_core.Systemair(req, config_file)
     dev.savecair = False
     monitoring = True
     for i in range(2):
