@@ -111,5 +111,5 @@ systemair:
     forcastDailyLowCoolingInhibit: 7
     # RH short term increase that will trigger shower mode. (RH%)
     showerTriggerLimit: 8
-    # Timeout for the shower mode, will return to normal fan cntrl after this time out. (minutes)
+    # Timeout for the shower mode, will return to normal fan control after this time out. (minutes)
     showerTimeout: 45
