@@ -28,15 +28,15 @@ def test_condensation_energy():
 
 @pytest.fixture
 def air():
-    air = Energy()
-    air.press = 1013.25
-    return Energy()
+    air_ = Energy()
+    air_.press = 1013.25
+    return air_
 
 
 def test_density_at_0C(air):
     # Air density at 0°C and 1013.25 hPa ≈ 1.292 kg/m³
     density = air.get_mass(0)
-    assert 1.28 < density < 1.30, f"Expected approx. 1.292, got {density}"
+    assert 1.28 < density < 1.30, f"Expected approx. 1.292, got {density} using {air.press}mBar"
 
 
 def test_temp_diff_cooling(air):
@@ -82,7 +82,7 @@ def test_energy_to_pwdiff(air):
     assert energy == 24900
     d_pw = air.energy_to_pwdiff(energy, 20)
     # Expect partial pressure difference (Pa) to increase
-    assert  93 < d_pw < 95
+    assert  round(d_pw,2) == 95.39
 
 
 def test_dew_point_100_rh(air):
