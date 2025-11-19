@@ -33,6 +33,7 @@ def air():
 
 def test_density_at_0C(air):
     # Air density at 0°C and 1013.25 hPa ≈ 1.292 kg/m³
+    air.press = 1013.25
     density = air.get_mass(0)
     assert 1.28 < density < 1.30, f"Expected approx. 1.292, got {density}"
 
