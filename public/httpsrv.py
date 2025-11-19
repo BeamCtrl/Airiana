@@ -1,17 +1,14 @@
 #!/usr/bin/python3
 import sys, os, time
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer, SimpleHTTPRequestHandler
 
 version = sys.version_info[0:2]
 print("running on version", version)
 if version[0] == 3 and version[1] < 7:
     os.system("python2.7 public/httpsrv2.py&")
     exit()
-from http.server import (
-    BaseHTTPRequestHandler,
-    ThreadingHTTPServer,
-    SimpleHTTPRequestHandler,
-)
-import socketserver, os, socket, struct, ssl
+
+import socketserver, socket, struct, ssl
 
 print("running python3")
 cert = "../keys/public.pem"
@@ -34,26 +31,28 @@ class ExtendedHandler(SimpleHTTPRequestHandler):
     def __init__(self, request, server, handler):
         super().__init__(request, server, handler)
 
-    def finish(self):
-        req = self.request
-        if (
-            self.requestline.find("wifi.html") != -1
-            or self.requestline.find("SSID") != -1
-        ):
-            get_ssids()
-        ip = self.request.getpeername()[0]
-        if self.requestline.find("current_version") != -1:
-            os.system(
-                "echo "
-                + str(ip)
-                + " "
-                + self.requestline
-                + " "
-                + str(time.ctime())
-                + " >> ../checks.txt"
-            )
-        SimpleHTTPRequestHandler.finish(self)
+    # Intercept captive portal detection URLs
+    def do_GET(self):
+        captive_urls = [
+            "/hotspot-detect.html",                # iOS
+            "/library/test/success.html",          # iOS older
+            "/success.txt",                        # Android / Chrome
+        ]
+        if any(url in self.path for url in captive_urls):
+            self.send_response(302)  # redirect
+            self.send_header("Location", "/index.html")
+            self.end_headers()
+            return
 
+        if "wifi.html" in self.path or "SSID" in self.path:
+            get_ssids()
+        ip = self.client_address[0]
+        if "current_version" in self.path:
+            with open("../checks.txt", "a") as f:
+                f.write(f"{ip} {self.path} {time.ctime()}\n")
+        super().do_GET()
+
+    # CORS OPTIONS
     def do_OPTIONS(self):
         print("sending options")
         self.send_response(200)
@@ -73,10 +72,11 @@ Handler.server_version = "Airiana Web Server interface/2.5a"
 Handler.ssids = get_ssids()
 httpd = uServer(("", PORT), Handler)
 
-# httpd.socket = ssl.wrap_socket(httpd.socket,certfile= cert,server_side=True)
+# Uncomment for HTTPS
+# httpd.socket = ssl.wrap_socket(httpd.socket, certfile=cert, server_side=True)
+
 print("serving at port", PORT)
 try:
     httpd.serve_forever()
-    pass
-except:
+except KeyboardInterrupt:
     httpd.socket.close()
