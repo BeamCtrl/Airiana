@@ -122,6 +122,14 @@ if "daemon" in sys.argv:
     print("Output redirected to file;")
     os.dup2(ferr, sys.stderr.fileno())
     os.lseek(ferr, 0, os.SEEK_END)
+    stats = os.stat("RAM/err")
+    size_t = stats.st_size
+    if size_t > 1024 * 1024 and "keep-log" not in sys.argv:
+        print("Clearing logfile...;")
+        os.lseek(ferr, 0, os.SEEK_SET)
+        os.ftruncate(ferr, 0)
+        os.fsync(ferr)
+
 
 # Setup serial, RS 485 to machine
 if os.path.lexists("/dev/ttyUSB0"):
