@@ -215,7 +215,7 @@ def setup_crontab(option):
             line = f"0 */4 * * * /usr/bin/python {path}/updater.py\n"
             updater_updated = True
         if "autohotspot.sh" in line:
-            line = f"*/5 * * * * sudo /home/pi/Airiana/systemfiles/autohotspot.sh\n"
+            line = f"*/5 * * * * sudo /home/pi/Airiana/systemfiles/autohotspot.sh >/dev/null 2>&1\n"
             hotspot_updated = True
         crontab += line + "\n"
     if not updater_updated and option == "crontab":
@@ -225,7 +225,7 @@ def setup_crontab(option):
         and osname in ("buster", "bullseye", "bookworm")
         and option == "hotspot"
     ):
-        crontab += f"*/5 * * * * sudo /home/pi/Airiana/systemfiles/autohotspot.sh\n"
+        crontab += f"*/5 * * * * sudo /home/pi/Airiana/systemfiles/autohotspot.sh >/dev/null 2>&1\n"
     run_command(f'echo "{crontab.strip()}" | crontab -u pi -')
 
 
