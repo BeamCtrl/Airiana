@@ -209,7 +209,7 @@ if "debug" in sys.argv or "hasRH" in sys.argv:
     )
 
 # add subplot 213 moisture to figure
-if "moisture" in sys.argv:
+if "moisture" in sys.argv or "debug" in sys.argv:
     s3 = subplot(312)
     grid(True)
     s3.set_title("Moistures (Pa)")
