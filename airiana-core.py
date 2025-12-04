@@ -847,7 +847,7 @@ class Systemair(object):
             operating_mode += 2
         return operating_mode
 
-    # calculate a new coef if fanspeed change renders high dt values  //UNused
+    # calculate a new coef as fanspeed change renders high dt values  //UNused
     def coef_debug(self):
         if (
             self.fanspeed == 3
@@ -866,12 +866,15 @@ class Systemair(object):
                 self.coef_prev_temp += float(each[1]) / 10
             self.coef_prev_temp = self.coef_prev_temp / len(self.rawdata)
             self.coef_prev_inlet = self.inlet_ave
+            self.coef_prev_extract = self.extract_ave
+
+        # END the test and save the coef at the current temp delta
         if (self.inhibit == 0 or self.fanspeed == 2) and self.coef_test_bool:
             temp = 0
             for each in self.rawdata:
                 temp += float(each[1]) / 10
             temp = temp / len(self.rawdata)
-            temp_diff = float((self.rawdata[-1][1]) / 10) - self.coef_prev_inlet
+            temp_diff = self.coef_prev_extract - self.coef_prev_inlet
             delta = self.coef_prev_temp - temp
             new_coef = delta / temp_diff
             os.system(
@@ -2751,12 +2754,14 @@ class Systemair(object):
         self.pressure_diff = percent
         self.update_airflow()
 
-    # Set base flow rate with an offset to regulate humidity in a more clever manner.
     def check_flow_offset(self):
+        """ Set base flow rate with an offset to regulate humidity in a more clever manner.
+            the offset only applies when in low speed pushes the fanspeed slightly higher
+            when there are conscutive transitions up due to moisture."""
         if self.flowOffset[0] > 20:  # Maximum offset allowed
             self.flowOffset[0] = 20
         if self.savecair:
-            base = self.ef_base + self.pressure_diff
+            base = self.config["systemair"]["savecair"]["efLowFlow"] + self.pressure_diff
             self.req.modbusregister(1403, 0)
             ef = int(self.req.response)
             if (
@@ -2766,7 +2771,7 @@ class Systemair(object):
                 and not self.cool_mode
             ):
                 self.req.write_register(1403, base + self.flowOffset[0])
-                self.req.write_register(1402, self.sf_base + self.flowOffset[0])
+                self.req.write_register(1402, self.config["systemair"]["savecair"]["sfLowFlow"] + self.flowOffset[0])
                 os.write(
                     ferr,
                     bytes(
