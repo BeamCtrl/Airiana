@@ -12,6 +12,7 @@ def is_connected(host="8.8.8.8", port=53, timeout=3):
     except socket.error:
         return False
 
+
 if not is_connected():
     print("Exit, no internet connection.")
     exit(-1)

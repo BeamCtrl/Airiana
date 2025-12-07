@@ -1,6 +1,7 @@
 import pytest
 import math
 import sys
+
 sys.path.append("..")
 sys.path.append(".")
 
@@ -13,9 +14,11 @@ from airdata import Energy, condensation_mass, condensation_energy
 # Unit tests for helper functions
 # ----------------------------
 
+
 def test_condensation_mass():
     # 2490 J of latent energy = 1 gram of water condensed
     assert condensation_mass(2490) == 1.0
+
 
 def test_condensation_energy():
     # 1 gram of water = 2490 J of latent energy
@@ -25,6 +28,7 @@ def test_condensation_energy():
 # ----------------------------
 # Tests for the Energy class
 # ----------------------------
+
 
 @pytest.fixture
 def air():
@@ -36,7 +40,9 @@ def air():
 def test_density_at_0C(air):
     # Air density at 0°C and 1013.25 hPa ≈ 1.292 kg/m³
     density = air.get_mass(0)
-    assert 1.28 < density < 1.30, f"Expected approx. 1.292, got {density} using {air.press}mBar"
+    assert (
+        1.28 < density < 1.30
+    ), f"Expected approx. 1.292, got {density} using {air.press}mBar"
 
 
 def test_temp_diff_cooling(air):
@@ -82,7 +88,7 @@ def test_energy_to_pwdiff(air):
     assert energy == 24900
     d_pw = air.energy_to_pwdiff(energy, 20)
     # Expect partial pressure difference (Pa) to increase
-    assert  round(d_pw,2) == 95.39
+    assert round(d_pw, 2) == 95.39
 
 
 def test_dew_point_100_rh(air):

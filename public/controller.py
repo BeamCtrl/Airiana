@@ -73,7 +73,7 @@ class MyHandler(socketserver.BaseRequestHandler):
             if "config.yaml" in data[0]:
                 self.send_continue()
                 os.chdir("/home/pi/airiana/public")
-                with open(os.getcwd()+"/config.yaml", "w") as file:
+                with open(os.getcwd() + "/config.yaml", "w") as file:
                     print(f"Writing to {file.name}")
                     file.write(data[-1])
                 self.send_options()

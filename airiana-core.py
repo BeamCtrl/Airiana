@@ -22,7 +22,7 @@ from pprint import pprint  # noqa
 from request import Request  # noqa
 
 numpy.seterr("ignore")
-numpy.set_printoptions(legacy='1.25')
+numpy.set_printoptions(legacy="1.25")
 #############################
 
 Running = True
@@ -693,7 +693,7 @@ class Systemair(object):
                     encoding="utf-8",
                 ),
             )
-            with open("./public/config.template", 'r') as template:
+            with open("./public/config.template", "r") as template:
                 self.config = yaml.safe_load(template)
 
     def find_missing_keys(self, template, config, path=""):
@@ -2708,7 +2708,9 @@ class Systemair(object):
             if "debug" in sys.argv:
                 if self.req.response == target_flow:
                     self.msg += "supply flow change completed \n"
-            high_flow = self.config["systemair"]["legacy"][self.system_name]["efHighFlow"]
+            high_flow = self.config["systemair"]["legacy"][self.system_name][
+                "efHighFlow"
+            ]
             if percent < 0:
                 high_flow += high_flow * float(percent) / 100
             # print "high should be extract:", int(high_flow)
@@ -2755,13 +2757,15 @@ class Systemair(object):
         self.update_airflow()
 
     def check_flow_offset(self):
-        """ Set base flow rate with an offset to regulate humidity in a more clever manner.
-            the offset only applies when in low speed pushes the fanspeed slightly higher
-            when there are conscutive transitions up due to moisture."""
+        """Set base flow rate with an offset to regulate humidity in a more clever manner.
+        the offset only applies when in low speed pushes the fanspeed slightly higher
+        when there are conscutive transitions up due to moisture."""
         if self.flowOffset[0] > 20:  # Maximum offset allowed
             self.flowOffset[0] = 20
         if self.savecair:
-            base = self.config["systemair"]["savecair"]["efLowFlow"] + self.pressure_diff
+            base = (
+                self.config["systemair"]["savecair"]["efLowFlow"] + self.pressure_diff
+            )
             self.req.modbusregister(1403, 0)
             ef = int(self.req.response)
             if (
@@ -2771,7 +2775,11 @@ class Systemair(object):
                 and not self.cool_mode
             ):
                 self.req.write_register(1403, base + self.flowOffset[0])
-                self.req.write_register(1402, self.config["systemair"]["savecair"]["sfLowFlow"] + self.flowOffset[0])
+                self.req.write_register(
+                    1402,
+                    self.config["systemair"]["savecair"]["sfLowFlow"]
+                    + self.flowOffset[0],
+                )
                 os.write(
                     ferr,
                     bytes(
@@ -2790,7 +2798,10 @@ class Systemair(object):
                 self.ef = base + self.flowOffset[0]
                 self.sf = self.sf_base + self.flowOffset[0]
         if self.has_RH_sensor and not self.savecair:
-            base = self.config["systemair"]["legacy"][self.system_name]["efBaseFlow"] + self.pressure_diff
+            base = (
+                self.config["systemair"]["legacy"][self.system_name]["efBaseFlow"]
+                + self.pressure_diff
+            )
             if (
                 self.fanspeed == 1
                 and self.ef != base + self.flowOffset[0]

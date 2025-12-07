@@ -34,10 +34,10 @@ def run_command(command, check=True):
 def setUart():
     print("Checking UART settings...")
     boot_cmd = "enable_uart=1\n"
-    if (os.path.isfile("/boot/firmware/config.txt")):
-         file = "/boot/firmware/config.txt"
+    if os.path.isfile("/boot/firmware/config.txt"):
+        file = "/boot/firmware/config.txt"
     else:
-         file = "/boot/config.txt"
+        file = "/boot/config.txt"
     with open(file, "r+") as boot_file:
         lines = boot_file.readlines()
         if boot_cmd in lines:

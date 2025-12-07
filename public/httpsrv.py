@@ -1,6 +1,10 @@
 #!/usr/bin/python3
 import sys, os, time
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer, SimpleHTTPRequestHandler
+from http.server import (
+    BaseHTTPRequestHandler,
+    ThreadingHTTPServer,
+    SimpleHTTPRequestHandler,
+)
 
 version = sys.version_info[0:2]
 print("running on version", version)
@@ -17,13 +21,18 @@ dirs = "./public/"
 os.chdir(dirs)
 SSID_data = []
 
+
 def get_ssids():
     global SSID_data
     # check if SSID file has been updated (20s) recently or if no SSIDs are present
-    print(f"SSID age: {time.time() - os.path.getmtime('SSID')} size:{os.path.getsize('SSID')}")
-    if (not os.path.isfile("SSID")
+    print(
+        f"SSID age: {time.time() - os.path.getmtime('SSID')} size:{os.path.getsize('SSID')}"
+    )
+    if (
+        not os.path.isfile("SSID")
         or time.time() - os.path.getmtime("SSID") > 20
-        or os.path.getsize("SSID") == 0):
+        or os.path.getsize("SSID") == 0
+    ):
         print("Updating SSIDs")
         SSID_data = os.popen("sudo iwlist scan 2>/dev/null |grep ESSID").readlines()
         SSID_data = list(set(SSID_data))
@@ -41,9 +50,9 @@ class ExtendedHandler(SimpleHTTPRequestHandler):
     # Intercept captive portal detection URLs
     def do_GET(self):
         captive_urls = [
-            "/hotspot-detect.html",                # iOS
-            "/library/test/success.html",          # iOS older
-            "/success.txt",                        # Android / Chrome
+            "/hotspot-detect.html",  # iOS
+            "/library/test/success.html",  # iOS older
+            "/success.txt",  # Android / Chrome
         ]
         print(f"GET {self.path}")
         if any(url in self.path for url in captive_urls):
