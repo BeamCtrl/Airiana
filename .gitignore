@@ -16,7 +16,7 @@ sensors
 #RAM dir not tracked
 RAM/
 #images
-*.png
+#*.png
 # dont track logs
 *.save
 err

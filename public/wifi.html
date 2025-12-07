@@ -17,9 +17,10 @@
 
     <a>Choose your home Wi-Fi network:</a><br>
     <div id="networks">Loading Wi-Fi access points… Please wait</div>
+    <img src="airiana_wifi.png" alt="Description of image" width="500" height="300">
 
     <script>
-        const pollingInterval = 5000; // 5 seconds
+        const pollingInterval = 10000; // 10 seconds
         let ssidRequest = null;
 
         function fetchSSIDs() {
@@ -121,9 +122,8 @@
 
         // Initial fetch
         fetchSSIDs();
-        // Poll every 5 seconds
+        // Poll every 10 seconds
         setInterval(fetchSSIDs, pollingInterval);
     </script>
 </body>
 </html>
-
