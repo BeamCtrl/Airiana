@@ -1,58 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WiFi Configuration</title>
+    <style>
+        #networks { line-height: 1.2em; }
+        select, input { margin-top: 5px; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <p>
+        Airiana Wi-Fi access point.<br>
+        Select your network and fill in your password, then press Configure.<br>
+        The Airiana box will reboot when configuring WiFi.
+    </p>
 
-   <head>
-      <title>WiFi configuration</title>
-   </head>
-   <script>
-      getSSID()
+    <a>Choose your home Wi-Fi network:</a><br>
+    <div id="networks">Loading Wi-Fi access points… Please wait</div>
 
-      function getSSID() {
-        myVar =   setTimeout(getSSID,10000)
-        var xhttp = new XMLHttpRequest()
-        xhttp.timeout = 1500;
-        xhttp.onreadystatechange = function() {
-          if (xhttp.readyState == 4 && xhttp.status == 200) {
-            const ssids = xhttp.responseText.split(" ")
-            data = "<form name=\"form\" action=\"http://" + window.location.host + ":8000/setup\" method=\"POST\")>"
-            data += "<select name = \"network\" onclick=clearTimeout(myVar)>"
-            console.log(ssids)
-            if (ssids[0] == ""){
-                ssids[0] = "Loading Wi-Fi access points... Please wait"
+    <script>
+        const pollingInterval = 5000; // 5 seconds
+        let ssidRequest = null;
+
+        function fetchSSIDs() {
+            // Abort previous request if still running
+            if (ssidRequest) {
+                ssidRequest.abort();
+                console.log("Aborted previous SSID request");
             }
-            for (let i = 0; i < ssids.length; i++) {
-                if(ssids[i] != "ESSID:"){
-                    data += "<option value= \"" + ssids[i] + "\">" + ssids[i] + "</option>";
+
+            ssidRequest = new XMLHttpRequest();
+            ssidRequest.timeout = 5000;
+
+            const url = "/SSID"; // guaranteed valid
+            console.log("Opening XHR to:", url);
+
+            ssidRequest.onreadystatechange = function() {
+                if (ssidRequest.readyState === 4) {
+                    if (ssidRequest.status === 200) {
+                        renderSSIDs(ssidRequest.responseText);
+                    } else {
+                        console.warn("SSID request failed or aborted", ssidRequest.status);
+                    }
+                    ssidRequest = null;
                 }
-            }
-            data += "</select><br>"
-            if (ssids[0] != "Loading Wi-Fi access points... Please wait"){
-                data += "<label for=\"password\">Password:</label>"
-                data += "<input type=\"password\" id=\"password\" accept-charset=utf-8 required name=\"Password\" oninput=clearTimeout(myVar)><br>"
-                data += "<input type=\"submit\" value=\"Configure\">"
-            }
-            data = data.replace(/ESSID:/g,"");
-            document.getElementById("networks").innerHTML = data;
-          }
-        };
-        xhttp.open("GET", "SSID", true);
-        xhttp.send();
-      }
+            };
 
-         xhttp.ontimeout = function(){
-          alert("Configuration of the Wifi is not allowed from outside the local network..");
-           }
+            ssidRequest.ontimeout = function() {
+                console.warn("SSID request timed out");
+                ssidRequest = null;
+            };
 
-   </script>
-   <body>
-      <p>Airiana Wi-Fi access point.<br>Select your network and fill in your password, then press configure.<br>
-         The airiana box will reboot when configuring WiFi.
-      </p>
-      <br>
-      <br>
-      <!--form action= window.location.hostname :8000/setup" method="post"-->
-         <a>Choose your home Wi-Fi network:</a><br>
-         <div id="networks" style="line-height:90%"></div>
-   </body>
+            ssidRequest.open("GET", url, true);
+            ssidRequest.send();
+        }
+
+        function renderSSIDs(responseText) {
+            const raw = [...responseText.matchAll(/ESSID:(?:"([^"]+)"|(\S+))/g)].map(m => m[1] || m[2]);
+            const ssids = raw.filter(ssid => ssid !== '""');
+            console.log(ssids);
+            const container = document.getElementById("networks");
+
+            // Clear previous content
+            container.innerHTML = "";
+
+            // Create form
+            const form = document.createElement("form");
+            form.name = "wifiForm";
+
+            // Build a fully qualified action URL
+            const host = window.location.hostname || "192.168.1.61"; // fallback
+            const port = "8000";
+            form.action = `http://${host}:${port}/setup`;
+            form.method = "POST";
+
+            // Create select box
+            const select = document.createElement("select");
+            select.name = "network";
+
+            if (ssids.length === 0) {
+                const option = document.createElement("option");
+                option.textContent = "Loading Wi-Fi access points… Please wait";
+                select.appendChild(option);
+            } else {
+                ssids.forEach(ssid => {
+                    const option = document.createElement("option");
+                    option.value = ssid;
+                    option.textContent = ssid;
+                    select.appendChild(option);
+                });
+            }
+
+            form.appendChild(select);
+            form.appendChild(document.createElement("br"));
+
+            // Password input and submit
+            if (ssids.length > 0) {
+                const label = document.createElement("label");
+                label.htmlFor = "password";
+                label.textContent = "Password:";
+                form.appendChild(label);
+
+                const input = document.createElement("input");
+                input.type = "password";
+                input.id = "password";
+                input.name = "Password";
+                input.required = true;
+                form.appendChild(document.createElement("br"));
+                form.appendChild(input);
+
+                const submit = document.createElement("input");
+                submit.type = "submit";
+                submit.value = "Configure";
+                form.appendChild(document.createElement("br"));
+                form.appendChild(submit);
+            }
+
+            container.appendChild(form);
+        }
+
+        // Initial fetch
+        fetchSSIDs();
+        // Poll every 5 seconds
+        setInterval(fetchSSIDs, pollingInterval);
+    </script>
+</body>
 </html>
 

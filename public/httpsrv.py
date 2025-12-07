@@ -15,16 +15,23 @@ cert = "../keys/public.pem"
 PORT = 80
 dirs = "./public/"
 os.chdir(dirs)
-
+SSID_data = []
 
 def get_ssids():
-    SSID_data = (
-        os.popen("sudo iwlist scan 2>/dev/null |grep ESSID|xargs").read().split(" ")
-    )
-    SSID_data = list(set(SSID_data))
-    SSID_data = [ssid for ssid in SSID_data if ssid.find("x00") == -1]
-    with open("SSID", "w") as file:
-        file.write(" ".join(SSID_data))
+    global SSID_data
+    # check if SSID file has been updated (20s) recently or if no SSIDs are present
+    print(f"SSID age: {time.time() - os.path.getmtime('SSID')} size:{os.path.getsize('SSID')}")
+    if (not os.path.isfile("SSID")
+        or time.time() - os.path.getmtime("SSID") > 20
+        or os.path.getsize("SSID") == 0):
+        print("Updating SSIDs")
+        SSID_data = os.popen("sudo iwlist scan 2>/dev/null |grep ESSID").readlines()
+        SSID_data = list(set(SSID_data))
+        SSID_data = [ssid for ssid in SSID_data if ssid.find("x00") == -1]
+        SSID_data = [ssid for ssid in SSID_data if len(ssid) != 0]
+        with open("SSID", "w") as file:
+            file.write(" ".join(SSID_data))
+    print(SSID_data)
 
 
 class ExtendedHandler(SimpleHTTPRequestHandler):
@@ -38,6 +45,7 @@ class ExtendedHandler(SimpleHTTPRequestHandler):
             "/library/test/success.html",          # iOS older
             "/success.txt",                        # Android / Chrome
         ]
+        print(f"GET {self.path}")
         if any(url in self.path for url in captive_urls):
             self.send_response(302)  # redirect
             self.send_header("Location", "/index.html")
@@ -69,7 +77,7 @@ class uServer(ThreadingHTTPServer):
 
 Handler = ExtendedHandler
 Handler.server_version = "Airiana Web Server interface/2.5a"
-Handler.ssids = get_ssids()
+Handler.ssids = get_ssids
 httpd = uServer(("", PORT), Handler)
 
 # Uncomment for HTTPS
