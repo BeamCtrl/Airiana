@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import sys, os, time
+import subprocess
 from http.server import (
     BaseHTTPRequestHandler,
     ThreadingHTTPServer,
@@ -34,8 +35,18 @@ def get_ssids():
         or os.path.getsize("SSID") == 0
     ):
         print("Updating SSIDs")
-        SSID_data = os.popen("sudo iwlist scan 2>/dev/null |grep ESSID").readlines()
-        SSID_data = list(set(SSID_data))
+    try:
+        result = subprocess.run(
+            ["sudo", "iwlist", "scan"],
+            capture_output=True,
+            text=True,
+            timeout=10  # seconds
+        )
+        SSID_data = [line for line in result.stdout.splitlines() if "ESSID" in line]
+    except subprocess.TimeoutExpired:
+        print("iwlist scan timed out, process killed!")
+        SSID_data = []
+
         SSID_data = [ssid for ssid in SSID_data if ssid.find("x00") == -1]
         SSID_data = [ssid for ssid in SSID_data if len(ssid) != 0]
         with open("SSID", "w") as file:
