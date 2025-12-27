@@ -40,7 +40,7 @@ def get_ssids():
             ["sudo", "iwlist", "scan"],
             capture_output=True,
             text=True,
-            timeout=10  # seconds
+            timeout=10,  # seconds
         )
         SSID_data = [line for line in result.stdout.splitlines() if "ESSID" in line]
     except subprocess.TimeoutExpired:
