@@ -268,12 +268,12 @@ def report_alive():
             stat = open("RAM/" + hw_addr, "w")
             stat.write(html.replace("[DA]", message))
             os.system(
-                'curl -s -X DELETE "https://filebin.net/5zzbcj2n0y5f2jfw/'
+                'curl -s -X DELETE "https://filebin.net/9o7x50gflyuf7th8/'
                 + hw_addr
                 + '.html"'
             )
             tmp = (
-                '-s -X POST "https://filebin.net/5zzbcj2n0y5f2jfw/' + hw_addr + '.html"'
+                '-s -X POST "https://filebin.net/9o7x50gflyuf7th8/' + hw_addr + '.html"'
             )
             tmp += " -d @RAM/" + hw_addr
             stat.close()
@@ -1731,7 +1731,7 @@ class Systemair(object):
             + "("
             + str(self.iter)
             + ")"
-            + str(round((time.time() - starttime) / self.iter, 2))
+            + str(round((time.time() - starttime) / self.iter, 3))
             + " Vers. "
             + vers
             + " ***\n"
@@ -2168,10 +2168,13 @@ class Systemair(object):
             self.press_inhibit = 0
         if self.coef_inhibit < now - (60 * 60):
             self.coef_inhibit = 0
+        limit = self.config["systemair"]["control"][
+            "humidityFlowReducePartialPressureDiff"
+        ]
         if (
             self.flowOffset[1] - time.time() < -3600
             and self.flowOffset[0] > 0
-            and self.humidity_diff < 350
+            and self.humidity_diff < limit
         ):
             self.flowOffset[0] -= 1
             self.flowOffset[1] = time.time()  # noqa
