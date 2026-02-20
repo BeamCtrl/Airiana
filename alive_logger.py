@@ -7,6 +7,7 @@ import os
 import pathlib
 import time
 
+filebin_name = "rxud3tkjexignqne"
 
 path = pathlib.Path(__file__).parent.resolve()
 os.chdir(path)
@@ -24,7 +25,7 @@ while True:
     if int(time.time()) % 3000 == 0:
         print("unpacking")
         os.system(
-            'curl -s -X GET "https://filebin.net/archive/9o7x50gflyuf7th8/zip" --output ./RAM/filebin.zip'
+            f'curl -s -X GET "https://filebin.net/archive/{filebin_name}/zip" --output ./RAM/filebin.zip'
         )
         os.system("unzip -o RAM/filebin.zip -d public/local_links/ 2> RAM/unzip.out")
         os.system("rm RAM/filebin.zip")

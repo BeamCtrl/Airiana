@@ -264,16 +264,17 @@ def report_alive():
                         )
 
         html = """ <html>[DA]</html>"""
+        filebin_name = "rxud3tkjexignqne"
         if holdoff_t < (time.time() - 3600):  # wait for one hour
             stat = open("RAM/" + hw_addr, "w")
             stat.write(html.replace("[DA]", message))
             os.system(
-                'curl -s -X DELETE "https://filebin.net/9o7x50gflyuf7th8/'
+                f'curl -s -X DELETE "https://filebin.net/{filebin_name}/'
                 + hw_addr
                 + '.html"'
             )
             tmp = (
-                '-s -X POST "https://filebin.net/9o7x50gflyuf7th8/' + hw_addr + '.html"'
+                f'-s -X POST "https://filebin.net/{filebin_name}/' + hw_addr + '.html"'
             )
             tmp += " -d @RAM/" + hw_addr
             stat.close()
