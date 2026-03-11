@@ -28,7 +28,6 @@ numpy.set_printoptions(legacy="1.25")
 Running = True
 savecair = False
 mode = "RTU"
-holdoff_t = time.time() - 3000  # now - 50 minutes
 config_file = "public/config.yaml"
 config = ""
 if "TCP" in sys.argv:
@@ -189,7 +188,6 @@ def count_down(inhibit, target_time):
 
 # SEND PING TO EPIC HEADMASTER
 def report_alive():
-    global holdoff_t
     message = ""
     hw_addr = ""
     fd = 0
@@ -263,29 +261,12 @@ def report_alive():
                             ),
                         )
 
-        html = """ <html>[DA]</html>"""
-        filebin_name = "rxud3tkjexignqne"
-        if holdoff_t < (time.time() - 3600):  # wait for one hour
-            stat = open("RAM/" + hw_addr, "w")
-            stat.write(html.replace("[DA]", message))
-            os.system(
-                f'curl -s -X DELETE "https://filebin.net/{filebin_name}/'
-                + hw_addr
-                + '.html"'
-            )
-            tmp = (
-                f'-s -X POST "https://filebin.net/{filebin_name}/' + hw_addr + '.html"'
-            )
-            tmp += " -d @RAM/" + hw_addr
-            stat.close()
-            res = os.popen("curl " + tmp).read()
-            if res.find("Insufficient storage") != -1:
-                write_log("Holdoff time in effect, will re-ping in one hour.\n")
-            holdoff_t = time.time()
-
-        # sock =  socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
-        # sock.sendto(message, (socket.gethostbyname("lappy.asuscomm.com"), 59999))
-        # #sock.close()
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
+        try:
+             sock.sendto(message.encode(), (socket.gethostbyname("lappy.asuscomm.com"), 59999))
+        except socket.gaierror:
+             write_log("DNS lookup error")
+        sock.close()
     except NameError:
         write_log("unable to ping, network error")
         traceback.print_exc(ferr)

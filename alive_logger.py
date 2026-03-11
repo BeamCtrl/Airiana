@@ -7,36 +7,25 @@ import os
 import pathlib
 import time
 
-filebin_name = "rxud3tkjexignqne"
 
 path = pathlib.Path(__file__).parent.resolve()
 os.chdir(path)
 print("started in", os.getcwd())
-# sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
-html = """ 
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
+html = """
 <html>
 [DA]
 </html>
 """
 
-# sock.bind(("0.0.0.0", 59999))
+sock.bind(("0.0.0.0", 59999))
 while True:
-    print(int(time.time() % 60))
-    if int(time.time()) % 3000 == 0:
-        print("unpacking")
-        os.system(
-            f'curl -s -X GET "https://filebin.net/archive/{filebin_name}/zip" --output ./RAM/filebin.zip'
-        )
-        os.system("unzip -o RAM/filebin.zip -d public/local_links/ 2> RAM/unzip.out")
-        os.system("rm RAM/filebin.zip")
-        os.system("rm RAM/unzip.out")
-        os.system("cp RAM/dc_a6_32_07_0f_35 public/local_links/dc_a6_32_07_0f_35.html")
-    time.sleep(1)
-    """if sock in select.select( [sock], [], [], 1)[0]:
+    if sock in select.select( [sock], [], [], 1)[0]:
             incoming_msg, addr=sock.recvfrom(37000)
-            # print "***", incomming_msg, "***"
-            # print incomming_msg.find("ether")
-            if incoming_msg.find(b"ether") > 0:
+            incoming_msg = incoming_msg.decode("utf-8")
+            #print ("***", incoming_msg, "***")
+            #print (incoming_msg.find("ether"))
+            if incoming_msg.find("ether") > 0:
                 ip = incoming_msg[61:75]
                 mac = incoming_msg[14:31]
             else:
@@ -56,4 +45,4 @@ while True:
                 if len(mac) != 0:
                     open(filename, "w+").write(for_file)
             except IOError:
-                print ("file missing", filename)"""
+                print ("file missing", filename)
