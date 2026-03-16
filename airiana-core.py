@@ -13,7 +13,7 @@ import sys  # noqa
 import signal  # noqa
 import math  # noqa
 import pathlib  # noqa
-import pickle  # noqa
+import json  # noqa
 import pprint  # noqa
 import socket  # noqa
 import syslog  # noqa
@@ -23,6 +23,31 @@ from request import Request  # noqa
 
 numpy.seterr("ignore")
 numpy.set_printoptions(legacy="1.25")
+
+def load_coef_json(filename="coeficients.json"):
+    """Load coefficients from JSON file. Returns default structure if file not found."""
+    try:
+        with open(filename, "r") as f:
+            data = json.load(f)
+            # Convert string keys back to integers
+            return {int(k): {int(dk): float(dv) for dk, dv in v.items()} for k, v in data.items()}
+    except FileNotFoundError:
+        return {0: {}, 1: {}, 2: {}, 3: {}}
+    except (json.JSONDecodeError, ValueError) as e:
+        write_log(f"Error loading coefficients JSON: {e}")
+        return {0: {}, 1: {}, 2: {}, 3: {}}
+
+
+def save_coef_json(coef_dict, filename="coeficients.json"):
+    """Save coefficients to JSON file."""
+    try:
+        # Convert integer keys to strings for JSON serialization
+        data = {str(k): {str(dk): dv for dk, dv in v.items()} for k, v in coef_dict.items()}
+        with open(filename, "w") as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        write_log(f"Error saving coefficients JSON: {e}")
+
 #############################
 
 Running = True
@@ -716,13 +741,10 @@ class Systemair(object):
 
     def system_setup(self):
         try:
-            if os.path.isfile("coeficients.dat"):
-                self.coef_dict = pickle.load(open("coeficients.dat", "rb"))
-            else:
-                pickle.dump(self.coef_dict, open("coeficients.dat", "wb"))
-        except EOFError:
+            self.coef_dict = load_coef_json("coeficients.json")
+        except Exception as e:
             traceback.print_exc(ferr)
-            pickle.dump(self.coef_dict, open("coeficients.dat", "wb"))
+            save_coef_json(self.coef_dict, "coeficients.json")
 
         if self.savecair:
             self.get_password()
@@ -839,9 +861,7 @@ class Systemair(object):
         ):
             self.press_inhibit = time.time()
             self.modetoken = time.time() - 3000
-            fd = open("coeficients.dat", "rb")
-            self.coef_dict = pickle.load(fd)
-            fd.close()
+            self.coef_dict = load_coef_json("coeficients.json")
             self.coef_test_bool = True
             self.coef_prev_temp = 0
             for each in self.rawdata:
@@ -889,7 +909,7 @@ class Systemair(object):
                     new_coef - self.coef_dict[self.get_coef_mode()][int(temp_diff)]
                 ) * 0.1
             if len(self.coef_dict) != 0:
-                pickle.dump(self.coef_dict, open("coeficients.dat", "wb"))
+                save_coef_json(self.coef_dict, "coeficients.json")
             self.coef_test_bool = False
             self.set_fanspeed(1)
 
