@@ -261,11 +261,13 @@ def report_alive():
                             ),
                         )
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
         try:
-             sock.sendto(message.encode(), (socket.gethostbyname("lappy.asuscomm.com"), 59999))
+            sock.sendto(
+                message.encode(), (socket.gethostbyname("lappy.asuscomm.com"), 59999)
+            )
         except socket.gaierror:
-             write_log("DNS lookup error")
+            write_log("DNS lookup error")
         sock.close()
     except NameError:
         write_log("unable to ping, network error")

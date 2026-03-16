@@ -75,7 +75,7 @@ try:
             tmp = each.split(":")
             for entry in tmp:
                 if (
-                    entry == np.nan
+                    np.isnan(float(entry))
                     or entry == "nan"
                     or float(tmp[4]) > 100
                     or float(tmp[4]) < 0
