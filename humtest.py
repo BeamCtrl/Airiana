@@ -73,22 +73,25 @@ try:
         try:
             sys.stdout.flush()
             tmp = each.split(":")
-            for entry in tmp:
-                if (
-                    np.isnan(float(entry))
-                    or entry == "nan"
-                    or float(tmp[4]) > 100
-                    or float(tmp[4]) < 0
-                ):
-                    raise ZeroDivisionError
-            if float(tmp[0]) > 0 and float(tmp[0]) > tm.time() - (day):  # temp:
+            if len(tmp) < 14:  # Validate line has enough fields
+                raise ValueError
+            # Convert values once
+            ts = float(tmp[0])
+            calc_humidity = float(tmp[4])
+            if (
+                ts <= 0 or ts <= tm.time() - day
+                or calc_humidity > 100 or calc_humidity < 0
+                or "nan" in tmp
+            ):
+                raise ValueError
+            if ts > 0 and ts > tm.time() - (day):  # temp:
                 sen_hum.append(float(tmp[3]))
                 sen_temp.append(float(tmp[1]))
                 extract.append(float(tmp[2]))
-                calc_hum.append(float(tmp[4]))
+                calc_hum.append(calc_humidity)
                 inlet.append(float(tmp[5]))
                 exhaust.append(float(tmp[6]))
-                time.append(tm.time() - float(tmp[0]))
+                time.append(tm.time() - ts)
                 supply.append(float(tmp[7]))
                 supply_humid.append(float(tmp[8]))
                 outside.append(float(tmp[9]))
@@ -96,16 +99,14 @@ try:
                 inside_hum.append(int(tmp[11]))
                 cdP.append(float(tmp[13]))
                 mdP.append(float(tmp[12]))
-                x.append(calc_hum[-1])
-                y.append(supply_humid[-1])
-                diff.append(round(calc_hum[-1] - supply_humid[-1], 3))
+                x.append(calc_humidity)
+                y.append(float(tmp[8]))
+                diff.append(round(calc_humidity - float(tmp[8]), 3))
                 if diff[-1] < -35:
                     pass  # print tmp[0]
         except IndexError:
             inside_hum.append(0)
-        except ValueError:
-            pass
-        except ZeroDivisionError:
+        except (ValueError, TypeError):
             pass
         except:
             traceback.print_exc()
