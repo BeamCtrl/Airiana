@@ -1,14 +1,14 @@
 #!/usr/bin/python3
-import pickle
+import json
 import sys
 
 try:
-    file = open("coeficients.dat", "rb")
-    a = pickle.load(file)
+    with open("coeficients.json", "r") as file:
+        a = json.load(file)
+        # Convert string keys back to integers for processing
+        a = {int(k): {int(dk): float(dv) for dk, dv in v.items()} for k, v in a.items()}
 except FileNotFoundError:
     a = {0: {}, 1: {}, 2: {}, 3: {}}
-except UnicodeDecodeError:
-    a = pickle.load(file, encoding='latin1')
 try:
     if "-r" in sys.argv:
         a[int(sys.argv[-2])].pop(int(sys.argv[-1]))
@@ -50,4 +50,7 @@ for i in range(min_index, max_index + 1):
 
 # WRITE TO FILE
 if "-r" in sys.argv or "-i" in sys.argv:
-    pickle.dump(a, open("coeficients.dat", "wb"))
+    # Convert integer keys back to strings for JSON serialization
+    data = {str(k): {str(dk): dv for dk, dv in v.items()} for k, v in a.items()}
+    with open("coeficients.json", "w") as f:
+        json.dump(data, f, indent=2)

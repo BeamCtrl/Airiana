@@ -120,6 +120,7 @@ ENV/
 # intermittent files
 *.save*
 coeficients.dat*
+coeficients.json
 *.bak
 *BU
 newCoef.txt
