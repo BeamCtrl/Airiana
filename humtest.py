@@ -136,6 +136,8 @@ mae = stat.meanAbsError(x, y)
 print("Calculated:")
 print("Mean:", round(ave, 2), "Stddev:", stddev)
 print("\nCorrelation coeficient\t", round(stat.correlation(x, y), 2))
+z_score = stat.z_test(x, y)
+print("Z-test\t\t\t", round(z_score, 2))
 print(
     "RootMeanSquaredError\t",
     round(rmsError, 2),
@@ -155,6 +157,8 @@ mae = stat.meanAbsError(mdP, cdP)
 print("Calculated:")
 print("Mean:", round(ave, 2), "Stddev:", stddev)
 print("\nCorrelation coeficient\t", round(stat.correlation(mdP, cdP), 2))
+z_score_pressure = stat.z_test(mdP, cdP)
+print("Z-test\t\t\t", round(z_score_pressure, 2))
 # print "MeanErrorSquared", stat.meanErrorSq(mdP,cdP)
 print(
     "RootMeanSquaredError\t", round(rmsError, 2), round(rmsError / mstddev, 2), "stdDev"

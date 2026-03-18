@@ -34,7 +34,7 @@ def mean(data):
 
 def stddev(data):
     ave = mean(data)
-    dev = int()
+    dev = 0
     for each in data:
         dev += (each - ave) ** 2
     return ave, numpy.sqrt(dev / len(data))
@@ -49,7 +49,7 @@ def z_test(x, y):
     ty.start()
     tx.join()
     ty.join()
-    Z = (tx.ave - ty.ave) / ty.dev
+    Z = (tx.ave - ty.ave) / numpy.sqrt((tx.dev**2 + ty.dev**2))
     return Z
 
 
@@ -65,7 +65,7 @@ def covariance(x, y):
     sum = 0
     for each in range(len(x)):
         sum += (x[each] - tx.mean) * (y[each] - ty.mean)
-    return float(sum / len(x) - 1)
+    return float(sum / (len(x) - 1))
 
 
 def correlation(x, y):
@@ -98,7 +98,7 @@ def chi2test(measured, calculated):
     for x, y in zip(measured, calculated):
         sq = (x - y) * (x - y)
         chi += float(sq) / y
-    return chi / len(measured)
+    return chi
 
 
 if __name__ == "__main__":
