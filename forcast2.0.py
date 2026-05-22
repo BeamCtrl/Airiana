@@ -23,8 +23,10 @@ def get_sun(lat, long):
             subprocess.check_call(
                 [sys.executable, "/usr/bin/sudo apt install python3-pip"]
             )
-        #subprocess.check_call([sys.executable, "-m", "pip", "install", "pyephem"])
-        subprocess.check_call(["/usr/bin/env python", "-m", "pip", "install", "pyephem"])
+        # subprocess.check_call([sys.executable, "-m", "pip", "install", "pyephem"])
+        subprocess.check_call(
+            ["/usr/bin/env python", "-m", "pip", "install", "pyephem"]
+        )
     import ephem
 
     o = ephem.Observer()

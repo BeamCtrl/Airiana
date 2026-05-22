@@ -24,13 +24,17 @@ from request import Request  # noqa
 numpy.seterr("ignore")
 numpy.set_printoptions(legacy="1.25")
 
+
 def load_coef_json(filename="coeficients.json"):
     """Load coefficients from JSON file. Returns default structure if file not found."""
     try:
         with open(filename, "r") as f:
             data = json.load(f)
             # Convert string keys back to integers
-            return {int(k): {int(dk): float(dv) for dk, dv in v.items()} for k, v in data.items()}
+            return {
+                int(k): {int(dk): float(dv) for dk, dv in v.items()}
+                for k, v in data.items()
+            }
     except FileNotFoundError:
         return {0: {}, 1: {}, 2: {}, 3: {}}
     except (json.JSONDecodeError, ValueError) as e:
@@ -42,11 +46,14 @@ def save_coef_json(coef_dict, filename="coeficients.json"):
     """Save coefficients to JSON file."""
     try:
         # Convert integer keys to strings for JSON serialization
-        data = {str(k): {str(dk): dv for dk, dv in v.items()} for k, v in coef_dict.items()}
+        data = {
+            str(k): {str(dk): dv for dk, dv in v.items()} for k, v in coef_dict.items()
+        }
         with open(filename, "w") as f:
             json.dump(data, f, indent=2)
     except Exception as e:
         write_log(f"Error saving coefficients JSON: {e}")
+
 
 #############################
 

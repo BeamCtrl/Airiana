@@ -44,7 +44,7 @@ def update_sensors():
             device.sensor_temp = float(sensor_dict[log]["temperature"])
             device.sensor_humid = int(sensor_dict[log]["humidity"])
         except Exception as e:
-            pass 
+            pass
         if device.sensor_temp != 0.0 and device.sensor_humid != 0:
             temp.append(device.sensor_temp)
             humid.append(device.sensor_humid)

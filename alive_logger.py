@@ -7,7 +7,6 @@ import os
 import pathlib
 import time
 
-
 path = pathlib.Path(__file__).parent.resolve()
 os.chdir(path)
 print("started in", os.getcwd())

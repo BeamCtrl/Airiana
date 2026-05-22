@@ -79,8 +79,10 @@ try:
             ts = float(tmp[0])
             calc_humidity = float(tmp[4])
             if (
-                ts <= 0 or ts <= tm.time() - day
-                or calc_humidity > 100 or calc_humidity < 0
+                ts <= 0
+                or ts <= tm.time() - day
+                or calc_humidity > 100
+                or calc_humidity < 0
                 or "nan" in tmp
             ):
                 raise ValueError
