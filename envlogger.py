@@ -24,7 +24,7 @@ pylab.ioff()
 if len(sys.argv) > 1:
     log = sys.argv[1]
 else:
-    log = "151"
+    log = "135"
 
 
 def update_sensors():
@@ -43,8 +43,8 @@ def update_sensors():
         try:
             device.sensor_temp = float(sensor_dict[log]["temperature"])
             device.sensor_humid = int(sensor_dict[log]["humidity"])
-        except:
-            pass
+        except Exception as e:
+            pass 
         if device.sensor_temp != 0.0 and device.sensor_humid != 0:
             temp.append(device.sensor_temp)
             humid.append(device.sensor_humid)

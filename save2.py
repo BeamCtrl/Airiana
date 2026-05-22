@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # FOR TESTING use ./save2.py dev /dev/[your_device] test
 # to manually read an address use ./save2.py
 # to manually write to an address put a w before the address input "w1234"

@@ -9,15 +9,15 @@ if "controller" in sys.argv:
 if "status.py" in sys.argv:
 	os.system("./status.py&")
 
-if "envlogger.py" in sys.argv:
-	os.system("./envlogger.py&")
-
 if "alive_logger.py" in sys.argv:
-	os.system("./alive_logger.py 135&")
-	os.system("./alive_logger.py 91&")
-	os.system("./alive_logger.py 92&")
-	os.system("./alive_logger.py 93&")
-	os.system("./alive_logger.py 94&")
+	os.system("./alive_logger.py&")
+
+if "env_logger.py" in sys.argv:
+	os.system("./env_logger.py 135&")
+	os.system("./env_logger.py 91&")
+	os.system("./env_logger.py 92&")
+	os.system("./env_logger.py 93&")
+	os.system("./env_logger.py 94&")
 if "http" in sys.argv:
 	os.system("./public/httpsrv.py&")
 

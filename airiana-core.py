@@ -2647,7 +2647,7 @@ class Systemair(object):
         # Weather forecast modes
         self.forecast = [-1, -1, -1]
         try:
-            forcast = os.popen("./forcast2.0.py tomorrow").readlines()
+            forcast = os.popen("venv/bin/python ./forcast2.0.py tomorrow").readlines()
             # First line
             forcast1 = forcast[0].split(" ")
             forcast2 = forcast[1].split(" ")
