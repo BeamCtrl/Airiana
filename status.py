@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import os
 import sys
 import time
@@ -35,7 +35,7 @@ def init():
 
 init()
 
-os.chdir("/home/pi/airiana")
+os.chdir("/home/pi/Airiana")
 os.system("./alive_logger.py > /dev/null &")
 files = os.listdir("./public/local_links/")
 data = dict(

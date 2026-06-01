@@ -72,7 +72,7 @@ class MyHandler(socketserver.BaseRequestHandler):
             print("Asked to put...")
             if "config.yaml" in data[0]:
                 self.send_continue()
-                os.chdir("/home/pi/airiana/public")
+                os.chdir("/home/pi/Airiana/public")
                 with open(os.getcwd() + "/config.yaml", "w") as file:
                     print(f"Writing to {file.name}")
                     file.write(data[-1])
@@ -120,7 +120,7 @@ psk={password}
                     "| sudo tee /etc/NetworkManager/system-connections/preconfigured.nmconnection"
                     " > /dev/null"
                 )
-                os.chdir("/home/pi/airiana/public/")
+                os.chdir("/home/pi/Airiana/public/")
                 self.send_home()
                 os.system(
                     'echo "<br>Rebooting system due to updated WiFi configuration, please wait...<br>" >> out.txt'
@@ -139,7 +139,7 @@ psk={password}
 
             if "utility" in data[0]:
                 print(data[0])
-                os.chdir("/home/pi/airiana/")
+                os.chdir("/home/pi/Airiana/")
                 if "shutdown" in data[0]:
                     self.send_ok()
                     os.system("sudo shutdown")
@@ -169,7 +169,7 @@ psk={password}
                         )
                     )
                     return 0
-                os.chdir("/home/pi/airiana/public/")
+                os.chdir("/home/pi/Airiana/public/")
 
 
 socketserver.TCPServer.allow_reuse_address = True

@@ -17,7 +17,7 @@ if "status.py" in sys.argv:
 	# os.system("sudo ./status.py & > /dev/null")
 
 if "envlogger.py" in sys.argv:
-	os.system("sudo pkill --signal 15 envlogger.py")
+	os.system("sudo pkill --signal 9 envlogger.py")
 	os.system("./envlogger.py 135 > /dev/null &")
 	os.system("./envlogger.py 91 > /dev/null &")
 	os.system("./envlogger.py 92 > /dev/null &")

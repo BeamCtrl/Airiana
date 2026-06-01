@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # FOR TESTING use ./save2.py dev /dev/[your_device] test
 # to manually read an address use ./save2.py
 # to manually write to an address put a w before the address input "w1234"
@@ -114,14 +114,12 @@ if "diff" in sys.argv:
                     pass
 
 while True:
-    print(
-        """
+    print("""
       Usage: Input the addess you want to read.
              Prepend address with a (w) to write to that address. if (w) is used
              the following prompt will be the data to write to the address space.
              ex. read: addrs:101 or addrs:125343 // write: addrs:w100 -> data: 1
-          """
-    )
+          """)
     try:
         if target == None:
             target = input("addrs:")

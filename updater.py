@@ -12,33 +12,35 @@ def migrate_coef_to_json():
     """Automatically migrate coeficients.dat to JSON if found."""
     pickle_file = "coeficients.dat"
     json_file = "coeficients.json"
-    
+
     if not os.path.isfile(pickle_file):
         return
-    
+
     # If JSON already exists, just delete the old pickle file
     if os.path.isfile(json_file):
         print(f"[Migration] {json_file} exists. Removing old {pickle_file}...")
         os.remove(pickle_file)
         return
-    
+
     try:
         print(f"[Migration] Found {pickle_file}. Converting to JSON...")
         with open(pickle_file, "rb") as f:
             coef_dict = pickle.load(f)
-        
+
         # Convert to JSON format
-        data = {str(k): {str(dk): dv for dk, dv in v.items()} for k, v in coef_dict.items()}
-        
+        data = {
+            str(k): {str(dk): dv for dk, dv in v.items()} for k, v in coef_dict.items()
+        }
+
         with open(json_file, "w") as f:
             json.dump(data, f, indent=2)
-        
+
         print(f"[Migration] ✓ Successfully converted to {json_file}")
-        
+
         # Remove old pickle file
         os.remove(pickle_file)
         print(f"[Migration] ✓ Removed {pickle_file}")
-        
+
     except Exception as e:
         print(f"[Migration] ✗ Error migrating coefficients: {e}")
 

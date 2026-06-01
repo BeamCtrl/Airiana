@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 import traceback
 import time as tm
 import os
@@ -9,7 +9,7 @@ from pylab import *
 matplotlib.use("Agg")
 
 ioff()
-warnings.filterwarnings("ignore", module="matplotlib\..*")  # noqa
+warnings.filterwarnings("ignore", module=r"matplotlib\..*")  # noqa
 
 if len(sys.argv) >= 2:
     try:

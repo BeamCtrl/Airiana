@@ -4,7 +4,7 @@ After=network-online.target
 Type=idle
 
 [Service]
-ExecStart=/usr/bin/python /home/pi/airiana/status.py
+ExecStart=/home/pi/Airiana/venv/bin/python /home/pi/Airiana/status.py
 
 Restart=always
 User=pi
