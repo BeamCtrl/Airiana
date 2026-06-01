@@ -2848,7 +2848,7 @@ if __name__ == "__main__":
     req = Request()
     req.setup(unit, mode)
     device = Systemair(req, config_file)
-    write_log("System started" + str(time.ctime()))
+    write_log("System started")
     req.modbusregister(12543, 0)  # test for self.savecair extended address range
     if device.system_name == "VR400" and req.response != "no data":
         device.savecair = True
