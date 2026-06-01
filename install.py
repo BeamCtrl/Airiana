@@ -318,6 +318,9 @@ def execute_sudo_parts():
             redirect_console(boot_cmd)
         else:
             print("cmdline.txt has full command")
+    # Enable python interpreter to bind low ports for http server
+    os.system("setcap 'cap_net_bind_service=+ep' /home/pi/Airiana/venv/bin/python")
+
 
 
 if __name__ == "__main__":
