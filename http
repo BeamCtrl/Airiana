@@ -1,5 +1,4 @@
 #!/bin/bash
-sudo pkill -f httpsrv.py
-sudo pkill -f httpsrv2.py
-sudo python3 ./public/httpsrv.py &> /dev/null &
-disown
+pkill -f httpsrv.py
+pkill -f httpsrv2.py
+/home/pi/Airiana/venv/bin/python ./public/httpsrv.py &> /dev/null &
