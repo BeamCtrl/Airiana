@@ -37,7 +37,7 @@ jobs:
         black --check .
 
     - name: Show black formatting diff
-      run: black --diff test/test_coef_json.py
+      run: black --diff .
       if: failure()
 
     - name: Test with pytest

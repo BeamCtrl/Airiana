@@ -7,7 +7,6 @@ sys.path.append("..")
 sys.path.append(".")
 import airiana_core
 
-
 # Sample coefficient data for testing
 SAMPLE_COEF = {0: {10: 1.5, 20: 2.5}, 1: {5: 0.8}, 2: {}, 3: {15: 3.2}}
 
