@@ -322,7 +322,6 @@ def execute_sudo_parts():
     os.system("setcap 'cap_net_bind_service=+ep' /home/pi/Airiana/venv/bin/python")
 
 
-
 if __name__ == "__main__":
     reboot = False
     headless = False
