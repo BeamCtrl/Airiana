@@ -289,6 +289,8 @@ def report_alive():
             )
         except socket.gaierror:
             write_log("DNS lookup error")
+        except OSError:
+            write_log("Network is down, can not ping")
         sock.close()
     except NameError:
         write_log("unable to ping, network error")
