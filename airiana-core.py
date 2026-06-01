@@ -24,13 +24,17 @@ from request import Request  # noqa
 numpy.seterr("ignore")
 numpy.set_printoptions(legacy="1.25")
 
+
 def load_coef_json(filename="coeficients.json"):
     """Load coefficients from JSON file. Returns default structure if file not found."""
     try:
         with open(filename, "r") as f:
             data = json.load(f)
             # Convert string keys back to integers
-            return {int(k): {int(dk): float(dv) for dk, dv in v.items()} for k, v in data.items()}
+            return {
+                int(k): {int(dk): float(dv) for dk, dv in v.items()}
+                for k, v in data.items()
+            }
     except FileNotFoundError:
         return {0: {}, 1: {}, 2: {}, 3: {}}
     except (json.JSONDecodeError, ValueError) as e:
@@ -42,11 +46,14 @@ def save_coef_json(coef_dict, filename="coeficients.json"):
     """Save coefficients to JSON file."""
     try:
         # Convert integer keys to strings for JSON serialization
-        data = {str(k): {str(dk): dv for dk, dv in v.items()} for k, v in coef_dict.items()}
+        data = {
+            str(k): {str(dk): dv for dk, dv in v.items()} for k, v in coef_dict.items()
+        }
         with open(filename, "w") as f:
             json.dump(data, f, indent=2)
     except Exception as e:
         write_log(f"Error saving coefficients JSON: {e}")
+
 
 #############################
 
@@ -91,10 +98,7 @@ def exit_callback(self, return_code):
             -1
         ].cancel()  # noqa this is a threading.Timer, is has cancel()
     cmd_socket.close()
-    os.write(
-        ferr,
-        bytes("Exiting in a safe way\t" + str(time.ctime()) + "\n", encoding="utf8"),
-    )
+    write_log("Exiting in a safe way")
     # Sleep until one iteration has passed, or we've been in shutdown for 3 sec.
     while time.time() < shutdown + 3:
         if device.iter > now:  # if main loop completes an iteration, exit.
@@ -116,11 +120,15 @@ except FileNotFoundError:
     syslog.syslog("unable to chdir to:" + path)
     exit(22)
 
-# exec util fnctns
-os.chdir(path + "/public")
-os.system("./ip-replace.sh")  # reset ip-addresses on buttons.html
-os.chdir(path)
-os.system("./http &> /dev/null")  # Start web service
+# exec util fnctns - only run when not in test mode
+if "pytest" not in sys.modules:
+    try:
+        os.chdir(path + "/public")
+        os.system("./ip-replace.sh")  # reset ip-addresses on buttons.html
+        os.chdir(path)
+        os.system("./http &> /dev/null")  # Start web service
+    except Exception as e:
+        write_log(f"Failed to initialize system services: {e}")
 listme = []
 #  cpy saved data to RAM ##
 if not os.path.lexists("./data.save"):
@@ -240,7 +248,7 @@ def report_alive():
                         os.lseek(ferr, 0, os.SEEK_SET)
                         os.ftruncate(ferr, 0)
                         os.fsync(ferr)
-                        os.write(ferr, temp)
+                        write_log(temp.decode("utf-8", errors="ignore"))
                         os.fsync(ferr)
                     try:
                         if os.path.lexists("update.log"):
@@ -268,23 +276,11 @@ def report_alive():
                     if os.path.lexists("RAM/error_rate"):
                         message += os.popen("cat RAM/error_rate").read() + "<br>"
                 except:  # noqa do not care if this is failing
-                    os.write(
-                        ferr,
-                        bytes(
-                            "Ping error " + str(traceback.print_exc()) + "\n",
-                            encoding="utf8",
-                        ),
-                    )
+                    write_log("Ping error " + str(traceback.print_exc()))
                     try:
                         os.close(fd)
                     except FileError:
-                        os.write(
-                            ferr,
-                            bytes(
-                                "File Error: " + str(traceback.print_exc()) + "\n",
-                                encoding="utf8",
-                            ),
-                        )
+                        write_log("File Error: " + str(traceback.print_exc()))
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
         try:
@@ -442,14 +438,10 @@ def check_req(request, test, name):
                 request.latest_request_address, request.latest_request_decimals
             )
         if request.response != test:
-            os.write(
-                ferr,
-                bytes(
-                    f"Retrieved value for {name}={request.response},"
-                    f" but airiana was set to {test}, data updated."
-                    f"\t{time.ctime(time.time())}\n",
-                    "utf-8",
-                ),
+            write_log(
+                f"Retrieved value for {name}={request.response},"
+                f" but airiana was set to {test}, data updated."
+                f"/t{time.ctime()}"
             )
             return False  # Return False as second request has been made and test is still false.
         return True  # Return True as response test is valid after re-read.
@@ -695,13 +687,7 @@ class Systemair(object):
                 self.config,
                 e.__str__(),
             )
-            os.write(
-                ferr,
-                bytes(
-                    "There was an error in the configuration file. " + e.__str__(),
-                    encoding="utf-8",
-                ),
-            )
+            write_log("There was an error in the configuration file. " + e.__str__())
             with open("./public/config.template", "r") as template:
                 self.config = yaml.safe_load(template)
 
@@ -1068,32 +1054,12 @@ class Systemair(object):
                 if extract - self.rawdata[0][1] > 50 and (
                     extract != 0.0 or self.rawdata[1][1] != 0.0
                 ):
-                    os.write(
-                        ferr,
-                        bytes(
-                            "temp read error at: "
-                            + str(extract)
-                            + "C \t"
-                            + str(time.ctime())
-                            + "\n",
-                            encoding="utf8",
-                        ),
-                    )
+                    write_log("temp read error at: " + str(extract) + "C")
                     extract = self.rawdata[1][1]
             except IndexError:
                 pass
             except TypeError:
-                os.write(
-                    ferr,
-                    bytes(
-                        "temp read type error at: "
-                        + str(extract)
-                        + "C \t"
-                        + str(time.ctime())
-                        + "\n",
-                        encoding="utf8",
-                    ),
-                )
+                write_log("temp read type error at: " + str(extract) + "C")
                 traceback.print_exc(ferr)
                 extract = self.rawdata[1][1]
                 pass
@@ -1194,17 +1160,7 @@ class Systemair(object):
         self.coef_inhibit = time.time()
         if target_fanspeed != self.fanspeed:  # add one to bucket
             self.status_field[0] += 1
-            os.write(
-                ferr,
-                bytes(
-                    "Changing fanspeed to:"
-                    + str(target_fanspeed)
-                    + " \t\t"
-                    + str(time.ctime())
-                    + "\n",
-                    encoding="utf8",
-                ),
-            )
+            write_log("Changing fanspeed to:" + str(target_fanspeed))
         # print actual,"->",target
         if target_fanspeed >= 4:
             target_fanspeed = 0
@@ -1222,18 +1178,11 @@ class Systemair(object):
                 self.req.write_register(1130, target_fanspeed + 1)
                 self.fanspeed = target_fanspeed
         if self.get_fanspeed() != target_fanspeed:
-            os.write(
-                ferr,
-                bytes(
-                    "Incorrectly set fanspeed "
-                    + str(self.get_fanspeed())
-                    + " to "
-                    + str(target_fanspeed)
-                    + " \t"
-                    + str(time.ctime())
-                    + "\n",
-                    encoding="utf8",
-                ),
+            write_log(
+                "Incorrectly set fanspeed "
+                + str(self.get_fanspeed())
+                + " to "
+                + str(target_fanspeed)
             )
         self.update_airflow()
 
@@ -1438,15 +1387,7 @@ class Systemair(object):
             or (self.exhaust_ave - self.inlet_ave > 5 and self.exhaust_ave > 30)
         ) and not self.ac_active:
             self.ac_active = True
-            os.write(
-                ferr,
-                bytes(
-                    "A/C mode engaged. Detected high exhaust temperatures at \t"
-                    + time.ctime()
-                    + "\n",
-                    encoding="utf8",
-                ),
-            )
+            write_log("A/C mode engaged. Detected high exhaust temperatures")
             if self.fanspeed != 3:
                 self.set_fanspeed(3)
         if self.ac_active and (
@@ -1458,15 +1399,7 @@ class Systemair(object):
             )
         ):
             self.ac_active = False
-            os.write(
-                ferr,
-                bytes(
-                    "A/C mode disengaged. no AC conditions detected at \t"
-                    + time.ctime()
-                    + "\n",
-                    encoding="utf8",
-                ),
-            )
+            write_log("A/C mode disengaged. no AC conditions detected")
         if "sensors" in sys.argv and self.ac_active:
             self.exhaust_ave = self.sensor_exhaust
 
@@ -1625,13 +1558,7 @@ class Systemair(object):
                     self.coef_inhibit = time.time()
                     self.shower_initial = self.inhibit
                     self.msg = "Shower mode engaged\n"
-                    os.write(
-                        ferr,
-                        bytes(
-                            "Engaged Shower mode at\t" + str(time.ctime()) + "\n",
-                            encoding="utf8",
-                        ),
-                    )
+                    write_log("Engaged Shower mode at")
                     self.status_field[0] += 1
             except IndexError:
                 pass
@@ -1657,13 +1584,7 @@ class Systemair(object):
                     self.coef_inhibit = time.time()
                     self.shower_initial = self.inhibit
                     self.status_field[0] += 1
-                    os.write(
-                        ferr,
-                        bytes(
-                            "Engaged Shower mode at \t" + str(time.ctime()) + "\n",
-                            encoding="utf8",
-                        ),
-                    )
+                    write_log("Engaged Shower mode at")
 
         if (
             len(self.extract_dt_list) != 0
@@ -1677,28 +1598,15 @@ class Systemair(object):
             if self.RH_valid and self.showerRH + 5 > self.humidity:
                 if "debug" in sys.argv:
                     self.msg += "RH after shower now OK\n"
-                    os.write(
-                        ferr,
-                        bytes(
-                            "Shower mode off RH is ok \t" + str(time.ctime()) + "\n",
-                            encoding="utf8",
-                        ),
-                    )
+                    write_log("Shower mode off RH is ok")
                 state = True
             if state is True:
                 if self.shower_initial - time.time() > -120:
                     self.det_limit += 1
                 try:
-                    os.write(
-                        ferr,
-                        bytes(
-                            "Leaving Shower mode dT: "
-                            + str(numpy.max(self.extract) - numpy.min(self.extract))
-                            + " \t"
-                            + str(time.ctime())
-                            + "\n",
-                            encoding="utf8",
-                        ),
+                    write_log(
+                        "Leaving Shower mode dT: "
+                        + str(numpy.max(self.extract) - numpy.min(self.extract))
                     )
                     self.msg = "Shower mode off, returning to " + str(
                         self.speeds[self.initial_fanspeed] + "\n"
@@ -1712,13 +1620,7 @@ class Systemair(object):
         shower_timeout = self.config["systemair"]["control"]["showerTimeout"]
         if self.shower and self.shower_initial - time.time() < -shower_timeout * 60:
             self.shower = False
-            os.write(
-                ferr,
-                bytes(
-                    "Shower mode ended on timeout at:\t" + str(time.ctime()) + "\n",
-                    encoding="utf8",
-                ),
-            )
+            write_log("Shower mode ended on timeout at")
             turnoff()
 
     # PRINT OUTPUT
@@ -2052,18 +1954,8 @@ class Systemair(object):
 
     # change exchanger mode target is "to", if to = None, flip 0 or 5
     def cycle_exchanger(self, to=None):
-        os.write(
-            ferr,
-            bytes(
-                "cycle exchanger to: "
-                + str(to)
-                + " from "
-                + str(self.exchanger_mode)
-                + "\t"
-                + str(time.ctime())
-                + "\n",
-                encoding="utf8",
-            ),
+        write_log(
+            "cycle exchanger to: " + str(to) + " from " + str(self.exchanger_mode)
         )
         if not self.savecair:
 
@@ -2071,17 +1963,7 @@ class Systemair(object):
                 try:
                     self.req.write_register(206, val)
                     print("Setting exchanger to:", val)
-                    os.write(
-                        ferr,
-                        bytes(
-                            "write exchanger to: "
-                            + str(val)
-                            + "\t"
-                            + str(time.ctime())
-                            + "\n",
-                            encoding="utf8",
-                        ),
-                    )
+                    write_log("write exchanger to: " + str(val))
                     return 1
                 except:
                     return 0
@@ -2098,7 +1980,7 @@ class Systemair(object):
             try:
                 if to is None:
                     self.msg += "manual state change\n"
-                    os.write(ferr, bytes("Exchanger mode toggling\n", encoding="utf-8"))
+                    write_log("Exchanger mode toggling")
                     self.current_mode = get_val()
                     if self.current_mode > 0:
                         to = 0
@@ -2111,20 +1993,14 @@ class Systemair(object):
                         time.sleep(0.2)  # set summer mode
                         i += 1
                         if i > 10:
-                            os.write(
-                                ferr,
-                                bytes("Exchanger write failed\n", encoding="utf-8"),
-                            )
+                            write_log("Exchanger write failed")
                 else:
                     while not set_val(5):
                         # self.msg +="\n write error"
                         time.sleep(0.2)  # set winter mode
                         i += 1
                         if i > 10:
-                            os.write(
-                                ferr,
-                                bytes("Exchanger write failed\n", encoding="utf-8"),
-                            )
+                            write_log("Exchanger write failed")
                 self.modetoken = time.time()
                 self.inhibit = (
                     time.time()
@@ -2217,14 +2093,8 @@ class Systemair(object):
             ):
                 self.cycle_exchanger(0)
                 self.modetoken = time.time()
-                os.write(
-                    ferr,
-                    bytes(
-                        "Exchange set to 0 inlet>10C and extr above target \t"
-                        + str(time.ctime())
-                        + "\n",
-                        encoding="utf8",
-                    ),
+                write_log(
+                    f"Exchange set to 0 inlet>10C and extr above target\t{time.ctime()}"
                 )
 
             if (
@@ -2234,13 +2104,7 @@ class Systemair(object):
             ):
                 self.cycle_exchanger(0)
                 self.modetoken = time.time()
-                os.write(
-                    ferr,
-                    bytes(
-                        "Exchange set to 0 supply>target \t" + str(time.ctime()) + "\n",
-                        encoding="utf8",
-                    ),
-                )
+                write_log("Exchange set to 0 supply>target")
 
             if (
                 self.extract_ave < self.target - 1
@@ -2249,15 +2113,7 @@ class Systemair(object):
             ):
                 self.cycle_exchanger(5)
                 self.modetoken = time.time()
-                os.write(
-                    ferr,
-                    bytes(
-                        "1.Exchange set to 5. extract is less than target-1C \t"
-                        + str(time.ctime())
-                        + "\n",
-                        encoding="utf8",
-                    ),
-                )
+                write_log("1.Exchange set to 5. extract is less than target-1C")
 
             if (
                 self.supply_ave < 10
@@ -2266,15 +2122,7 @@ class Systemair(object):
                 and not self.cool_mode
             ):
                 self.cycle_exchanger(5)
-                os.write(
-                    ferr,
-                    bytes(
-                        "2.Exchange set to 5 supply<10C and extract< target \t"
-                        + str(time.ctime())
-                        + "\n",
-                        encoding="utf8",
-                    ),
-                )
+                write_log("2.Exchange set to 5 supply<10C and extract< target")
                 self.modetoken = time.time()
             if (
                 self.exchanger_mode != 5
@@ -2287,13 +2135,7 @@ class Systemair(object):
             ):
                 self.modetoken = time.time()
                 self.cycle_exchanger(5)
-                os.write(
-                    ferr,
-                    bytes(
-                        "3.Exchange set to 5 inlet<10C \t" + str(time.ctime()) + "\n",
-                        encoding="utf8",
-                    ),
-                )
+                write_log("3.Exchange set to 5 inlet<10C")
 
     def target_temperature(self):
         if self.inlet_ave < self.config["systemair"]["control"]["targetWinterLimit"]:
@@ -2361,23 +2203,9 @@ class Systemair(object):
                     self.msg += "Dynamic fanspeed 2\n"
                     if self.humidity_diff > dP_high:
                         self.flowOffset = [self.flowOffset[0] + 5, time.time()]
-                        os.write(
-                            ferr,
-                            bytes(
-                                "Dynamic fanspeed 2 with RH \t"
-                                + str(time.ctime())
-                                + "\n",
-                                encoding="utf8",
-                            ),
-                        )
+                        write_log("Dynamic fanspeed 2 with RH")
                     else:
-                        os.write(
-                            ferr,
-                            bytes(
-                                "Dynamic fanspeed 2 no RH\t" + str(time.ctime()) + "\n",
-                                encoding="utf8",
-                            ),
-                        )
+                        write_log("Dynamic fanspeed 2 no RH")
                 if self.fanspeed == 2 and (
                     (
                         self.extract_ave < self.target + 0.5
@@ -2392,24 +2220,10 @@ class Systemair(object):
                     self.set_fanspeed(1)
                     if self.humidity_diff < dP_reduce - 50:
                         self.msg += "Dynamic fanspeed 1, Air quality Good\n"
-                        os.write(
-                            ferr,
-                            bytes(
-                                "Dynamic fanspeed 1 with RH\t"
-                                + str(time.ctime())
-                                + "\n",
-                                encoding="utf8",
-                            ),
-                        )
+                        write_log("Dynamic fanspeed 1 with RH")
                     else:
                         self.msg += "Dynamic fanspeed 1\n"
-                        os.write(
-                            ferr,
-                            bytes(
-                                "Dynamic fanspeed 1 no RH\t" + str(time.ctime()) + "\n",
-                                encoding="utf8",
-                            ),
-                        )
+                        write_log("Dynamic fanspeed 1 no RH")
             # dynamic without Rhsensor
             else:
                 if (
@@ -2419,15 +2233,7 @@ class Systemair(object):
                 ):
                     self.set_fanspeed(1)
                     self.msg += "Dynamic fanspeed 1\n"
-                    os.write(
-                        ferr,
-                        bytes(
-                            "Dynamic fanspeed 1 without RH\t"
-                            + str(time.ctime())
-                            + "\n",
-                            encoding="utf8",
-                        ),
-                    )
+                    write_log("Dynamic fanspeed 1 without RH")
 
                 if self.fanspeed == 1 and (
                     self.extract_ave > self.target + 0.6
@@ -2435,15 +2241,7 @@ class Systemair(object):
                 ):
                     self.set_fanspeed(2)
                     self.msg += "Dynamic fanspeed 2\n"
-                    os.write(
-                        ferr,
-                        bytes(
-                            "Dynamic fanspeed 2 extr > target +0.5C without RH\t"
-                            + str(time.ctime())
-                            + "\n",
-                            encoding="utf8",
-                        ),
-                    )
+                    write_log("Dynamic fanspeed 2 extr > target +0.5C without RH")
             # dynamic 3 if temp is climbing and exchanger is off, and extract is above target +1.2C
             if (
                 self.fanspeed == 2
@@ -2457,16 +2255,10 @@ class Systemair(object):
             ):
                 self.set_fanspeed(3)
                 self.msg += "Dynamic fanspeed 3\n"
-                os.write(
-                    ferr,
-                    bytes(
-                        "Dynamic fanspeed 3 target+1.2C or dt long > 0.7C/h ("
-                        + str(self.extract_dt_long)
-                        + ")\t"
-                        + str(time.ctime())
-                        + "\n",
-                        encoding="utf8",
-                    ),
+                write_log(
+                    "Dynamic fanspeed 3 target+1.2C or dt long > 0.7C/h ("
+                    + str(self.extract_dt_long)
+                    + ")"
                 )
 
             # Recover cold air if outside is hotter
@@ -2477,18 +2269,12 @@ class Systemair(object):
             ):
                 self.set_fanspeed(1)
                 self.msg += "Dynamic fanspeed, recover cool air\n"
-                os.write(
-                    ferr,
-                    bytes(
-                        "Dynamic fanspeed 1 recover cool air "
-                        + str(time.ctime())
-                        + "\n"
-                        + str(self.extract_ave)
-                        + " "
-                        + str(self.supply_ave)
-                        + "\n",
-                        encoding="utf8",
-                    ),
+                write_log(
+                    "Dynamic fanspeed 1 recover cool air "
+                    + str(self.extract_ave)
+                    + " "
+                    + str(self.supply_ave)
+                    + time.ctime()
                 )
 
             # Lower to fanspeed 2 if long dt is less than -0.5 and outside is less than 12C
@@ -2500,15 +2286,7 @@ class Systemair(object):
             ) or (self.supply_ave < 12 and self.extract_dt_long < -0.5):
                 self.set_fanspeed(2)
                 self.msg += "Dynamic fanspeed 2 with long dt\n"
-                os.write(
-                    ferr,
-                    bytes(
-                        "Dynamic fanspeed 2 with long dt from 3\t"
-                        + str(time.ctime())
-                        + "\n",
-                        encoding="utf8",
-                    ),
-                )
+                write_log(f"Dynamic fanspeed 2 with long dt from 3\t{time.ctime()}")
 
     def check_cooling(self):
         try:
@@ -2540,17 +2318,7 @@ class Systemair(object):
                 write_log("Cooling activated.")
                 self.set_fanspeed(3)
         except:
-            os.write(
-                ferr,
-                bytes(
-                    "Forecast cooling error "
-                    + str(self.integral_forcast)
-                    + " "
-                    + str(time.ctime())
-                    + "\n",
-                    encoding="utf8",
-                ),
-            )
+            write_log("Forecast cooling error " + str(self.integral_forcast))
         if (
             self.cool_mode
             and not self.inhibit
@@ -2573,15 +2341,7 @@ class Systemair(object):
             ):
                 self.set_fanspeed(2)
                 self.msg += "Cooling reduced\n"
-                os.write(
-                    ferr,
-                    bytes(
-                        "Cooling reduced to medium, supply below 12C \t"
-                        + str(time.ctime())
-                        + "\n",
-                        encoding="utf8",
-                    ),
-                )
+                write_log("Cooling reduced to medium, supply below 12C")
 
             if (
                 self.fanspeed == 2
@@ -2590,14 +2350,8 @@ class Systemair(object):
             ):
                 self.set_fanspeed(3)
                 self.msg += "Cooling returned to High.\n"
-                os.write(
-                    ferr,
-                    bytes(
-                        "Cooling returned to high from medium, supply above required level. \t"
-                        + str(time.ctime())
-                        + "\n",
-                        encoding="utf8",
-                    ),
+                write_log(
+                    "Cooling returned to high from medium, supply above required level."
                 )
 
             if (
@@ -2683,17 +2437,7 @@ class Systemair(object):
 
     # set the fan pressure diff
     def set_differential(self, percent):
-        os.write(
-            ferr,
-            bytes(
-                "Pressure difference set to: "
-                + str(percent)
-                + "%\t"
-                + str(time.ctime())
-                + "\n",
-                encoding="utf8",
-            ),
-        )
+        write_log("Pressure difference set to: " + str(percent) + "%")
         self.coef_inhibit = time.time()
         if percent > 20:
             percent = 20
@@ -2787,20 +2531,13 @@ class Systemair(object):
                     self.config["systemair"]["savecair"]["sfLowFlow"]
                     + self.flowOffset[0],
                 )
-                os.write(
-                    ferr,
-                    bytes(
-                        "Extract flow offset to: "
-                        + str(ef)
-                        + "/"
-                        + str(self.flowOffset[0])
-                        + "/"
-                        + str(base)
-                        + "\t"
-                        + str(time.ctime())
-                        + "\n",
-                        encoding="utf8",
-                    ),
+                write_log(
+                    "Extract flow offset to: "
+                    + str(ef)
+                    + "/"
+                    + str(self.flowOffset[0])
+                    + "/"
+                    + str(base)
                 )
                 self.ef = base + self.flowOffset[0]
                 self.sf = self.sf_base + self.flowOffset[0]
@@ -2818,17 +2555,7 @@ class Systemair(object):
                     102, base + self.flowOffset[0]
                 )  # Extract flow with offset at low.
                 #  No need to set supply flow it's calculated by the unit as the ratio of sf/ef from mid lvl flow.
-                os.write(
-                    ferr,
-                    bytes(
-                        "Updated extract flow offset to: "
-                        + str(self.flowOffset[0])
-                        + "\t"
-                        + str(time.ctime())
-                        + "\n",
-                        "utf8",
-                    ),
-                )
+                write_log("Updated extract flow offset to: " + str(self.flowOffset[0]))
                 self.ef = base + self.flowOffset[0]
                 self.sf = self.sf_base + self.flowOffset[0]
 
@@ -2842,15 +2569,7 @@ class Systemair(object):
                     )
                 except:
                     self.prev_static_temp = self.inlet_ave
-                    os.write(
-                        ferr,
-                        bytes(
-                            "Unable to load latest_static temp\t"
-                            + str(time.ctime())
-                            + "\n",
-                            encoding="utf8",
-                        ),
-                    )
+                    write_log("Unable to load latest_static temp")
             else:
                 fd = os.open("RAM/latest_static", os.O_WRONLY | os.O_CREAT | os.O_TRUNC)
                 os.write(fd, bytes(str(self.prev_static_temp), encoding="utf8"))
@@ -2863,31 +2582,11 @@ class Systemair(object):
         try:
             saturation_point = float(sat_point[1])
         except TypeError:
-            os.write(
-                ferr,
-                bytes(
-                    "Unable to cast 24h low temp "
-                    + str(sat_point)
-                    + "\t"
-                    + str(time.ctime())
-                    + "\n",
-                    encoding="utf8",
-                ),
-            )
+            write_log("Unable to cast 24h low temp " + str(sat_point))
             os.system(f"echo {self.inlet_ave} > ./RAM/latest_static")
             saturation_point = self.inlet_ave
         except IndexError:
-            os.write(
-                ferr,
-                bytes(
-                    "Saturation point was unavailable. "
-                    + str(sat_point)
-                    + "\t"
-                    + str(time.ctime())
-                    + "\n",
-                    encoding="utf8",
-                ),
-            )
+            write_log("Saturation point was unavailable. " + str(sat_point))
             saturation_point = self.inlet_ave
         # if no forecast is avail
         if self.forecast[1] != -1:
@@ -2895,40 +2594,12 @@ class Systemair(object):
                 sun = int(os.popen("./forcast2.0.py sun").readlines()[0].split(":")[0])
             except ValueError:
                 sun = 7
-                os.write(
-                    ferr,
-                    bytes(
-                        "Unable set weather or sunrise "
-                        + "\t"
-                        + str(time.ctime())
-                        + "\n",
-                        encoding="utf8",
-                    ),
-                )
+                write_log("Unable set weather or sunrise")
             except IndexError:
-                os.write(
-                    ferr,
-                    bytes(
-                        "Forcast does not return proper data."
-                        + " "
-                        + str(time.ctime())
-                        + "\n",
-                        encoding="utf8",
-                    ),
-                )
+                write_log(f"Forcast does not return proper data.\t{time.ctime()}")
 
         else:
-            os.write(
-                ferr,
-                bytes(
-                    "forecast unavailible. "
-                    + " "
-                    + str(self.forecast)
-                    + str(time.ctime())
-                    + "\n",
-                    encoding="utf8",
-                ),
-            )
+            write_log("forecast unavailible. " + str(self.forecast))
             sun = 7
 
         if self.prev_static_temp >= self.inlet_ave:
@@ -2962,16 +2633,7 @@ class Systemair(object):
                     if fog_cover > 75:  # if fog over 75% compensate at 0
                         self.kinetic_compensation = 0
                 except ValueError:
-                    os.write(
-                        ferr,
-                        bytes(
-                            "Unable to update morning low with wind/fog compensation"
-                            + "\t"
-                            + str(time.ctime())
-                            + "\n",
-                            "utf-8",
-                        ),
-                    )
+                    write_log("Unable to update morning low with wind/fog compensation")
 
             self.prev_static_temp = (
                 self.inlet_ave
@@ -3048,16 +2710,10 @@ class Systemair(object):
                 and self.monitor
                 and not self.cool_mode
             ):
-                os.write(
-                    ferr,
-                    bytes(
-                        "Starting coefAI test @  "
-                        + str(int(self.extract_ave - self.inlet_ave))
-                        + "C\t"
-                        + str(time.ctime())
-                        + "\n",
-                        "utf-8",
-                    ),
+                write_log(
+                    "Starting coefAI test @  "
+                    + str(int(self.extract_ave - self.inlet_ave))
+                    + "C"
                 )
                 self.set_fanspeed(3)
                 self.coef_debug()
@@ -3127,15 +2783,7 @@ def forced_ventilation(dev):
         if thread.name == "Timer" and thread.is_alive():
             thread.cancel()  # noqa the class is actually threading.Timer
             dev.msg += "Removed Forced ventilation timer\n"
-            os.write(
-                ferr,
-                bytes(
-                    bytes(
-                        "Vent Timer canceled at:\t" + str(time.ctime()) + "\n",
-                        encoding="utf8",
-                    )
-                ),
-            )
+            write_log("Vent Timer canceled at:{time.ctime()}")
             dev.set_monitoring(True)
             dev.monitor()
             dev.timer = False
@@ -3144,10 +2792,7 @@ def forced_ventilation(dev):
         if thread_counter == 2:
             return
 
-    os.write(
-        ferr,
-        bytes("Vent timer started at:\t" + str(time.ctime()) + "\n", encoding="utf8"),
-    )
+    write_log("Vent timer started at:")
     prev = dev.fanspeed
     dev.set_fanspeed(3)
     dev.set_monitoring(False)
@@ -3169,15 +2814,7 @@ def fireplace_mode(dev):
             if thread.name == "fire" and thread.is_alive():
                 thread.cancel()  # noqa the class is actually threading.Timer.
                 dev.msg += "Removed fire starter ventilation timer\n"
-                os.write(
-                    ferr,
-                    bytes(
-                        bytes(
-                            "Fire timer canceled at:\t" + str(time.ctime()) + "\n",
-                            encoding="utf8",
-                        )
-                    ),
-                )
+                write_log("Fire timer canceled at:")
                 dev.set_monitoring(True)
                 thread_counter += 1
             if thread.name == "fireMonitor" and thread.is_alive():
@@ -3186,9 +2823,7 @@ def fireplace_mode(dev):
             if thread_counter == 2:
                 return
 
-        os.write(
-            ferr, bytes("Fire start at:\t" + str(time.ctime()) + "\n", encoding="utf8")
-        )
+        write_log("Fire start at:")
         dev.set_monitoring(False)
         prev = dev.fanspeed
         dev.set_differential(-10)
@@ -3212,7 +2847,7 @@ if __name__ == "__main__":
     req = Request()
     req.setup(unit, mode)
     device = Systemair(req, config_file)
-    os.write(ferr, bytes("System started\t" + str(time.ctime()) + "\n", "utf8"))
+    write_log("System started" + str(time.ctime()))
     req.modbusregister(12543, 0)  # test for self.savecair extended address range
     if device.system_name == "VR400" and req.response != "no data":
         device.savecair = True
@@ -3220,7 +2855,7 @@ if __name__ == "__main__":
         conversion_table = {}
         device.status_field[3] = "savecair"
         device.average_limit = 3400
-        os.write(ferr, bytes("savecair unit set\n", "utf8"))
+        write_log("savecair unit set")
     monitoring = True
     reset_fans = False
 
@@ -3415,10 +3050,7 @@ if __name__ == "__main__":
                             + str(data)
                             + '" >> netlog.log &'
                         )
-                        os.write(
-                            ferr,
-                            bytes(f"{sender}:{data} at\t{time.ctime()}\n", "utf-8"),
-                        )
+                        write_log(f"{sender}:{data} at\t{time.ctime()}")
                         os.system(log)
                     except:
                         device.msg += "net log error\n"
@@ -3529,31 +3161,11 @@ if __name__ == "__main__":
                         device.set_fanspeed(3)
                         device.coef_debug()
             except TypeError as e:
-                os.write(
-                    ferr,
-                    bytes(
-                        "TypeError occurred at:\t" + str(time.ctime()) + "\n" + str(e),
-                        encoding="utf8",
-                    ),
-                )
+                write_log("TypeError occurred: " + str(e))
             except ValueError:
-                os.write(
-                    ferr,
-                    bytes(
-                        "ValueError occurred at:\t" + str(time.ctime()) + "\n",
-                        encoding="utf8",
-                    ),
-                )
+                write_log("ValueError occurred")
             except IOError:
-                os.write(
-                    ferr,
-                    bytes(
-                        "Connection to the systemAir unit has been lost at:\t"
-                        + str(time.ctime())
-                        + "\n",
-                        encoding="utf8",
-                    ),
-                )
+                write_log("Connection to the systemAir unit has been lost")
     except TypeError:
         traceback.print_exc(ferr)
     except ControlledExit:
