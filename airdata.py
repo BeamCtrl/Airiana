@@ -32,14 +32,14 @@ class Energy(object):
             self.press = self.press - (self.alt * self.P_RED)  # Above sea lvl
         except ValueError:
             self.press = 1013.25
-            err = open("airdata_error.log", "w")
+            err = open("RAM/airdata_error.log", "w")
             err.write("Airdata.py pressure error: " + str(sys.exc_info()))
             err.close()
             print("1013.25")
         except FileNotFoundError:
             print("error occurred getting current pressure ISA assumed")
             self.press = 1013.25
-            err = open("airdata_error.log", "w")
+            err = open("RAM/airdata_error.log", "w")
             err.write("Airdata.py pressure error: " + str(sys.exc_info()))
             err.close()
             print("1013.25")
