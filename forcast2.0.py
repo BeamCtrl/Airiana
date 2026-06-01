@@ -17,16 +17,24 @@ def get_sun(lat, long):
     try:
         import ephem
     except ModuleNotFoundError:
-        try:
-            import pip
-        except ModuleNotFoundError:
-            subprocess.check_call(
-                [sys.executable, "/usr/bin/sudo apt install python3-pip"]
+        # Only attempt auto-install if not in test/import context
+        if __name__ == "__main__":
+            try:
+                import pip
+            except ModuleNotFoundError:
+                subprocess.check_call(
+                    [sys.executable, "/usr/bin/sudo apt install python3-pip"]
+                )
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "pyephem"])
+            import ephem
+        else:
+            # In test/import context, fail gracefully
+            import warnings
+
+            warnings.warn(
+                "pyephem not installed - sun calculations unavailable", ImportWarning
             )
-        # subprocess.check_call([sys.executable, "-m", "pip", "install", "pyephem"])
-        subprocess.check_call(
-            ["/usr/bin/env python", "-m", "pip", "install", "pyephem"]
-        )
+            raise ImportError("pyephem required for solar calculations")
     import ephem
 
     o = ephem.Observer()

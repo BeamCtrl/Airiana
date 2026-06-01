@@ -30,11 +30,15 @@ class TestSetFanspeed:
         device.req = Mock()
         device.req.write_register = Mock()
         device.update_airflow = Mock()
-        
+
         # Bind real method
-        device.set_fanspeed = airiana_core.Systemair.set_fanspeed.__get__(device, airiana_core.Systemair)
-        device.get_fanspeed = airiana_core.Systemair.get_fanspeed.__get__(device, airiana_core.Systemair)
-        
+        device.set_fanspeed = airiana_core.Systemair.set_fanspeed.__get__(
+            device, airiana_core.Systemair
+        )
+        device.get_fanspeed = airiana_core.Systemair.get_fanspeed.__get__(
+            device, airiana_core.Systemair
+        )
+
         return device
 
     def test_set_fanspeed_valid_speed_0(self, mock_device):
@@ -175,10 +179,12 @@ class TestGetFanspeed:
         device.req = Mock()
         device.req.modbusregister = Mock()
         device.req.response = 2
-        
+
         # Bind real method
-        device.get_fanspeed = airiana_core.Systemair.get_fanspeed.__get__(device, airiana_core.Systemair)
-        
+        device.get_fanspeed = airiana_core.Systemair.get_fanspeed.__get__(
+            device, airiana_core.Systemair
+        )
+
         return device
 
     def test_get_fanspeed_returns_integer(self, mock_device):
@@ -245,10 +251,12 @@ class TestUpdateFanRpm:
         device.elec_now = time.time()
         device.sf_rpm = 0
         device.ef_rpm = 0
-        
+
         # Bind real method
-        device.update_fan_rpm = airiana_core.Systemair.update_fan_rpm.__get__(device, airiana_core.Systemair)
-        
+        device.update_fan_rpm = airiana_core.Systemair.update_fan_rpm.__get__(
+            device, airiana_core.Systemair
+        )
+
         return device
 
     def test_update_fan_rpm_savecair_false_reads_registers(self, mock_device):
@@ -351,10 +359,12 @@ class TestUpdateFanspeed:
         """Create a mock Systemair device for testing."""
         device = Mock(spec=airiana_core.Systemair)
         device.fanspeed = 1
-        
+
         # Bind real method
-        device.update_fanspeed = airiana_core.Systemair.update_fanspeed.__get__(device, airiana_core.Systemair)
-        
+        device.update_fanspeed = airiana_core.Systemair.update_fanspeed.__get__(
+            device, airiana_core.Systemair
+        )
+
         return device
 
     def test_update_fanspeed_calls_get_fanspeed(self, mock_device):

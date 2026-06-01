@@ -293,9 +293,7 @@ class TestRequestErrorReview:
                                             ):
                                                 req.error_review()
                                                 # Should sleep for recovery
-                                                mock_sleep.assert_called_once_with(
-                                                    10
-                                                )
+                                                mock_sleep.assert_called_once_with(10)
                                                 # connection_timeout should increment
                                                 assert req.connection_timeout == 1
 
@@ -341,9 +339,7 @@ class TestRequestErrorReview:
                             with patch("os.close"):
                                 with patch("os.system"):
                                     with patch("time.sleep"):
-                                        with patch.object(
-                                            req, "close"
-                                        ) as mock_close:
+                                        with patch.object(req, "close") as mock_close:
                                             with patch.object(
                                                 req, "setup", return_value=None
                                             ):
