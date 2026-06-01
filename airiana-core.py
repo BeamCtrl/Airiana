@@ -442,8 +442,7 @@ def check_req(request, test, name):
         if request.response != test:
             write_log(
                 f"Retrieved value for {name}={request.response},"
-                f" but airiana was set to {test}, data updated."
-                f"/t{time.ctime()}"
+                f" but airiana was set to {test}, data updated.")
             )
             return False  # Return False as second request has been made and test is still false.
         return True  # Return True as response test is valid after re-read.
