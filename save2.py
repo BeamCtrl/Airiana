@@ -29,9 +29,6 @@ except:
 i = 0
 target = None
 speeds = (1200, 2400, 4800, 9600, 19200, 28800, 38400, 57600, 115200)
-# print speeds[i]
-# 12100,12101,12102,12103,12104,12105,12106,12107,12108,12109
-import sys
 
 if "test" in sys.argv:
     import minimalmodbus
@@ -114,14 +111,12 @@ if "diff" in sys.argv:
                     pass
 
 while True:
-    print(
-        """
+    print("""
       Usage: Input the addess you want to read.
              Prepend address with a (w) to write to that address. if (w) is used
              the following prompt will be the data to write to the address space.
              ex. read: addrs:101 or addrs:125343 // write: addrs:w100 -> data: 1
-          """
-    )
+          """)
     try:
         if target == None:
             target = input("addrs:")
