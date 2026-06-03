@@ -2600,7 +2600,6 @@ class Systemair(object):
                 write_log(f"Forcast does not return proper data.\t{time.ctime()}")
 
         else:
-            write_log("forecast unavailible. " + str(self.forecast))
             sun = 7
 
         if self.prev_static_temp >= self.inlet_ave:
