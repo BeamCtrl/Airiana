@@ -2094,9 +2094,7 @@ class Systemair(object):
             ):
                 self.cycle_exchanger(0)
                 self.modetoken = time.time()
-                write_log(
-                    f"Exchange set to 0 inlet>10C and extr above target}"
-                )
+                write_log("Exchange set to 0 inlet>10C and extr above target")
 
             if (
                 self.supply_ave > self.target
@@ -2287,7 +2285,7 @@ class Systemair(object):
             ) or (self.supply_ave < 12 and self.extract_dt_long < -0.5):
                 self.set_fanspeed(2)
                 self.msg += "Dynamic fanspeed 2 with long dt\n"
-                write_log(f"Dynamic fanspeed 2 with long dt from 3}")
+                write_log("Dynamic fanspeed 2 with long dt from 3")
 
     def check_cooling(self):
         try:
@@ -3050,7 +3048,7 @@ if __name__ == "__main__":
                             + str(data)
                             + '" >> netlog.log &'
                         )
-                        write_log(f"{sender}:{data} at}")
+                        write_log(f"{sender}:{data} at")
                         os.system(log)
                     except:
                         device.msg += "net log error\n"
