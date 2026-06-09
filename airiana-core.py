@@ -2095,7 +2095,7 @@ class Systemair(object):
                 self.cycle_exchanger(0)
                 self.modetoken = time.time()
                 write_log(
-                    f"Exchange set to 0 inlet>10C and extr above target\t{time.ctime()}"
+                    f"Exchange set to 0 inlet>10C and extr above target}"
                 )
 
             if (
@@ -2287,7 +2287,7 @@ class Systemair(object):
             ) or (self.supply_ave < 12 and self.extract_dt_long < -0.5):
                 self.set_fanspeed(2)
                 self.msg += "Dynamic fanspeed 2 with long dt\n"
-                write_log(f"Dynamic fanspeed 2 with long dt from 3\t{time.ctime()}")
+                write_log(f"Dynamic fanspeed 2 with long dt from 3}")
 
     def check_cooling(self):
         try:
@@ -2597,7 +2597,7 @@ class Systemair(object):
                 sun = 7
                 write_log("Unable set weather or sunrise")
             except IndexError:
-                write_log(f"Forcast does not return proper data.\t{time.ctime()}")
+                write_log(f"Forcast does not return proper data.")
 
         else:
             sun = 7
@@ -3050,7 +3050,7 @@ if __name__ == "__main__":
                             + str(data)
                             + '" >> netlog.log &'
                         )
-                        write_log(f"{sender}:{data} at\t{time.ctime()}")
+                        write_log(f"{sender}:{data} at}")
                         os.system(log)
                     except:
                         device.msg += "net log error\n"
