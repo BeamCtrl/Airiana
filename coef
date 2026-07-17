@@ -33,19 +33,19 @@ for i in range(min_index, max_index + 1):
     try:
         print(i, "C\t\t", end="")
         print(round(float(a[0][i]), 2), " \t\t", end=' ')
-    except:
+    except Exception:
         print("\t\t", end=' ')
     try:
         print(round(float(a[1][i]), 2), "\t\t", end=' ')
-    except:
+    except Exception:
         print("\t\t", end=' ')
     try:
         print(round(float(a[2][i]), 2), "\t\t", end=' ')
-    except:
+    except Exception:
         print("\t\t", end=' ')
     try:
         print(round(float(a[3][i]), 2), "\t\t")
-    except:
+    except Exception:
         print("\t\t")
 
 # WRITE TO FILE
