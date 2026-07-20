@@ -103,7 +103,7 @@ def analyse_stat(status, user):
             # print users[user], "Exchanger problem\n"
             try:
                 stat_dict[user] = {"ExchangerProblem": True}
-            except:
+            except Exception:
                 pass  # print "there is en error in dictsetting"
             # print stat_dict[user]
         # TODO: check exhaust is higher than extract while inlet is lower than extract
@@ -171,7 +171,7 @@ while True:
                         exec("lis =" + stat_field.split(":")[-1])
                     else:
                         lis = ["no data"]
-                except:
+                except Exception:
                     lis = [
                         "-1",
                         "-1",
@@ -194,7 +194,7 @@ while True:
                     try:
                         st = content.split("###")
                         exec("lis =" + st[1].replace("status:", ""))
-                    except:
+                    except Exception:
                         lis = ["data error"]
                 # CHECK IF USER REGISTERED #
                 if user in list(users.keys()):
@@ -270,7 +270,7 @@ while True:
                         pass  # print "No error state"
                     try:
                         html += " </td><td nowrap>" + location[user] + "</td></tr>\n"
-                    except:
+                    except Exception:
                         html += "</td></tr>\n"
 
                 else:
@@ -298,7 +298,7 @@ while True:
                         html2 += 16 * "<td nowrap></td>"
                     try:
                         html2 += "</td><td nowrap>" + location[user] + "</td></tr>\n"
-                    except:
+                    except Exception:
                         html2 += "</td></tr>\n"
 
                     if (time.time() - mod) / 3600 > 240:
