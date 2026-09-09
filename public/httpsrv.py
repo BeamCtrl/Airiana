@@ -49,11 +49,11 @@ def get_ssids():
                 print("iwlist scan timed out, process killed!")
                 SSID_data = []
 
-            SSID_data = [ssid for ssid in SSID_data if ssid.find("x00") == -1]
-            SSID_data = [ssid for ssid in SSID_data if len(ssid) != 0]
-            with open("SSID", "w") as file:
-                file.write(" ".join(SSID_data))
-            print(SSID_data)
+        SSID_data = [ssid for ssid in SSID_data if ssid.find("x00") == -1]
+        SSID_data = [ssid for ssid in SSID_data if len(ssid) != 0]
+        with open("SSID", "w") as file:
+            file.write(" ".join(SSID_data))
+        print(SSID_data)
         print(
             f"SSID age: {time.time() - os.path.getmtime('SSID')} size:{os.path.getsize('SSID')}"
         )
