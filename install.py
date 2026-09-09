@@ -77,6 +77,7 @@ def install_deps(venv_path):
         "iptables",
         "libopenblas-dev",
         "python3-numpy",
+        "wireless-tools",
     ]
     run_command(f"sudo {apt_executable} update")
     run_command(f"sudo {apt_executable} -y install " + " ".join(apt_deps))
@@ -139,6 +140,15 @@ def add_sudoer_conf():
     with os.popen("sudo cat /etc/sudoers") as sudoers:
         if conf not in sudoers.read():
             run_command(f'sudo echo "{conf}" | sudo tee -a /etc/sudoers')
+
+
+def add_iwlist_sudoer():
+    print("Allowing the Airiana service to scan WiFi...")
+    sudoer_file = "/etc/sudoers.d/airiana-iwlist"
+    conf = "pi ALL=(root) NOPASSWD: /usr/sbin/iwlist\n"
+    run_command(f'printf "%s" "{conf}" | sudo tee {sudoer_file} > /dev/null')
+    run_command(f"sudo chmod 440 {sudoer_file}")
+    run_command(f"sudo visudo -cf {sudoer_file}")
 
 
 def set_fstab():
@@ -311,6 +321,7 @@ def execute_sudo_parts():
     set_fstab()
     setUart()
     add_dhcpcd_conf()
+    add_iwlist_sudoer()
     with open("/boot/cmdline.txt", "r") as cmdline:
         if boot_cmd not in cmdline.read():
             print("Updating cmdline.txt")
@@ -319,7 +330,7 @@ def execute_sudo_parts():
         else:
             print("cmdline.txt has full command")
     # Enable python interpreter to bind low ports for http server
-    os.system("setcap 'cap_net_bind_service=+ep' /home/pi/Airiana/venv/bin/python")
+        os.system(f"setcap 'cap_net_bind_service=+ep' {path}/venv/bin/python")
 
 
 if __name__ == "__main__":

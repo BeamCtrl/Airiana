@@ -34,7 +34,7 @@ def get_ssids():
         print("Updating SSIDs")
     try:
         result = subprocess.run(
-            ["sudo", "iwlist", "scan"],
+            ["sudo", "-n", "iwlist", "scan"],
             capture_output=True,
             text=True,
             timeout=10,  # seconds
