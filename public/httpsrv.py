@@ -26,9 +26,6 @@ SSID_data = []
 def get_ssids():
     global SSID_data
     # check if SSID file has been updated (20s) recently or if no SSIDs are present
-    print(
-        f"SSID age: {time.time() - os.path.getmtime('SSID')} size:{os.path.getsize('SSID')}"
-    )
     if (
         not os.path.isfile("SSID")
         or time.time() - os.path.getmtime("SSID") > 20
@@ -47,11 +44,15 @@ def get_ssids():
         print("iwlist scan timed out, process killed!")
         SSID_data = []
 
-        SSID_data = [ssid for ssid in SSID_data if ssid.find("x00") == -1]
-        SSID_data = [ssid for ssid in SSID_data if len(ssid) != 0]
-        with open("SSID", "w") as file:
-            file.write(" ".join(SSID_data))
+    SSID_data = [ssid for ssid in SSID_data if ssid.find("x00") == -1]
+    SSID_data = [ssid for ssid in SSID_data if len(ssid) != 0]
+    with open("SSID", "w") as file:
+        file.write(" ".join(SSID_data))
     print(SSID_data)
+    print(
+        f"SSID age: {time.time() - os.path.getmtime('SSID')} size:{os.path.getsize('SSID')}"
+    )
+
 
 
 class ExtendedHandler(SimpleHTTPRequestHandler):
