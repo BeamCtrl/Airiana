@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys, os, time
 import subprocess
+import threading
 from http.server import (
     BaseHTTPRequestHandler,
     ThreadingHTTPServer,
@@ -21,37 +22,41 @@ PORT = 80
 dirs = "./public/"
 os.chdir(dirs)
 SSID_data = []
+SSID_lock = threading.Lock()
 
 
 def get_ssids():
     global SSID_data
-    # check if SSID file has been updated (20s) recently or if no SSIDs are present
-    if (
-        not os.path.isfile("SSID")
-        or time.time() - os.path.getmtime("SSID") > 20
-        or os.path.getsize("SSID") == 0
-    ):
-        print("Updating SSIDs")
-    try:
-        result = subprocess.run(
-            ["sudo", "-n", "iwlist", "scan"],
-            capture_output=True,
-            text=True,
-            timeout=10,  # seconds
-        )
-        SSID_data = [line for line in result.stdout.splitlines() if "ESSID" in line]
-    except subprocess.TimeoutExpired:
-        print("iwlist scan timed out, process killed!", result)
-        SSID_data = []
+    with SSID_lock:
+        # Recheck freshness after waiting for another request to finish scanning.
+        if (
+            not os.path.isfile("SSID")
+            or time.time() - os.path.getmtime("SSID") > 20
+            or os.path.getsize("SSID") == 0
+        ):
+            print("Updating SSIDs")
+            try:
+                result = subprocess.run(
+                    ["sudo", "-n", "iwlist", "scan"],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,  # seconds
+                )
+                SSID_data = [
+                    line for line in result.stdout.splitlines() if "ESSID" in line
+                ]
+            except subprocess.TimeoutExpired:
+                print("iwlist scan timed out, process killed!")
+                SSID_data = []
 
-    SSID_data = [ssid for ssid in SSID_data if ssid.find("x00") == -1]
-    SSID_data = [ssid for ssid in SSID_data if len(ssid) != 0]
-    with open("SSID", "w") as file:
-        file.write(" ".join(SSID_data))
-    print(SSID_data)
-    print(
-        f"SSID age: {time.time() - os.path.getmtime('SSID')} size:{os.path.getsize('SSID')}"
-    )
+            SSID_data = [ssid for ssid in SSID_data if ssid.find("x00") == -1]
+            SSID_data = [ssid for ssid in SSID_data if len(ssid) != 0]
+            with open("SSID", "w") as file:
+                file.write(" ".join(SSID_data))
+            print(SSID_data)
+        print(
+            f"SSID age: {time.time() - os.path.getmtime('SSID')} size:{os.path.getsize('SSID')}"
+        )
 
 
 class ExtendedHandler(SimpleHTTPRequestHandler):
