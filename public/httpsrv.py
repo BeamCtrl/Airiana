@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys, os, time
+import signal
 import subprocess
 import threading
 from http.server import (
@@ -35,18 +36,22 @@ def get_ssids():
             or os.path.getsize("SSID") == 0
         ):
             print("Updating SSIDs")
+            scan_process = subprocess.Popen(
+                ["sudo", "-n", "iwlist", "scan"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                start_new_session=True,
+            )
             try:
-                result = subprocess.run(
-                    ["sudo", "-n", "iwlist", "scan"],
-                    capture_output=True,
-                    text=True,
-                    timeout=10,  # seconds
-                )
+                stdout, _ = scan_process.communicate(timeout=10)
                 SSID_data = [
-                    line for line in result.stdout.splitlines() if "ESSID" in line
+                    line for line in stdout.splitlines() if "ESSID" in line
                 ]
             except subprocess.TimeoutExpired:
                 print("iwlist scan timed out, process killed!")
+                os.killpg(scan_process.pid, signal.SIGKILL)
+                scan_process.communicate()
                 SSID_data = []
 
         SSID_data = [ssid for ssid in SSID_data if ssid.find("x00") == -1]
