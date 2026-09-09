@@ -45,9 +45,7 @@ def get_ssids():
             )
             try:
                 stdout, _ = scan_process.communicate(timeout=10)
-                SSID_data = [
-                    line for line in stdout.splitlines() if "ESSID" in line
-                ]
+                SSID_data = [line for line in stdout.splitlines() if "ESSID" in line]
             except subprocess.TimeoutExpired:
                 print("iwlist scan timed out, process killed!")
                 os.killpg(scan_process.pid, signal.SIGKILL)
