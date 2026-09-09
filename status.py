@@ -75,17 +75,19 @@ def checkLocation(user):
     try:
         print(f"CheckLocation for {user}")
         if len(location[user]) != 0:
-            
+
             return None
     except KeyError:
         if user.count(":") > 0:
-            with open("./public/local_links/" + user.replace("_",":") + ".html") as log:
+            with open(
+                "./public/local_links/" + user.replace("_", ":") + ".html"
+            ) as log:
                 ip = log.read().split("Source:('")[-1].split("'")[0]
                 if ip.count(".") == 3:
                     print("checking ip:", ip)
                     loc = os.popen("./geoloc.py " + ip + " 2>/dev/null").read()
                     location.update({user: loc})
-                    print ("got new location", loc)
+                    print("got new location", loc)
 
 
 def analyse_stat(status, user):

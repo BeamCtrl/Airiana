@@ -329,7 +329,7 @@ def execute_sudo_parts():
             redirect_console(boot_cmd)
         else:
             print("cmdline.txt has full command")
-    # Enable python interpreter to bind low ports for http server
+        # Enable python interpreter to bind low ports for http server
         os.system(f"setcap 'cap_net_bind_service=+ep' {path}/venv/bin/python")
 
 

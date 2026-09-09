@@ -41,7 +41,7 @@ def get_ssids():
         )
         SSID_data = [line for line in result.stdout.splitlines() if "ESSID" in line]
     except subprocess.TimeoutExpired:
-        print("iwlist scan timed out, process killed!")
+        print("iwlist scan timed out, process killed!", result)
         SSID_data = []
 
     SSID_data = [ssid for ssid in SSID_data if ssid.find("x00") == -1]
@@ -52,7 +52,6 @@ def get_ssids():
     print(
         f"SSID age: {time.time() - os.path.getmtime('SSID')} size:{os.path.getsize('SSID')}"
     )
-
 
 
 class ExtendedHandler(SimpleHTTPRequestHandler):
