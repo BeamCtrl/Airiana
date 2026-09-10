@@ -1,129 +1,81 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>WiFi Configuration</title>
-    <style>
-        #networks { line-height: 1.2em; }
-        select, input { margin-top: 5px; margin-bottom: 5px; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Airiana — Wi-Fi setup</title>
+<style>
+:root{--bg:#eef4f8;--ink:#17324d;--muted:#64788a;--line:#cbd8e2;--blue:#234b76;--blue2:#193b60;--teal:#55aaa3;--warn:#fff8e9;--warn-line:#f0d38a;--warn-ink:#765718}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:24px 18px;display:grid;place-items:center;font:14px Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:radial-gradient(circle at 15% 10%,#dceaf4,transparent 32%),linear-gradient(145deg,#f4f8fb,var(--bg))}
+.page{width:min(880px,100%)}.brand{display:flex;align-items:center;gap:11px;margin:0 0 15px 3px}.brand-mark{width:40px;height:40px;border-radius:12px;background:var(--blue);display:grid;place-items:center;box-shadow:0 4px 12px #234b7638}.brand-mark svg{width:24px}.brand-name{font-size:20px;font-weight:750}.brand-subtitle{font-size:12px;color:var(--muted)}
+.card{display:grid;grid-template-columns:38% 62%;overflow:hidden;border:1px solid #d2dfe9;border-radius:22px;background:#fff;box-shadow:0 12px 35px #1b39521a}
+.visual{position:relative;min-height:510px;padding:35px 28px;display:grid;place-items:center;text-align:center;background:linear-gradient(160deg,#e8f1f7,#dbe9f2);overflow:hidden}.visual:before,.visual:after{content:"";position:absolute;border:1px solid #36688f18;border-radius:50%}.visual:before{width:300px;height:300px;top:-120px;left:-150px}.visual:after{width:400px;height:400px;right:-250px;bottom:-250px}.visual-inner{position:relative;z-index:1;max-width:280px}.device{width:165px;height:165px;margin:0 auto 24px;display:grid;place-items:center;background:#fff;border:1px solid #bfd0de;border-radius:30px;box-shadow:0 16px 30px #2b4c661c}.device svg{width:110px}.visual h2{margin:0 0 7px;font-size:23px;letter-spacing:-.03em}.visual p{margin:0;color:#60768a;line-height:1.5}
+.content{padding:42px 44px 36px}.eyebrow{margin-bottom:7px;color:var(--teal);font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}.content h1{margin:0 0 9px;font-size:32px;line-height:1.1;letter-spacing:-.04em}.intro{margin:0 0 26px;max-width:470px;color:var(--muted);line-height:1.5}
+.field{margin-bottom:18px}label{display:block;margin-bottom:7px;font-size:13px;font-weight:700}select,.password-wrap input{width:100%;height:46px;margin:0;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font:inherit;outline:0}select{padding:0 12px}.password-wrap{position:relative;height:46px}.password-wrap input{display:block;padding:0 48px 0 12px;-webkit-appearance:none;appearance:none}.password-wrap input:focus,select:focus{border-color:#5c91b7;box-shadow:0 0 0 3px #5c91b721}.toggle{position:absolute;right:6px;top:6px;width:34px;height:34px;padding:0;border:0;border-radius:8px;background:transparent;color:#738594;display:grid;place-items:center;cursor:pointer}.toggle:hover{background:#f1f5f8;color:var(--ink)}.toggle svg{width:18px;height:18px}.help{margin-top:6px;color:#82919d;font-size:11px}.status{display:flex;align-items:center;gap:7px;min-height:18px;margin:-2px 0 18px;color:var(--muted);font-size:12px}.dot{width:7px;height:7px;border-radius:50%;background:#8ba0af}.loading .dot{background:#d4a640;animation:pulse 1.2s infinite}.ok .dot{background:var(--teal)}.error .dot{background:#c46d67}@keyframes pulse{50%{opacity:.3}}
+.configure{width:100%;height:47px;border:0;border-radius:10px;background:var(--blue);color:#fff;font:700 14px inherit;cursor:pointer}.configure:hover{background:var(--blue2)}.configure:disabled{opacity:.5;cursor:not-allowed}.warning{display:flex;gap:9px;margin-top:19px;padding:12px 13px;border:1px solid var(--warn-line);border-radius:10px;background:var(--warn);color:var(--warn-ink);font-size:11px;line-height:1.45}.warning b{display:block;font-size:12px}.footer{text-align:center;margin-top:13px;color:#8394a2;font-size:10px}
+@media(max-width:680px){body{padding:14px}.card{grid-template-columns:1fr}.visual{min-height:190px;padding:22px}.visual-inner{display:flex;align-items:center;gap:18px;max-width:440px;text-align:left}.device{width:105px;height:105px;flex:none;margin:0;border-radius:22px}.device svg{width:72px}.visual h2{font-size:19px}.content{padding:30px 25px}.content h1{font-size:28px}}
+@media(max-width:420px){.visual{display:none}.content{padding:27px 20px}}
+</style>
 </head>
 <body>
-    <p>
-        Airiana Wi-Fi access point.<br>
-        Select your network and fill in your password, then press Configure.<br>
-        The Airiana box will reboot when configuring WiFi.
-    </p>
+<main class="page">
+<header class="brand">
+<div class="brand-mark"><svg viewBox="0 0 32 32" fill="none"><path d="M6 12.5C9.5 9.1 13.5 7.4 16 7.4s6.5 1.7 10 5.1M9.5 17.1c2.3-2.2 4.5-3.2 6.5-3.2s4.2 1 6.5 3.2M13.2 21.2c1-.9 1.9-1.3 2.8-1.3s1.8.4 2.8 1.3" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="16" cy="24.8" r="1.8" fill="#fff"/></svg></div>
+<div><div class="brand-name">Airiana</div><div class="brand-subtitle">Ventilation controller</div></div>
+</header>
 
-    <a>Choose your home Wi-Fi network:</a><br>
-    <div id="networks">Loading Wi-Fi access points… Please wait</div>
-    <img src="airiana_wifi.png" alt="Description of image" width="500" height="300">
+<section class="card">
+<aside class="visual">
+<div class="visual-inner">
+<div class="device"><svg viewBox="0 0 160 160" fill="none"><path d="M26 62C50 38 110 38 134 62M44 82C60 67 100 67 116 82M64 101C73 93 87 93 96 101" stroke="#234B76" stroke-width="10" stroke-linecap="round"/><circle cx="80" cy="119" r="8" fill="#234B76"/><circle cx="124" cy="39" r="6" fill="#55AAA3"/></svg></div>
+<div><h2>Connect Airiana</h2><p>Give your ventilation controller access to your home Wi-Fi network.</p></div>
+</div>
+</aside>
 
-    <script>
-        const pollingInterval = 10000; // 10 seconds
-        let ssidRequest = null;
+<div class="content">
+<div class="eyebrow">Network setup</div>
+<h1>Wi-Fi configuration</h1>
+<p class="intro">Select your home network and enter its password. Airiana will restart automatically after the new settings are applied.</p>
 
-        function fetchSSIDs() {
-            // Abort previous request if still running
-            if (ssidRequest) {
-                ssidRequest.abort();
-                console.log("Aborted previous SSID request");
-            }
+<form id="wifiForm">
+<div class="field"><label for="network">Home Wi-Fi network</label><select id="network" name="network" disabled><option>Scanning for networks…</option></select><div class="help">Nearby wireless networks detected by Airiana.</div></div>
+<div id="status" class="status loading"><i class="dot"></i><span>Scanning for available networks…</span></div>
+<div class="field"><label for="password">Wi-Fi password</label><div class="password-wrap"><input id="password" name="Password" type="password" autocomplete="off" placeholder="Enter your Wi-Fi password" required disabled><button id="toggle" class="toggle" type="button" aria-label="Show password"><svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="2.7" stroke="currentColor" stroke-width="1.8"/></svg></button></div></div>
+<button id="configure" class="configure" type="submit" disabled>Configure Wi-Fi</button>
+<div class="warning"><span>↻</span><div><b>Airiana will reboot</b>after you press Configure. The current Wi-Fi connection may be lost while it reconnects.</div></div>
+</form>
+</div>
+</section>
+<div class="footer">Airiana · Wi-Fi configuration</div>
+</main>
 
-            ssidRequest = new XMLHttpRequest();
-            ssidRequest.timeout = 5000;
+<script>
+const $=id=>document.getElementById(id), form=$("wifiForm"), network=$("network"), password=$("password"), toggle=$("toggle"), button=$("configure"), status=$("status"), statusText=status.querySelector("span");
+form.action=`http://${location.hostname||"192.168.1.61"}:8000/setup`;form.method="POST";
 
-            const url = "/SSID"; // guaranteed valid
-            console.log("Opening XHR to:", url);
+toggle.onclick=()=>{const show=password.type==="password";password.type=show?"text":"password";toggle.setAttribute("aria-label",show?"Hide password":"Show password")};
 
-            ssidRequest.onreadystatechange = function() {
-                if (ssidRequest.readyState === 4) {
-                    if (ssidRequest.status === 200) {
-                        renderSSIDs(ssidRequest.responseText);
-                    } else {
-                        console.warn("SSID request failed or aborted", ssidRequest.status);
-                    }
-                    ssidRequest = null;
-                }
-            };
+function setStatus(type,text){status.className=`status ${type}`;statusText.textContent=text}
 
-            ssidRequest.ontimeout = function() {
-                console.warn("SSID request timed out");
-                ssidRequest = null;
-            };
+function scan(){
+    if(window.ssidRequest) window.ssidRequest.abort();
+    setStatus("loading","Scanning for available networks…");
+    const r=new XMLHttpRequest();window.ssidRequest=r;r.timeout=5000;
+    r.onload=()=>{if(r.status===200)render(r.responseText);else setStatus("error","Could not scan for networks. Retrying…")};
+    r.onerror=r.ontimeout=()=>setStatus("error","Network scan failed. Retrying…");
+    r.open("GET","/SSID",true);r.send();
+}
 
-            ssidRequest.open("GET", url, true);
-            ssidRequest.send();
-        }
+function render(text){
+    const ssids=[...new Set([...text.matchAll(/ESSID:(?:"([^"]+)"|(\S+))/g)].map(m=>m[1]||m[2]).filter(s=>s&&s!=='""'))],old=network.value;
+    network.innerHTML="";
+    if(!ssids.length){network.add(new Option("No Wi-Fi networks found",""));network.disabled=password.disabled=button.disabled=true;setStatus("error","No networks found. Retrying…");return}
+    ssids.forEach(s=>network.add(new Option(s,s)));if(ssids.includes(old))network.value=old;
+    network.disabled=password.disabled=button.disabled=false;setStatus("ok",`${ssids.length} network${ssids.length===1?"":"s"} found`);
+}
 
-        function renderSSIDs(responseText) {
-            const raw = [...responseText.matchAll(/ESSID:(?:"([^"]+)"|(\S+))/g)].map(m => m[1] || m[2]);
-            const ssids = raw.filter(ssid => ssid !== '""');
-            console.log(ssids);
-            const container = document.getElementById("networks");
-
-            // Clear previous content
-            container.innerHTML = "";
-
-            // Create form
-            const form = document.createElement("form");
-            form.name = "wifiForm";
-
-            // Build a fully qualified action URL
-            const host = window.location.hostname || "192.168.1.61"; // fallback
-            const port = "8000";
-            form.action = `http://${host}:${port}/setup`;
-            form.method = "POST";
-
-            // Create select box
-            const select = document.createElement("select");
-            select.name = "network";
-
-            if (ssids.length === 0) {
-                const option = document.createElement("option");
-                option.textContent = "Loading Wi-Fi access points… Please wait";
-                select.appendChild(option);
-            } else {
-                ssids.forEach(ssid => {
-                    const option = document.createElement("option");
-                    option.value = ssid;
-                    option.textContent = ssid;
-                    select.appendChild(option);
-                });
-            }
-
-            form.appendChild(select);
-            form.appendChild(document.createElement("br"));
-
-            // Password input and submit
-            if (ssids.length > 0) {
-                const label = document.createElement("label");
-                label.htmlFor = "password";
-                label.textContent = "Password:";
-                form.appendChild(label);
-
-                const input = document.createElement("input");
-                input.type = "password";
-                input.id = "password";
-                input.name = "Password";
-                input.required = true;
-                form.appendChild(document.createElement("br"));
-                form.appendChild(input);
-
-                const submit = document.createElement("input");
-                submit.type = "submit";
-                submit.value = "Configure";
-                form.appendChild(document.createElement("br"));
-                form.appendChild(submit);
-            }
-
-            container.appendChild(form);
-        }
-
-        // Initial fetch
-        fetchSSIDs();
-        // Poll every 10 seconds
-        setInterval(fetchSSIDs, pollingInterval);
-    </script>
+form.onsubmit=()=>{button.disabled=true;button.textContent="Applying configuration…"};
+scan();setInterval(scan,10000);
+</script>
 </body>
 </html>
