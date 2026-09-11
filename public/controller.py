@@ -119,6 +119,7 @@ psk={password}
                     f"echo '{network_conf}'"
                     "| sudo tee /etc/NetworkManager/system-connections/preconfigured.nmconnection"
                     " > /dev/null"
+                    " && sudo chmod 600 /etc/NetworkManager/system-connections/preconfigured.nmconnection"
                 )
                 os.chdir("/home/pi/Airiana/public/")
                 self.send_home()
