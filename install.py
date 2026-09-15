@@ -209,9 +209,11 @@ def setup_services():
         service_path = f"/etc/systemd/system/{service}"
         if not os.path.lexists(service_path):
             with open(f"./systemfiles/{service}") as service_file:
-                service_config = service_file.read().replace(
-                    "@INSTALL_DIR@", path
-                ).replace("@USER@", user_name)
+                service_config = (
+                    service_file.read()
+                    .replace("@INSTALL_DIR@", path)
+                    .replace("@USER@", user_name)
+                )
             run_command(
                 f"printf '%s' {shlex.quote(service_config)} "
                 f"| sudo tee {service_path} > /dev/null"
@@ -235,7 +237,9 @@ def setup_crontab(option):
             line = f"0 */4 * * * /usr/bin/python {path}/updater.py\n"
             updater_updated = True
         if "autohotspot.sh" in line:
-            line = f"*/5 * * * * sudo {path}/systemfiles/autohotspot.sh >/dev/null 2>&1\n"
+            line = (
+                f"*/5 * * * * sudo {path}/systemfiles/autohotspot.sh >/dev/null 2>&1\n"
+            )
             hotspot_updated = True
         crontab += line + "\n"
     if not updater_updated and option == "crontab":
@@ -245,7 +249,9 @@ def setup_crontab(option):
         and osname in ("buster", "bullseye", "bookworm", "trixie")
         and option == "hotspot"
     ):
-        crontab += f"*/5 * * * * sudo {path}/systemfiles/autohotspot.sh >/dev/null 2>&1\n"
+        crontab += (
+            f"*/5 * * * * sudo {path}/systemfiles/autohotspot.sh >/dev/null 2>&1\n"
+        )
     run_command(f'echo "{crontab.strip()}" | crontab -u {user_name} -')
 
 
