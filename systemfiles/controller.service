@@ -1,10 +1,11 @@
 [Unit]
 Description=Airiana Controller TCP(http) --> UDP server
 After=network-online.target
-Type=idle
 [Service]
-ExecStart=/home/pi/Airiana/venv/bin/python  /home/pi/Airiana/public/controller.py
-Restart=always
-serviceUser=pi
+Type=idle
+ExecStart=@INSTALL_DIR@/venv/bin/python @INSTALL_DIR@/public/controller.py
+Restart=on-failure
+RestartSec=5
+User=@USER@
 [Install]
 WantedBy=multi-user.target

@@ -4,10 +4,10 @@ After=network-online.target
 
 [Service]
 Type=idle
-ExecStart=/home/pi/Airiana/venv/bin/python /home/pi/Airiana/airiana-core.py daemon ping humidity
+ExecStart=@INSTALL_DIR@/venv/bin/python @INSTALL_DIR@/airiana-core.py daemon ping humidity
 #cmdl.options:daemon debug humidity moisture sensors exhaust ping temperatur.nu keep-log homeAss TCP
 Restart=always
-User=pi
+User=@USER@
 KillSignal=SIGTERM
 [Install]
 WantedBy=multi-user.target

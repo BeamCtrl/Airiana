@@ -1,4 +1,2 @@
 #!/bin/bash
-pkill -f httpsrv.py
-pkill -f httpsrv2.py
-/home/pi/Airiana/venv/bin/python ./public/httpsrv.py &> /dev/null &
+sudo systemctl restart airiana-http.service

@@ -3,8 +3,6 @@
 import socketserver
 import socket
 import os
-import traceback
-import time
 import sys
 
 hostname = os.popen("hostname").read()[:-1]
@@ -175,17 +173,7 @@ psk={password}
 
 socketserver.TCPServer.allow_reuse_address = True
 
-while True:
-    try:
-        srv = socketserver.TCPServer(("0.0.0.0", 8000), MyHandler)
-        srv.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        print()
-        break
-    except KeyboardInterrupt:
-        exit()
-    except IOError:
-        print("error binding to socket")
-        traceback.print_exc()
-        os.system("sleep 1")
+srv = socketserver.TCPServer(("0.0.0.0", 8000), MyHandler)
+srv.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
 srv.serve_forever()

@@ -126,7 +126,6 @@ if "pytest" not in sys.modules:
         os.chdir(path + "/public")
         os.system("./ip-replace.sh")  # reset ip-addresses on buttons.html
         os.chdir(path)
-        os.system("./http &> /dev/null")  # Start web service
     except Exception as e:
         write_log(f"Failed to initialize system services: {e}")
 listme = []
@@ -2989,7 +2988,6 @@ if __name__ == "__main__":
             # restart HTTP SERVER get filter status, reset IP on buttons page, update weather forecast
             if device.iter % (int(3600 * 2 / device.avg_frame_time)) == 0:
                 device.get_filter_status()
-                os.system("./http &")
                 os.chdir("./public")
                 os.system("./ip-replace.sh &")  # reset ip-addresses on buttons.html
                 os.system("./ip-util.sh &")  # reset ip-addresses on buttons.html
