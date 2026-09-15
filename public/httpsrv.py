@@ -20,8 +20,8 @@ import socketserver, socket, struct, ssl
 print("running python3")
 cert = "../keys/public.pem"
 PORT = 80
-dirs = "./public/"
-os.chdir(dirs)
+dir = Path(__file__).resolve().parent
+os.chdir(dir)
 SSID_data = []
 SSID_lock = threading.Lock()
 
