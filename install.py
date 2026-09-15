@@ -121,7 +121,7 @@ def add_dnsmasq_conf():
 def add_dhcpcd_conf():
     print("Adding dhcpcd configuration...")
     conf = "nohook wpa_supplicant\n"
-    if not os.path.isfile("/etc/dhcp.conf"):
+    if not os.path.isfile("/etc/dhcpd.conf"):
         run_command("sudo touch /etc/dhcpcd.conf")
         run_command("sudo chmod 666 /etc/dhcpcd.conf")
     with open("/etc/dhcpcd.conf", "r+") as dhcpcd:
