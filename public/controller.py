@@ -16,7 +16,7 @@ class MyHandler(socketserver.BaseRequestHandler):
             bytes(
                 "HTTP/1.1 200 OK\n\n"
                 f"Access-Control-Allow-Origin: http://{self.ip}\r\n"
-                "Access-Control-Allow-Methods: PUT, OPTIONS\r\n"
+                "Access-Control-Allow-Methods: GET, PUT, OPTIONS\r\n"
                 "Access-Control-Allow-Headers: Content-Type\r\n"
                 "Content-Type: text/plain\r\n"
                 '<html><head><meta http-equiv="refresh" content="0; url=http://'
