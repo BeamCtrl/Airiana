@@ -2739,9 +2739,9 @@ def system_start():
     sys.stdout.flush()
     print("Generating historical graphs;")
     if "debug" in sys.argv:
-        os.system("nice ./grapher.py debug &")
+        os.system("nice venv/bin/python grapher.py debug &")
     else:
-        os.system("nice ./grapher.py &")
+        os.system("nice venv/bin/python grapher.py &")
     sys.stdout.flush()
     if "debug" in sys.argv:
         print("Checking for sensor data;")
@@ -2951,11 +2951,11 @@ if __name__ == "__main__":
                 device.update_airdata_instance()
                 device.check_coef()
                 if "debug" in sys.argv:
-                    os.system("nice ./grapher.py debug moisture & >>/dev/null")
+                    os.system("nice venv/bin/python grapher.py debug moisture & >>/dev/null")
                 elif device.has_RH_sensor:
-                    os.system("nice ./grapher.py hasRH & >> /dev/null")
+                    os.system("nice venv/bin/python grapher.py hasRH & >> /dev/null")
                 else:
-                    os.system("nice ./grapher.py  & >> /dev/null")
+                    os.system("nice venv/bin/python grapher.py  & >> /dev/null")
                 if "ping" in sys.argv:
                     device.status_field[7] = round(device.inlet_ave, 2)
                     device.status_field[8] = round(device.extract_ave, 2)
