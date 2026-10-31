@@ -2951,7 +2951,9 @@ if __name__ == "__main__":
                 device.update_airdata_instance()
                 device.check_coef()
                 if "debug" in sys.argv:
-                    os.system("nice venv/bin/python grapher.py debug moisture & >>/dev/null")
+                    os.system(
+                        "nice venv/bin/python grapher.py debug moisture & >>/dev/null"
+                    )
                 elif device.has_RH_sensor:
                     os.system("nice venv/bin/python grapher.py hasRH & >> /dev/null")
                 else:
