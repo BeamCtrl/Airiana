@@ -167,7 +167,7 @@ mqtt:
       device_class: power
       value_template: "{{ value_json.electricPower | round(0) }}"
 
-    - name: "Power transfer"
+    - name: "Power loss"
       state_topic: "airiana"
       state_class: "measurement"
       unit_of_measurement: "W"
